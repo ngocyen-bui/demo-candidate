@@ -1,90 +1,272 @@
-import { SearchOutlined } from "@ant-design/icons";
-import { Button, Input, Layout, Space, Table } from "antd";
+import { DownOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Checkbox,
+  Dropdown,
+  Input,
+  Layout,
+  Menu,
+  Space,
+  Tag,
+} from "antd";
+import Table from "antd/lib/table";
 import { Content } from "antd/lib/layout/layout";
 import Highlighter from "react-highlight-words";
-import React, { useRef, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import React, { useEffect, useRef, useState } from "react";
+import { QueryClient, useQuery, useQueryClient } from "react-query";
 import { getListCandidate } from "../../core/candidate";
 import { findFlowStatus, findPriorityStatus } from "../../utils/interface";
+import { Link } from "react-router-dom";
 
-const dataConst = [
-  {
-    key: "1",
-    email: "Bx",
-    name: "John Brown",
-    age: 32,
-    address: "New York No. 1 Lake Park",
-  },
-  {
-    key: "2",
-    email: "Bx",
-    name: "Jim Green",
-    age: 42,
-    address: "London No. 1 Lake Park",
-  },
-  {
-    key: "3",
-    email: "Bx",
-    name: "Joe Black",
-    age: 32,
-    address: "Sidney No. 1 Lake Park",
-  },
-  {
-    key: "4",
-    email: "Bx",
-    name: "Jim Red",
-    age: 32,
-    address: "London No. 2 Lake Park",
-  },
-];
-const formatData = (arr)=>{ 
-    console.log(arr?.data);
-    const result = []; 
-    if(arr?.data) {
-        arr.data.forEach(e => {
-            result.push({
-                id: e.candidate_id,
-                name: e.full_name,
-                primaryStatus: findPriorityStatus(e.priority_status),
-                languages: e.languages,
-                highestDegree: e.highest_education.label || '',
-                city: '',
-                industry: e.business_line,
-                YOB: '',
-                activity: findFlowStatus(e.flow_status)?.label,
-                recentCompany: e.current_employments,
-                recentPositions: [],
-                yearOfServices: 0,
-                yearOfManagement: 0, 
-            })
-        });
-    }
-    
-    console.log(result);
-
-}
+const formatData = (arr) => {
+  if (arr?.data) {
+    return arr.data.map((e, index) => {
+      return {
+        key: index,
+        id: e.candidate_id,
+        name: e.full_name,
+        primaryStatus: findPriorityStatus(e.priority_status)?.label,
+        languages: e?.languages?.map((e) => e.label),
+        highestDegree: e.highest_education.label || "",
+        city: e.address || "",
+        industry: e?.business_line?.map(
+          (e) => "* " + (e?.category?.label || e.sector?.label)
+        ),
+        YOB: "",
+        activity: findFlowStatus(e.flow_status)?.label,
+        recentCompany: e.current_employments.map((e) => e?.organization?.label),
+        recentPositions: [],
+        yearOfServices: 0,
+        yearOfManagement: 0,
+      };
+    });
+  }
+};
+const menu = (
+  <Menu
+    // onClick={handleMenuClick}
+    items={[
+      {
+        label: "ID",
+        key: "1",
+        icon: <Checkbox />,
+        disabled: true,
+      },
+      {
+        label: "Name",
+        key: "2",
+        icon: <Checkbox />,
+        disabled: true,
+      },
+      {
+        label: "Primary Status",
+        key: "3",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Languages",
+        key: "4",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Highest degree",
+        key: "5",
+        icon: <Checkbox />,
+      },
+      {
+        label: "City",
+        key: "6",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Industry",
+        key: "7",
+        icon: <Checkbox />,
+      },
+      {
+        label: "YOB",
+        key: "8",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Activity",
+        key: "9",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Recent companies",
+        key: "10",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Recent positions",
+        key: "11",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Year of services",
+        key: "12",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Year of management",
+        key: "13",
+        icon: <Checkbox />,
+      },
+      {
+        label: "Action",
+        key: "14",
+        icon: <Checkbox />,
+        disabled: true,
+      },
+    ]}
+  />
+);
+const formatColumn = (func) => {
+  return [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      render: (name) => (
+        <p
+          style={{
+            color: "rgb(24, 144, 255)",
+            fontWeight: "bold",
+            width: "90px",
+          }}
+        >
+          {name}
+        </p>
+      ),
+      ...func("id"),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (name) => (
+        <span
+          style={{
+            color: "rgb(24, 144, 255)",
+            textTransform: "capitalize",
+            fontWeight: "bold",
+          }}
+        >
+          {name}
+        </span>
+      ),
+      ...func("name"),
+    },
+    {
+      title: "Primary Status",
+      dataIndex: "primaryStatus",
+      key: "primaryStatus",
+      render: (text) => <Tag color="success">{text}</Tag>,
+      ...func("primaryStatus"),
+    },
+    {
+      title: "Languages",
+      dataIndex: "languages",
+      key: "languages",
+      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
+      ...func("languages"),
+    },
+    {
+      title: "Highest degree",
+      dataIndex: "highestDegree",
+      key: "highestDegree",
+      ...func("highestDegree"),
+    },
+    {
+      title: "City",
+      dataIndex: "city",
+      key: "city",
+      ...func("city"),
+    },
+    {
+      title: "Industry",
+      dataIndex: "industry",
+      key: "industry",
+      render: (text) => text.map((e,i) => <p key={i}>{e}</p>),
+      ...func("industry"),
+    },
+    {
+      title: "YOB",
+      dataIndex: "yob",
+      key: "yob",
+      ...func("yob"),
+    },
+    {
+      title: "Activity",
+      dataIndex: "activity",
+      key: "activity",
+      ...func("activity"),
+    },
+    {
+      title: "Recent companies",
+      dataIndex: "recentCompany",
+      key: "recentCompany",
+      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
+      ...func("recentCompany"),
+    },
+    {
+      title: "Recent positions",
+      dataIndex: "recentPositions",
+      key: "recentPositions",
+      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
+      ...func("recentPositions"),
+    },
+    {
+      title: "Year of services",
+      dataIndex: "yearOfServices",
+      key: "yearOfServices",
+      ...func("yearOfServices"),
+    },
+    {
+      title: "Year of management",
+      dataIndex: "yearOfManagement",
+      key: "yearOfManagement",
+      ...func("yearOfManagement"),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      key: "action",
+      render: ()=> <EyeOutlined style={{cursor: 'pointer'}}/>
+    },
+  ];
+};
 
 export default function Candidate() {
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const [listData, setListData] = useState([]);
+  const queryClient = useQueryClient();  
+  const [page, setPage] = useState(1);
+  const [listData, setListData] = useState();
+  // const [listColumn, setListColumn] = useState([]);
   const searchInput = useRef(null);
+  const { status, data, error, isFetching, isPreviousData } = useQuery(
+    ["projects", page],
+    () => getListCandidate(page),
+    { keepPreviousData: true, staleTime: 5000 }
+  );
 
-  //   const queryClient = useQueryClient();
-
-  const { status, data, error, isFetching } = useQuery("repoData", async () => {
-    return await getListCandidate(3);
-  }); 
-  formatData(data);
+  // Prefetch the next page!
+  useEffect(() => {
+    if (data?.hasMore) {
+      queryClient.prefetchQuery(["projects", page + 1], () =>
+        getListCandidate(page + 1)
+      );
+    }
+  }, [data, page, queryClient]);
+  useEffect(() => {
+    setListData(formatData(data));
+  }, [data]);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+    confirm();  
   };
 
   const handleReset = (clearFilters) => {
-    clearFilters();
-    setSearchText("");
+    clearFilters(); 
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -149,82 +331,68 @@ export default function Candidate() {
       />
     ),
     onFilter: (value, record) =>
-      record[dataIndex]
-        .toString()
-        .toLowerCase()
-        .includes(value.toLowerCase()),
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownVisibleChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
       }
     },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: "#ffc069",
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
-      ),
   });
   const handlerChangePagination = (page) => {
-    console.log(page);
-  }
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      width: "30%",
-      ...getColumnSearchProps("name"),
-    },
-    {
-      title: "Age",
-      dataIndex: "age",
-      key: "age",
-      width: "20%",
-      ...getColumnSearchProps("age"),
-    },
-    {
-      title: "Address",
-      dataIndex: "address",
-      key: "address",
-      ...getColumnSearchProps("address"),
-      //   sorter: (a, b) => a.address.length - b.address.length,
-      //   sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-      ...getColumnSearchProps("email"),
-    },
-  ];
-  return status === "loading" ? (
-    "Loading..."
-  ) : status === "error" ? (
-    <span>Error: {error.message}</span>
-  ) : (
-    <Layout>
-      <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
-        <Content
-          className="site-layout-background"
-          style={{
-            padding: 24,
-            margin: 0,
-            minHeight: 280,
-            backgroundColor: "white",
-          }}
-        >
-          <Table columns={columns} dataSource={dataConst}  pagination={{ showSizeChanger: false, showQuickJumper: true, total: data.count, onChange: handlerChangePagination }}/> 
-        </Content>
+    setPage(page);
+  };
+  const columns = formatColumn(getColumnSearchProps);
+  if (listData)
+    return (
+      <Layout>
+        <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
+          <Content
+            className="site-layout-background"
+            style={{
+              padding: 24,
+              margin: 0,
+              minHeight: 280,
+              backgroundColor: "white",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div
+                style={{ color: "#465f7b", fontWeight: 600, fontSize: "16px" }}
+              >
+                Candidates List ({data.count})
+              </div>
+              <div style={{ textAlign: "end" }}>
+                <Button style={{ marginRight: 10 }}>Clear all filters</Button>
+                <Link to="/add-candidate"><Button type="primary">
+                  <PlusOutlined />
+                  Create candidates
+                </Button></Link>
+              </div>
+            </div>
+            <Space style={{ marginBlock: "10px 16px", float: "right" }}>
+              <Dropdown overlay={menu} autoFocus onVisibleChange={false}>
+                <Button style={{ width: 160 }}>
+                  <Space>
+                    Custom Columns
+                    <DownOutlined />
+                  </Space>
+                </Button>
+              </Dropdown>		 
+            </Space>
+
+            <Table
+              columns={columns}
+              dataSource={listData}
+              scroll={{x : 1000}}
+              pagination={{
+                showSizeChanger: false,
+                showQuickJumper: true,
+                total: data.count,
+                onChange: handlerChangePagination,
+              }}
+            />
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
-  );
+    );
 }
