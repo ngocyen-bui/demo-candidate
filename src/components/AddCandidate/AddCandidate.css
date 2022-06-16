@@ -1,0 +1,12 @@
+.label-add-candidate{
+    padding-bottom: 20px;
+    margin-top: 30px;
+}
+.title-add-candidate{
+    color: #465f7b;
+    font-weight: 600;
+    font-size: 16px;
+}
+.ant-form-item {
+    margin: 0;
+}

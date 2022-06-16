@@ -26,7 +26,7 @@ const listTitleNavBar = [
   },
   {
     icon: <SolutionOutlined />,
-    title: <Link to='candidates'>Candicates</Link>, 
+    title: <Link to='candidates'>Candidates</Link>, 
     key: '2'
   },
   {

@@ -245,7 +245,7 @@ export default function Candidate() {
   // const [listColumn, setListColumn] = useState([]);
   const searchInput = useRef(null);
   const { status, data, error, isFetching, isPreviousData } = useQuery(
-    ["projects", page],
+    ["listCandidate", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
   );  
@@ -382,7 +382,7 @@ export default function Candidate() {
             <Table
               columns={columns}
               dataSource={listData}
-              scroll={{x : 1000}}
+              scroll= {{ x: true} }
               pagination={{
                 showSizeChanger: false,
                 showQuickJumper: true,
