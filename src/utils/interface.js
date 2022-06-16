@@ -35,7 +35,7 @@ const candidate_flow_status = [
 ]
 
 const ACTIVE = { id: 1, key: '1', label: 'Active', name: 'Active', color: 'green' }
-const OFFLIMIT = { id: -1, key: '-1', label: 'Off-limit', name: 'Off-limit', color: 'geekblue' }
+const OFFLIMIT = { id: -1, key: '-1', label: 'Off-limit', name: 'Off-limit', color: '#3F556d' }
 const BLACKLIST = { id: -2, key: '-2', label: 'Blacklist', name: 'Blacklist', color: 'magenta' }
 const INACTIVE = { id: 5, key: '5', label: 'Inactive', name: 'Inactive', color: 'red' }
 

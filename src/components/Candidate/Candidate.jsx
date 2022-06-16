@@ -10,12 +10,11 @@ import {
   Tag,
 } from "antd";
 import Table from "antd/lib/table";
-import { Content } from "antd/lib/layout/layout";
-import Highlighter from "react-highlight-words";
+import { Content } from "antd/lib/layout/layout"; 
 import React, { useEffect, useRef, useState } from "react";
-import { QueryClient, useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { getListCandidate } from "../../core/candidate";
-import { findFlowStatus, findPriorityStatus } from "../../utils/interface";
+import { candidate_priority_status as statusPriority, findFlowStatus, findPriorityStatus } from "../../utils/interface";
 import { Link } from "react-router-dom";
 
 const formatData = (arr) => {
@@ -162,7 +161,9 @@ const formatColumn = (func) => {
       title: "Primary Status",
       dataIndex: "primaryStatus",
       key: "primaryStatus",
-      render: (text) => <Tag color="success">{text}</Tag>,
+      render: (text) => { 
+        let x = statusPriority.filter(e => e.name === text)[0];
+        return <Tag style={{color: x.color, borderColor: x.color, background: '#f6ffed'}}>{x.label}</Tag>},
       ...func("primaryStatus"),
     },
     {
@@ -236,8 +237,7 @@ const formatColumn = (func) => {
       render: ()=> <EyeOutlined style={{cursor: 'pointer'}}/>
     },
   ];
-};
-
+}; 
 export default function Candidate() {
   const queryClient = useQueryClient();  
   const [page, setPage] = useState(1);
@@ -248,8 +248,7 @@ export default function Candidate() {
     ["projects", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
-  );
-
+  );  
   // Prefetch the next page!
   useEffect(() => {
     if (data?.hasMore) {
@@ -265,7 +264,7 @@ export default function Candidate() {
     confirm();  
   };
 
-  const handleReset = (clearFilters) => {
+  const handleReset = (clearFilters) => { 
     clearFilters(); 
   };
 
