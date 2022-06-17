@@ -1,12 +1,13 @@
 import {
   Breadcrumb,
   Button,
-  Col, 
+  Col,
   Form,
   Input,
+  InputNumber,
   Radio,
   Row,
-  Select, 
+  Select,
   Spin,
   Steps,
 } from "antd";
@@ -15,7 +16,12 @@ import { useState } from "react";
 import "./AddCandidate.css";
 import { Link } from "react-router-dom";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { getLocationFromCity, getLocationFromCountry, getNationality, getValueFlag } from "../../core/candidate";
+import {
+  getLocationFromCity,
+  getLocationFromCountry,
+  getNationality,
+  getValueFlag,
+} from "../../core/candidate";
 import { useQuery } from "react-query";
 const { Step } = Steps;
 
@@ -51,46 +57,49 @@ const month = [
 
 export default function AddCandidate(props) {
   const [current, setCurrent] = useState(0);
-  const [country, setCountry]= useState();
-  const [city, setCity]= useState();
+  const [country, setCountry] = useState();
+  const [city, setCity] = useState();
+  const [value, setValue] = useState();
+  const [disabled, setDisabled] = useState(false);
   // const [form] = Form.useForm();
 
-  const {data: listCountries} = useQuery(
-    "repoData",
-    () => getValueFlag()
+  const { data: listCountries } = useQuery("repoData", () => getValueFlag());
+  const { data: listNationality } = useQuery("repoNationality", () =>
+    getNationality()
   );
-  const {data: listNationality} = useQuery(
-    "repoNationality",
-    () => getNationality()
+  const { data: dataFromCountry, refetch: countryRefetch } = useQuery(
+    ["locationFromCountry", country],
+    () => getLocationFromCountry(country),
+    { enabled: Boolean(country) }
   );
-  console.log(listNationality);
-  const {data: dataFromCountry, refetch: countryRefetch} = useQuery(
-    ["locationFromCountry",country],
-    () => getLocationFromCountry(country),{enabled: Boolean(country)}
-  );
-  const {data: dataFromCity, refetch: cityRefetch} = useQuery(
-    ["locationFromCity",city],
-    () => getLocationFromCity(city),{enabled: Boolean(city)}
+  const { data: dataFromCity, refetch: cityRefetch } = useQuery(
+    ["locationFromCity", city],
+    () => getLocationFromCity(city),
+    { enabled: Boolean(city) }
   );
 
-  let listCountry = listCountries?.data || []; 
+  let listCountry = listCountries?.data || [];
   const onChange = (value) => {
     setCurrent(value);
   };
   const onFinish = (values) => {
     console.log("Received values of form:", values);
   };
-
-  const onChangeCountryAddress = (e)=>{ 
-    setCountry(e) ;  
-  } 
-  const onChangeCityAddress = (e)=>{ 
-    setCity(e) ;  
-  } 
+  const onValuesChange = (values) => {
+    setValue(values);
+  };
+  const onChangeCountryAddress = (e) => {
+    setCountry(e);
+  };
+  const onChangeCityAddress = (e) => {
+    setCity(e);
+  };
   if (true) {
     return (
       <Layout>
-        <Layout style={{ padding: "12px 24px 0 24px ", minHeight: "1000px" }}>
+        <Layout
+          style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
+        >
           <Breadcrumb separator="/">
             <Breadcrumb.Item>
               <Link to="/candidates">Candidates List</Link>
@@ -128,6 +137,7 @@ export default function AddCandidate(props) {
               initialValues={{ emails: [""], phones: [""], address: [""] }}
               autoComplete="off"
               onFinish={onFinish}
+              onValuesChange={onValuesChange}
             >
               <Row className="wrapper-name-add-candidate">
                 {/* Fullname */}
@@ -136,13 +146,17 @@ export default function AddCandidate(props) {
                     <div className="label-add-candidate">
                       First Name<span style={{ color: "red" }}>*</span>:
                     </div>
-                    <Form.Item required name="firstName" rules={[ 
-                                  {
-                                    required: true,
-                                    message: "Please input First Name!",
-                                  },
-                                ]}>
+                    <Form.Item
+                      name="firstName"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input First Name!",
+                        },
+                      ]}
+                    >
                       <Input
+                        disabled={disabled}
                         style={{ width: "100%" }}
                         placeholder="Please Input First Name"
                       />
@@ -155,10 +169,10 @@ export default function AddCandidate(props) {
                     <div className="label-add-candidate">
                       Last Name<span style={{ color: "red" }}>*</span>:
                     </div>
-                    <Form.Item 
+                    <Form.Item
                       style={{ width: "100%" }}
                       name="lastName"
-                      rules={[ 
+                      rules={[
                         {
                           required: true,
                           message: "Please input Last Name!",
@@ -166,6 +180,7 @@ export default function AddCandidate(props) {
                       ]}
                     >
                       <Input
+                        disabled={disabled}
                         style={{ width: "100%" }}
                         placeholder="Please Input Last Name"
                       />
@@ -179,13 +194,17 @@ export default function AddCandidate(props) {
                       First Name<span style={{ color: "red" }}>*</span>:
                     </div>
 
-                    <Form.Item rules={[ 
+                    <Form.Item
+                      rules={[
                         {
                           required: true,
                           message: "Please input Middle Name!",
                         },
-                      ]} name="middleName">
+                      ]}
+                      name="middleName"
+                    >
                       <Input
+                        disabled={disabled}
                         style={{ width: "100%" }}
                         placeholder="Please Input Middle Name"
                       />
@@ -198,6 +217,7 @@ export default function AddCandidate(props) {
                     <div className="label-add-candidate">Primary status:</div>
                     <Form.Item required name="primaryStatus">
                       <Select
+                        disabled={disabled}
                         style={{ width: "100%" }}
                         placeholder="Please select primary status"
                         optionFilterProp="children"
@@ -224,95 +244,97 @@ export default function AddCandidate(props) {
                 {/* Birthday */}
                 <Col span={12}>
                   <div style={{ paddingInline: 10 }}>
-                    <div className="label-add-candidate">Birthday:</div> 
-                      <Row>
-                        <Col span={8} style={{ paddingRight: 10 }}>
-                          <Form.Item name="date">
-                            <Select
-                              style={{ width: "100%" }}
-                              showSearch
-                              placeholder="Date"
-                              optionFilterProp="children"
-                              // onChange={onChange}
-                              // onSearch={onSearch}
-                              filterOption={(input, option) =>
-                                option.children
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              {day().map(function (x, i) {
-                                return (
-                                  <Select.Option key={i} value={x}>
-                                    {x}
-                                  </Select.Option>
-                                );
-                              })}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        <Col span={8} style={{ paddingInline: 5 }}>
-                          <Form.Item name="month">
-                            <Select
-                              style={{ width: "100%" }}
-                              showSearch
-                              placeholder="Month"
-                              optionFilterProp="children"
-                              // onChange={onChange}
-                              // onSearch={onSearch}
-                              filterOption={(input, option) =>
-                                option.children
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              {month.map(function (x, i) {
-                                return (
-                                  <Select.Option key={i} value={x}>
-                                    {x}
-                                  </Select.Option>
-                                );
-                              })}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        <Col span={8} style={{ paddingLeft: 10 }}>
-                          <Form.Item name="year">
-                            <Select
-                              style={{ width: "100%" }}
-                              showSearch
-                              placeholder="Year"
-                              optionFilterProp="children"
-                              // onChange={onChange}
-                              // onSearch={onSearch}
-                              filterOption={(input, option) =>
-                                option.children
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              {year().map(function (x, i) {
-                                return (
-                                  <Select.Option key={i} value={x}>
-                                    {x}
-                                  </Select.Option>
-                                );
-                              })}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row> 
+                    <div className="label-add-candidate">Birthday:</div>
+                    <Row>
+                      <Col span={8} style={{ paddingRight: 10 }}>
+                        <Form.Item name="date">
+                          <Select
+                            disabled={disabled}
+                            style={{ width: "100%" }}
+                            showSearch
+                            placeholder="Date"
+                            optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            filterOption={(input, option) =>
+                              option.children
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                          >
+                            {day().map(function (x, i) {
+                              return (
+                                <Select.Option key={i} value={x}>
+                                  {x}
+                                </Select.Option>
+                              );
+                            })}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8} style={{ paddingInline: 5 }}>
+                        <Form.Item name="month">
+                          <Select
+                            disabled={disabled}
+                            style={{ width: "100%" }}
+                            showSearch
+                            placeholder="Month"
+                            optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            filterOption={(input, option) =>
+                              option.children
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                          >
+                            {month.map(function (x, i) {
+                              return (
+                                <Select.Option key={i} value={x}>
+                                  {x}
+                                </Select.Option>
+                              );
+                            })}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8} style={{ paddingLeft: 10 }}>
+                        <Form.Item name="year">
+                          <Select
+                            disabled={disabled}
+                            style={{ width: "100%" }}
+                            showSearch
+                            placeholder="Year"
+                            optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            filterOption={(input, option) =>
+                              option.children
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                          >
+                            {year().map(function (x, i) {
+                              return (
+                                <Select.Option key={i} value={x}>
+                                  {x}
+                                </Select.Option>
+                              );
+                            })}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
                   </div>
                 </Col>
                 {/* Space */}
-                <Col span={12}>
-                </Col>
+                <Col span={12}></Col>
                 {/* Gender */}
                 <Col span={12}>
                   <div style={{ paddingInline: 10 }}>
                     <div className="label-add-candidate">Gender:</div>
                     <Form.Item required name="gender">
-                      <Radio.Group onChange={onChange}>
+                      <Radio.Group onChange={onChange} disabled={disabled}>
                         <Radio value={"male"}>Male</Radio>
                         <Radio value={"female"}>Female</Radio>
                         <Radio value={"complecated"}>Complicated</Radio>
@@ -325,7 +347,7 @@ export default function AddCandidate(props) {
                   <div style={{ paddingInline: 10 }}>
                     <div className="label-add-candidate">Marital Status:</div>
                     <Form.Item required name="maritalStatus">
-                      <Radio.Group onChange={onChange}>
+                      <Radio.Group onChange={onChange} disabled={disabled}>
                         <Radio value={"yes"}>Yes</Radio>
                         <Radio value={"no"}>No</Radio>
                       </Radio.Group>
@@ -339,6 +361,7 @@ export default function AddCandidate(props) {
 
                     <Form.Item required name="readyToMove">
                       <Select
+                        disabled={disabled}
                         style={{ width: "100%", cursor: "pointer" }}
                         defaultValue={"Yes"}
                         optionFilterProp="children"
@@ -363,8 +386,9 @@ export default function AddCandidate(props) {
                 <Col span={12}>
                   <div style={{ paddingInline: 10 }}>
                     <div className="label-add-candidate">Source:</div>
-                    <Form.Item required name="firstName">
+                    <Form.Item required name="source">
                       <Input
+                        disabled={disabled}
                         style={{ width: "100%" }}
                         placeholder="Please input source"
                       />
@@ -406,12 +430,14 @@ export default function AddCandidate(props) {
                                 ]}
                               >
                                 <Input
+                                  disabled={disabled}
                                   style={{ width: "100%" }}
                                   placeholder={"ex: email@email.com"}
                                 />
                               </Form.Item>
                               {emails.length > 1 ? (
                                 <MinusCircleOutlined
+                                  disabled={disabled}
                                   style={{ marginLeft: 10, paddingTop: 10 }}
                                   onClick={() => remove(name)}
                                 />
@@ -424,6 +450,7 @@ export default function AddCandidate(props) {
                               style={{ width: "60%", textAlign: "end" }}
                             >
                               <Button
+                                disabled={disabled}
                                 style={{
                                   width: "70%",
                                   color: "#40a9ff",
@@ -462,17 +489,13 @@ export default function AddCandidate(props) {
                               }}
                               align="baseline"
                             >
-                              <Form.Item
-                                {...restField}
-                                style={{ flex: 1 }}
-                                name={[key, "phones"]} 
-                              >
-                                <Input.Group
-                                  name="phone"
-                                  style={{ display: "flex" }}
-                                  compact
+                              <Input.Group style={{ display: "flex" }} compact>
+                                <Form.Item
+                                  {...restField}
+                                  name={[key, "country-code"]} 
                                 >
                                   <Select
+                                    disabled={disabled}
                                     style={{ width: 100 }}
                                     defaultValue="+84"
                                     showSearch
@@ -489,16 +512,29 @@ export default function AddCandidate(props) {
                                       );
                                     })}
                                   </Select>
+                                </Form.Item>
+                                <Form.Item
+                                  name={[key, "phone"]}
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please input your number phone!",
+                                    },
+                                  ]}
+                                  style={{
+                                    flex: 1,
+                                    width: "100%",
+                                  }}
+                                >
                                   <Input
-                                    style={{
-                                      flex: 1,
-                                    }}
+                                    disabled={disabled}
                                     placeholder="ex: 371234567"
                                   />
-                                </Input.Group>
-                              </Form.Item>
+                                </Form.Item>
+                              </Input.Group>
                               {phones.length > 1 ? (
                                 <MinusCircleOutlined
+                                  disabled={disabled}
                                   style={{ marginLeft: 10, paddingTop: 10 }}
                                   onClick={() => remove(name)}
                                 />
@@ -511,6 +547,7 @@ export default function AddCandidate(props) {
                               style={{ width: "60%", textAlign: "end" }}
                             >
                               <Button
+                                disabled={disabled}
                                 style={{
                                   width: "70%",
                                   color: "#40a9ff",
@@ -534,7 +571,7 @@ export default function AddCandidate(props) {
                 <Col span={24}>
                   <div style={{ paddingInline: 10 }}>
                     <div className="label-add-candidate">Address:</div>
-                    <Form.List name="address">
+                    <Form.List name={"address"}>
                       {(address, { add, remove }) => (
                         <>
                           {address.map(({ key, name, ...restField }) => (
@@ -546,31 +583,19 @@ export default function AddCandidate(props) {
                               }}
                               align="baseline"
                             >
-                              <Form.Item
-                                {...restField}
-                                style={{ flex: 1 }}
-                                name={[key, "address"]} 
-                              >
-                                <Row>
-                                  <Col span={8} style={{ paddingRight: 5 }}>
-                                    <Select optionFilterProp='children' placeholder="Country" showSearch onChange={e=>onChangeCountryAddress(e)}>
-                                    {listCountry.map((e, i) => {
-                                      return (
-                                        <Select.Option
-                                          key={i}
-                                          children={e?.label}
-                                          value={e?.key}
-                                          maxTagTextLength={10}
-                                        >
-                                          {e?.label}
-                                        </Select.Option>
-                                      );
-                                    })}
-                                    </Select>
-                                  </Col>
-                                  <Col span={8} style={{ paddingInline: 10 }}>
-                                    <Select optionFilterProp='children' disabled={!dataFromCountry?.data.length > 0} placeholder="City" showSearch onChange={e=>onChangeCityAddress(e)}>
-                                      {dataFromCountry?.data?.map((e, i) => {
+                              <Row style={{ flex: 1 }}>
+                                <Col span={8} style={{ paddingRight: 5 }}>
+                                  <Form.Item name={[key, "country"]}>
+                                    <Select
+                                      disabled={disabled}
+                                      optionFilterProp="children"
+                                      placeholder="Country"
+                                      showSearch
+                                      onChange={(e) =>
+                                        onChangeCountryAddress(e)
+                                      }
+                                    >
+                                      {listCountry.map((e, i) => {
                                         return (
                                           <Select.Option
                                             key={i}
@@ -583,9 +608,46 @@ export default function AddCandidate(props) {
                                         );
                                       })}
                                     </Select>
-                                  </Col>
-                                  <Col span={8} style={{ paddingLeft: 5 }}>
-                                    <Select disabled={!dataFromCity?.data.length > 0} defaultValue="District" showSearch>
+                                  </Form.Item>
+                                </Col>
+                                <Col span={8} style={{ paddingInline: 10 }}>
+                                  <Form.Item name={[key, "city"]}>
+                                    <Select
+                                      optionFilterProp="children"
+                                      disabled={
+                                        !dataFromCountry?.data.length > 0 ||
+                                        disabled
+                                      }
+                                      placeholder="City"
+                                      showSearch
+                                      onChange={(e) => onChangeCityAddress(e)}
+                                    >
+                                      {dataFromCountry?.data?.map((e, i) => {
+                                        return (
+                                          <Select.Option
+                                            disabled={disabled}
+                                            key={i}
+                                            children={e?.label}
+                                            value={e?.key}
+                                            maxTagTextLength={10}
+                                          >
+                                            {e?.label}
+                                          </Select.Option>
+                                        );
+                                      })}
+                                    </Select>
+                                  </Form.Item>
+                                </Col>
+                                <Col span={8} style={{ paddingLeft: 5 }}>
+                                  <Form.Item name={[key, "district"]}>
+                                    <Select
+                                      disabled={
+                                        !dataFromCity?.data.length > 0 ||
+                                        disabled
+                                      }
+                                      defaultValue="District"
+                                      showSearch
+                                    >
                                       {dataFromCity?.data.map((e, i) => {
                                         return (
                                           <Select.Option
@@ -598,19 +660,26 @@ export default function AddCandidate(props) {
                                         );
                                       })}
                                     </Select>
-                                  </Col>
-                                  <Input
-                                    style={{
-                                      marginTop: 20,
-                                    }}
-                                    placeholder="ex: 371234567"
-                                  />
-                                </Row>
-                              </Form.Item>
+                                  </Form.Item>
+                                </Col>
+                                <Input
+                                  disabled={disabled}
+                                  name="street"
+                                  style={{
+                                    marginTop: 20,
+                                  }}
+                                  placeholder="ex: 371234567"
+                                />
+                              </Row>
                               {address.length > 1 ? (
                                 <MinusCircleOutlined
-                                  style={{ marginLeft: 10, paddingTop: 10 }}
-                                  onClick={() => remove(name)}
+                                  twoToneColor={"red"}
+                                  style={{
+                                    marginLeft: 10,
+                                    paddingTop: 10,
+                                    color: "white",
+                                  }}
+                                  onClick={() => (disabled ? remove(name) : "")}
                                 />
                               ) : null}
                             </div>
@@ -619,6 +688,7 @@ export default function AddCandidate(props) {
                           {address.length < 5 ? (
                             <Form.Item style={{ textAlign: "center" }}>
                               <Button
+                                disabled={disabled}
                                 style={{
                                   width: "50%",
                                   color: "#40a9ff",
@@ -638,16 +708,129 @@ export default function AddCandidate(props) {
                     </Form.List>
                   </div>
                 </Col>
+                {/* Nationality */}
+                <Col span={24}>
+                  <div style={{ paddingInline: 10 }}>
+                    <div className="label-add-candidate">Nationality :</div>
+                    <Form.Item required name="nationality">
+                      <Select
+                      disabled={disabled}
+                        optionFilterProp="children"
+                        placeholder="Please choose a nationality"
+                        showSearch
+                        onChange={(e) => onChangeCountryAddress(e)}
+                      >
+                        {listNationality?.data?.map((e, i) => {
+                          return (
+                            <Select.Option
+                              key={i}
+                              children={e?.label}
+                              value={e?.key}
+                              maxTagTextLength={10}
+                            >
+                              {e?.label}
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                </Col> 
+                 {/* Position Applied  */}
+                 <Col span={24}>
+                  <div style={{ paddingInline: 10 }}>
+                    <div className="label-add-candidate">Position Applied  :</div>
+                    <Form.Item required name="positionApplied">
+                      <Select
+                      disabled={disabled}
+                        optionFilterProp="children"
+                        placeholder="Select or add your position applied"
+                        showSearch
+                        onChange={(e) => onChangeCountryAddress(e)}
+                      >
+                        {listNationality?.data?.map((e, i) => {
+                          return (
+                            <Select.Option
+                              key={i}
+                              children={e?.label}
+                              value={e?.key}
+                              maxTagTextLength={10}
+                            >
+                              {e?.label}
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                </Col>
+                {/* Industry Year of Services */}
+                <Col span={12}>
+                  <div style={{ paddingInline: 10 }}>
+                    <div className="label-add-candidate">
+                      Industry Year of Services:
+                    </div>
+                    <Form.Item name="yearOfServices">
+                      <InputNumber
+                      disabled={disabled}
+                        style={{ width: "100%" }}
+                        min={1}
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
+                {/* Year of Management */}
+                <Col span={12}>
+                  <div style={{ paddingInline: 10 }}>
+                    <div className="label-add-candidate">
+                      Year of Management:
+                    </div>
+                    <Form.Item name="yearOfManagement">
+                      <InputNumber
+                      disabled={disabled}
+                        style={{ width: "100%" }}
+                        min={1}
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
+                {/* No. of Direct Reports */}
+                <Col span={12}>
+                  <div style={{ paddingInline: 10 }}>
+                    <div className="label-add-candidate">
+                      No. of Direct Reports:
+                    </div>
+                    <Form.Item name="directReports">
+                      <InputNumber
+                      disabled={disabled}
+                        style={{ width: "100%" }}
+                        min={1}
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
               </Row>
-              <Form.Item label=" " colon={false}>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
+              {!value ? (
+                ""
+              ) : (
+                <Form.Item label=" " colon={false}>
+                  <Button
+                    style={{ float: "right", marginRight: 40 }}
+                    type="primary"
+                    onClick={() => setDisabled(true)}
+                    htmlType="submit"
+                  >
+                    Create and Next
+                  </Button>
+                </Form.Item>
+              )}
             </Form>
           </Content>
         </Layout>
       </Layout>
     );
-  }  
+  }
 }

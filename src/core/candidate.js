@@ -27,7 +27,7 @@ export const getListCandidate = (number) => {return axios.get(DOMAIN+'/nadh-api-
      headers: HeaderFetch, 
  }).then((res) => res.data)}
 
- export const getNationality = (number) => {return axios.get( DOMAIN`/nadh-api-crm/api/property_values?property_name=nationality`, 
+ export const getNationality = (number) => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=nationality`, 
  {
      headers: HeaderFetch, 
  }).then((res) => res.data)}

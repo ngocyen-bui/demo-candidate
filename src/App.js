@@ -5,7 +5,7 @@ import {
   SolutionOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Image, Layout, Menu } from "antd";
+import { Avatar, BackTop, Image, Layout, Menu } from "antd";
 import React from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
@@ -88,8 +88,12 @@ const App = () => (
           <Route path="add-candidate" element={<AddCandidate />} />
         </Routes>
       </Layout>
+      <>
+    <BackTop /> 
+  </>
     </QueryClientProvider>
   </BrowserRouter>
+  
 );
 
 export default App;
