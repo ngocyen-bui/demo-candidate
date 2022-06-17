@@ -1,4 +1,9 @@
-import { DownOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  EyeOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Checkbox,
@@ -6,17 +11,23 @@ import {
   Input,
   Layout,
   Menu,
+  Select,
   Space,
   Tag,
 } from "antd";
 import Table from "antd/lib/table";
-import { Content } from "antd/lib/layout/layout"; 
+import { Content } from "antd/lib/layout/layout";
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { getListCandidate } from "../../core/candidate";
-import { candidate_priority_status as statusPriority, findFlowStatus, findPriorityStatus } from "../../utils/interface";
-import { Link } from "react-router-dom";
-
+import {
+  candidate_priority_status as statusPriority,
+  findFlowStatus,
+  findPriorityStatus,
+  getlistStatus,
+} from "../../utils/interface";
+import { Link, useNavigate } from "react-router-dom";
+ 
 const formatData = (arr) => {
   if (arr?.data) {
     return arr.data.map((e, index) => {
@@ -121,7 +132,7 @@ const menu = (
     ]}
   />
 );
-const formatColumn = (func) => {
+const formatColumn = (funcSearch,funcSelect) => {
   return [
     {
       title: "ID",
@@ -138,7 +149,7 @@ const formatColumn = (func) => {
           {name}
         </p>
       ),
-      ...func("id"),
+      ...funcSearch("id"),
     },
     {
       title: "Name",
@@ -155,100 +166,117 @@ const formatColumn = (func) => {
           {name}
         </span>
       ),
-      ...func("name"),
+      ...funcSearch("name"),
     },
     {
       title: "Primary Status",
       dataIndex: "primaryStatus",
       key: "primaryStatus",
-      render: (text) => { 
-        let x = statusPriority.filter(e => e.name === text)[0];
-        return <Tag style={{color: x.color, borderColor: x.color, background: '#f6ffed'}}>{x.label}</Tag>},
-      ...func("primaryStatus"),
+      render: (text) => {
+        let x = statusPriority.filter((e) => e.name === text)[0];
+        return (
+          <Tag
+            style={{
+              color: x.color,
+              borderColor: x.color,
+              background: "#f6ffed",
+            }}
+          >
+            {x.label}
+          </Tag>
+        );
+      },
+      ...funcSelect("primaryStatus",getlistStatus()),
     },
     {
       title: "Languages",
       dataIndex: "languages",
       key: "languages",
-      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
-      ...func("languages"),
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("languages"),
     },
     {
       title: "Highest degree",
       dataIndex: "highestDegree",
       key: "highestDegree",
-      ...func("highestDegree"),
+      ...funcSearch("highestDegree"),
     },
     {
       title: "City",
       dataIndex: "city",
       key: "city",
-      ...func("city"),
+      ...funcSearch("city"),
     },
     {
       title: "Industry",
       dataIndex: "industry",
       key: "industry",
-      render: (text) => text.map((e,i) => <p key={i}>{e}</p>),
-      ...func("industry"),
+      render: (text) => text.map((e, i) => <p key={i}>{e}</p>),
+      ...funcSearch("industry"),
     },
     {
       title: "YOB",
       dataIndex: "yob",
       key: "yob",
-      ...func("yob"),
+      ...funcSearch("yob"),
     },
     {
       title: "Activity",
       dataIndex: "activity",
       key: "activity",
-      ...func("activity"),
+      ...funcSearch("activity"),
     },
     {
       title: "Recent companies",
       dataIndex: "recentCompany",
       key: "recentCompany",
-      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
-      ...func("recentCompany"),
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("recentCompany"),
     },
     {
       title: "Recent positions",
       dataIndex: "recentPositions",
       key: "recentPositions",
-      render: (text) => text.map((e,i) => <p key={i}>- {e}</p>),
-      ...func("recentPositions"),
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("recentPositions"),
     },
     {
       title: "Year of services",
       dataIndex: "yearOfServices",
       key: "yearOfServices",
-      ...func("yearOfServices"),
+      ...funcSearch("yearOfServices"),
     },
     {
       title: "Year of management",
       dataIndex: "yearOfManagement",
       key: "yearOfManagement",
-      ...func("yearOfManagement"),
+      ...funcSearch("yearOfManagement"),
     },
     {
       title: "Action",
       dataIndex: "action",
       key: "action",
-      render: ()=> <EyeOutlined style={{cursor: 'pointer'}}/>
+      render: () => <EyeOutlined style={{ cursor: "pointer" }} />,
     },
   ];
-}; 
+};
 export default function Candidate() {
-  const queryClient = useQueryClient();  
+ 
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState(''); 
+
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [listData, setListData] = useState();
+  const [resetFilter, setResetFilter] = useState(false);
   // const [listColumn, setListColumn] = useState([]);
   const searchInput = useRef(null);
   const { status, data, error, isFetching, isPreviousData } = useQuery(
     ["listCandidate", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
-  );  
+  );
   // Prefetch the next page!
   useEffect(() => {
     if (data?.hasMore) {
@@ -260,13 +288,32 @@ export default function Candidate() {
   useEffect(() => {
     setListData(formatData(data));
   }, [data]);
+  useEffect(()=>{
+    if(resetFilter && data?.hasMore){
+      queryClient.prefetchQuery(["projects", page], () =>
+      getListCandidate(page)
+    );
+    }
+  },[resetFilter]) 
+
+  const handlerClickRow = (data)=>{ 
+    navigate("/candidate-detail/"+data.id);
+  }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();  
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex); 
+    // localStorage.setItem('filterCDD', JSON.stringify([{
+    //   value: searchText,
+    //   col: searchedColumn
+    // }])) 
   };
 
-  const handleReset = (clearFilters) => { 
-    clearFilters(); 
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText('');
   };
+
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
@@ -337,10 +384,80 @@ export default function Candidate() {
       }
     },
   });
+  const getColumnSelectProps = (dataIndex,listData) => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+      >
+        <Space>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{
+              background: "white",
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+        </Space>
+        <Select
+            showSearch
+            style={{
+              width: 200,
+              display: 'block',
+              marginTop: 10
+            }}    
+            placeholder="Search to Select"
+            optionFilterProp="children"
+            filterOption={(input, option) => option.children.includes(input)}
+            filterSort={(optionA, optionB) =>
+              optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+            }
+          >
+            {listData?.map((e,i)=>{
+                <Select.Option value={i}>{e}</Select.Option>
+            })}c
+          </Select>  
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined
+        style={{
+          color: filtered ? "#1890ff" : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownVisibleChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+  });
   const handlerChangePagination = (page) => {
     setPage(page);
   };
-  const columns = formatColumn(getColumnSearchProps);
+  const columns = formatColumn(getColumnSearchProps,getColumnSelectProps);
   if (listData)
     return (
       <Layout>
@@ -362,10 +479,12 @@ export default function Candidate() {
               </div>
               <div style={{ textAlign: "end" }}>
                 <Button style={{ marginRight: 10 }}>Clear all filters</Button>
-                <Link to="/add-candidate"><Button type="primary">
-                  <PlusOutlined />
-                  Create candidates
-                </Button></Link>
+                <Link to="/add-candidate">
+                  <Button type="primary">
+                    <PlusOutlined />
+                    Create candidates
+                  </Button>
+                </Link>
               </div>
             </div>
             <Space style={{ marginBlock: "10px 16px", float: "right" }}>
@@ -376,13 +495,18 @@ export default function Candidate() {
                     <DownOutlined />
                   </Space>
                 </Button>
-              </Dropdown>		 
+              </Dropdown>
             </Space>
 
             <Table
               columns={columns}
               dataSource={listData}
-              scroll= {{ x: true} }
+              scroll={{ x: true }} 
+              onRow={(record, rowIndex) => {
+                return {
+                  onClick: event => {handlerClickRow(record)}, // click row 
+                };
+              }}
               pagination={{
                 showSizeChanger: false,
                 showQuickJumper: true,

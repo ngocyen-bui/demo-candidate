@@ -6,13 +6,14 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, BackTop, Image, Layout, Menu } from "antd";
-import React from "react";
+import React, { useState } from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
 import Candidate from "./components/Candidate/Candidate";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
-import AddCandidate from "./components/AddCandidate/AddCandidate";
+import AddCandidate from "./components/AddCandidate/AddCandidate"; 
+import Login from "./components/Login/Login";
 const { Header } = Layout;
 // Create a client
 const queryClient = new QueryClient();
@@ -50,29 +51,35 @@ const listTitleNavBar = [
     key: '6'
   },
 ];
-
 const formatList = listTitleNavBar.map((e, index) => ({
   index,
   icon: e.icon,
   label: e.title,
 }));
-const App = () => (
-  // Provide the client to your App
+const App = () =>{ 
+  
+  const [token] = useState(localStorage.getItem('auth'));
+  
+  return ( 
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <Layout>
         <Header className="header app-header">
+          <Link to="/">
           <Image
+          preview={false}
             width={90}
             src="https://nadh.lubrytics.com/static/media/logo_white.0fe5940b.png"
           />
-
-          <Avatar
-            style={{ float: "right", transform: "translateY(50%)" }}
-            src={
-              "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
-            }
-          />
+          </Link> 
+          <Link to='/' onClick={()=> localStorage.removeItem('auth')} style={{ float: "right" }} >
+            <Avatar
+              
+              src={
+                "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
+              }
+            />
+          </Link>
         </Header> 
         <Menu
           theme="light"
@@ -83,8 +90,9 @@ const App = () => (
         >  
         </Menu>
          <Routes>
-          <Route path="/" element={<>Login</>} />
+          <Route path="/" element={!  Boolean(token)?<Login/>:<></>} />
           <Route path="candidates" element={<Candidate/>} />
+          <Route path="candidate-detail/:id" element={<AddCandidate />} />
           <Route path="add-candidate" element={<AddCandidate />} />
         </Routes>
       </Layout>
@@ -94,6 +102,6 @@ const App = () => (
     </QueryClientProvider>
   </BrowserRouter>
   
-);
+)}
 
 export default App;

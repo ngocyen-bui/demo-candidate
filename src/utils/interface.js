@@ -55,6 +55,9 @@ const candidate_reject_reason = [
     NOT_INTEREST,
     NOT_CULTURE
 ]
+function getlistStatus (){
+    return [ACTIVE.name, OFFLIMIT.name, BLACKLIST.name,INACTIVE.name]
+}
 
 function findFlowStatus(current_status) {
     return candidate_flow_status.find(item => item.id * 1 === current_status * 1);
@@ -69,6 +72,7 @@ function findRejectReason(current_status) {
 }
 
 export {
+    getlistStatus,
     findFlowStatus,
     candidate_flow_status,
     RAW,

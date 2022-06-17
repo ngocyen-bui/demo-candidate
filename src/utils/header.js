@@ -1,7 +1,8 @@
+
+const token= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0Y2YxMzk5LWMyMGMtNGEwYy05NWU4LTdmODEyNjE5NzEwOCIsInVzZXJfaWQiOjEyLCJpYXQiOjE2NTU0MzQ2OTIsImV4cCI6MTY1NjAzOTQ5Mn0.dJZP0zUyE2l_K3Y4XpfMO5TKYeyeG9Dn5SFVnG7a16flcTZbsvodb1LE2UAQeEpoN1c7hoGh6OCSJgzrsRHIDQ';
 export const HeaderFetch = {
   Authorization:
-    "Bearer " +
-    "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0Y2YxMzk5LWMyMGMtNGEwYy05NWU4LTdmODEyNjE5NzEwOCIsInVzZXJfaWQiOjEyLCJpYXQiOjE2NTUzOTY3NjAsImV4cCI6MTY1NjAwMTU2MH0.SHfR9NyJCyP9wwPhJVbxXOMc3xylRMhSYHvRaXqShLmhLNKrGxu5uUNIMw1tr1MKqEGJ069qnUP8uKip4Ej6Lw",
+    "Bearer " + token,
   "Content-Type": "application/json",
   Accept: "application/json",
 };
