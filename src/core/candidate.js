@@ -40,3 +40,8 @@ export const getListCandidate = (number) => {return axios.get(DOMAIN+'/nadh-api-
      headers: HeaderFetch, 
  }).then((res) => res.data)} 
  
+ export const getCandidateByPriorityStatus = (id) => {return axios.get( DOMAIN+`/nadh-api-crm/api/candidates?page=1&perPage=10&full_name=1&priority_status=`+ id, 
+ {
+     headers: HeaderFetch, 
+ }).then((res) => res.data)} 
+ 

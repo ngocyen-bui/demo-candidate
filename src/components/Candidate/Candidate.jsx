@@ -27,7 +27,7 @@ import {
   getlistStatus,
 } from "../../utils/interface";
 import { Link, useNavigate } from "react-router-dom";
- 
+  
 const formatData = (arr) => {
   if (arr?.data) {
     return arr.data.map((e, index) => {
@@ -52,9 +52,137 @@ const formatData = (arr) => {
     });
   }
 };
+const formatColumn = (funcSearch,funcSelect) => {
+  return [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      render: (name) => (
+        <p
+          style={{
+            color: "rgb(24, 144, 255)",
+            fontWeight: "bold",
+            width: "90px",
+          }}
+        >
+          {name}
+        </p>
+      ),
+      ...funcSearch("id"),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (name) => (
+        <span
+          style={{
+            color: "rgb(24, 144, 255)",
+            textTransform: "capitalize",
+            fontWeight: "bold",
+          }}
+        >
+          {name}
+        </span>
+      ),
+      ...funcSearch("name"),
+    },
+    {
+      title: "Primary Status",
+      dataIndex: "primaryStatus",
+      key: "primaryStatus",
+      render: (text) => {
+        let x = statusPriority.filter((e) => e.name === text)[0];
+        return (
+          <Tag
+            style={{
+              color: x.color,
+              borderColor: x.color,
+              background: "#f6ffed",
+            }}
+          >
+            {x.label}
+          </Tag>
+        );
+      },
+      ...funcSelect("primaryStatus", getlistStatus),
+    },
+    {
+      title: "Languages",
+      dataIndex: "languages",
+      key: "languages",
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("languages"),
+    },
+    {
+      title: "Highest degree",
+      dataIndex: "highestDegree",
+      key: "highestDegree",
+      ...funcSearch("highestDegree"),
+    },
+    {
+      title: "City",
+      dataIndex: "city",
+      key: "city",
+      ...funcSearch("city"),
+    },
+    {
+      title: "Industry",
+      dataIndex: "industry",
+      key: "industry",
+      render: (text) => text.map((e, i) => <p key={i}>{e}</p>),
+      ...funcSearch("industry"),
+    },
+    {
+      title: "YOB",
+      dataIndex: "yob",
+      key: "yob",
+      ...funcSearch("yob"),
+    },
+    {
+      title: "Activity",
+      dataIndex: "activity",
+      key: "activity",
+      ...funcSearch("activity"),
+    },
+    {
+      title: "Recent companies",
+      dataIndex: "recentCompany",
+      key: "recentCompany",
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("recentCompany"),
+    },
+    {
+      title: "Recent positions",
+      dataIndex: "recentPositions",
+      key: "recentPositions",
+      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
+      ...funcSearch("recentPositions"),
+    },
+    {
+      title: "Year of services",
+      dataIndex: "yearOfServices",
+      key: "yearOfServices",
+      ...funcSearch("yearOfServices"),
+    },
+    {
+      title: "Year of management",
+      dataIndex: "yearOfManagement",
+      key: "yearOfManagement",
+      ...funcSearch("yearOfManagement"),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      key: "action",
+      render: () => <EyeOutlined style={{ cursor: "pointer" }} />,
+    },
+  ];
+};
+
 const menu = (
-  <Menu
-    // onClick={handleMenuClick}
+  <Menu 
     items={[
       {
         label: "ID",
@@ -132,134 +260,6 @@ const menu = (
     ]}
   />
 );
-const formatColumn = (funcSearch,funcSelect) => {
-  return [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      render: (name) => (
-        <p
-          style={{
-            color: "rgb(24, 144, 255)",
-            fontWeight: "bold",
-            width: "90px",
-          }}
-        >
-          {name}
-        </p>
-      ),
-      ...funcSearch("id"),
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (name) => (
-        <span
-          style={{
-            color: "rgb(24, 144, 255)",
-            textTransform: "capitalize",
-            fontWeight: "bold",
-          }}
-        >
-          {name}
-        </span>
-      ),
-      ...funcSearch("name"),
-    },
-    {
-      title: "Primary Status",
-      dataIndex: "primaryStatus",
-      key: "primaryStatus",
-      render: (text) => {
-        let x = statusPriority.filter((e) => e.name === text)[0];
-        return (
-          <Tag
-            style={{
-              color: x.color,
-              borderColor: x.color,
-              background: "#f6ffed",
-            }}
-          >
-            {x.label}
-          </Tag>
-        );
-      },
-      ...funcSelect("primaryStatus",getlistStatus()),
-    },
-    {
-      title: "Languages",
-      dataIndex: "languages",
-      key: "languages",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("languages"),
-    },
-    {
-      title: "Highest degree",
-      dataIndex: "highestDegree",
-      key: "highestDegree",
-      ...funcSearch("highestDegree"),
-    },
-    {
-      title: "City",
-      dataIndex: "city",
-      key: "city",
-      ...funcSearch("city"),
-    },
-    {
-      title: "Industry",
-      dataIndex: "industry",
-      key: "industry",
-      render: (text) => text.map((e, i) => <p key={i}>{e}</p>),
-      ...funcSearch("industry"),
-    },
-    {
-      title: "YOB",
-      dataIndex: "yob",
-      key: "yob",
-      ...funcSearch("yob"),
-    },
-    {
-      title: "Activity",
-      dataIndex: "activity",
-      key: "activity",
-      ...funcSearch("activity"),
-    },
-    {
-      title: "Recent companies",
-      dataIndex: "recentCompany",
-      key: "recentCompany",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("recentCompany"),
-    },
-    {
-      title: "Recent positions",
-      dataIndex: "recentPositions",
-      key: "recentPositions",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("recentPositions"),
-    },
-    {
-      title: "Year of services",
-      dataIndex: "yearOfServices",
-      key: "yearOfServices",
-      ...funcSearch("yearOfServices"),
-    },
-    {
-      title: "Year of management",
-      dataIndex: "yearOfManagement",
-      key: "yearOfManagement",
-      ...funcSearch("yearOfManagement"),
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
-      render: () => <EyeOutlined style={{ cursor: "pointer" }} />,
-    },
-  ];
-};
 export default function Candidate() {
  
   const [searchText, setSearchText] = useState('');
@@ -272,7 +272,7 @@ export default function Candidate() {
   const [resetFilter, setResetFilter] = useState(false);
   // const [listColumn, setListColumn] = useState([]);
   const searchInput = useRef(null);
-  const { status, data, error, isFetching, isPreviousData } = useQuery(
+  const { data} = useQuery(
     ["listCandidate", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
@@ -294,26 +294,21 @@ export default function Candidate() {
       getListCandidate(page)
     );
     }
-  },[resetFilter]) 
+  },[resetFilter,data?.hasMore,page,queryClient]) 
 
   const handlerClickRow = (data)=>{ 
     navigate("/candidate-detail/"+data.id);
   }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex); 
-    // localStorage.setItem('filterCDD', JSON.stringify([{
-    //   value: searchText,
-    //   col: searchedColumn
-    // }])) 
+    // setSearchText(selectedKeys[0]);
+    // setSearchedColumn(dataIndex);  
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
-  };
-
+  }; 
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
@@ -434,7 +429,7 @@ export default function Candidate() {
             }
           >
             {listData?.map((e,i)=>{
-                <Select.Option value={i}>{e}</Select.Option>
+               return <Select.Option value={e.key}>{e.name}</Select.Option>
             })}c
           </Select>  
       </div>
@@ -457,7 +452,8 @@ export default function Candidate() {
   const handlerChangePagination = (page) => {
     setPage(page);
   };
-  const columns = formatColumn(getColumnSearchProps,getColumnSelectProps);
+  const columns = formatColumn(getColumnSearchProps, getColumnSelectProps);
+
   if (listData)
     return (
       <Layout>
@@ -498,7 +494,7 @@ export default function Candidate() {
               </Dropdown>
             </Space>
 
-            <Table
+            <Table  
               columns={columns}
               dataSource={listData}
               scroll={{ x: true }} 
