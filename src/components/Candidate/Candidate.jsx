@@ -19,7 +19,7 @@ import Table from "antd/lib/table";
 import { Content } from "antd/lib/layout/layout";
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
-import { getListCandidate } from "../../core/candidate";
+import { getCandidateByPriorityStatus, getListCandidate } from "../../core/candidate";
 import {
   candidate_priority_status as statusPriority,
   findFlowStatus,
@@ -268,41 +268,56 @@ export default function Candidate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [count, setCount] =useState(0)
   const [listData, setListData] = useState();
   const [resetFilter, setResetFilter] = useState(false);
+
+
+
+
+  const [keyPriority, setKeyPriority] = useState(0);
   // const [listColumn, setListColumn] = useState([]);
   const searchInput = useRef(null);
-  const { data} = useQuery(
+  const { data: totalData } = useQuery(
     ["listCandidate", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
   );
+  
+  const { data: getFromPriorityStatus} = useQuery(
+    ["getDataByPriority", keyPriority],
+    () => getCandidateByPriorityStatus(keyPriority),
+    { enabled: Boolean(keyPriority) }
+  ); 
   // Prefetch the next page!
   useEffect(() => {
-    if (data?.hasMore) {
+    if (totalData?.hasMore) {
       queryClient.prefetchQuery(["projects", page + 1], () =>
         getListCandidate(page + 1)
       );
     }
-  }, [data, page, queryClient]);
-  useEffect(() => {
-    setListData(formatData(data));
-  }, [data]);
+  }, [totalData, page, queryClient]);
+  useEffect(() => { 
+    setListData(formatData(totalData));
+    setCount(totalData?.count)
+  }, [totalData]);
+useEffect(() =>{
+  setListData(formatData(getFromPriorityStatus));
+  setCount(getFromPriorityStatus?.count);
+},[getFromPriorityStatus]) 
   useEffect(()=>{
-    if(resetFilter && data?.hasMore){
+    if(resetFilter && totalData?.hasMore){
       queryClient.prefetchQuery(["projects", page], () =>
       getListCandidate(page)
     );
     }
-  },[resetFilter,data?.hasMore,page,queryClient]) 
+  },[resetFilter,totalData?.hasMore,page,queryClient]) 
 
   const handlerClickRow = (data)=>{ 
     navigate("/candidate-detail/"+data.id);
   }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    // setSearchText(selectedKeys[0]);
-    // setSearchedColumn(dataIndex);  
+    confirm(); 
   };
 
   const handleReset = (clearFilters) => {
@@ -310,6 +325,9 @@ export default function Candidate() {
     setSearchText('');
   }; 
 
+  const onChangeData =(e)=>{
+    setKeyPriority(e)
+  } 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
       setSelectedKeys,
@@ -421,6 +439,7 @@ export default function Candidate() {
               display: 'block',
               marginTop: 10
             }}    
+            onChange={(value) => onChangeData(value)}
             placeholder="Search to Select"
             optionFilterProp="children"
             filterOption={(input, option) => option.children.includes(input)}
@@ -429,7 +448,7 @@ export default function Candidate() {
             }
           >
             {listData?.map((e,i)=>{
-               return <Select.Option value={e.key}>{e.name}</Select.Option>
+               return <Select.Option key={i} value={e.key}>{e.name}</Select.Option>
             })}c
           </Select>  
       </div>
@@ -471,7 +490,7 @@ export default function Candidate() {
               <div
                 style={{ color: "#465f7b", fontWeight: 600, fontSize: "16px" }}
               >
-                Candidates List ({data.count})
+                Candidates List ({count})
               </div>
               <div style={{ textAlign: "end" }}>
                 <Button style={{ marginRight: 10 }}>Clear all filters</Button>
@@ -500,13 +519,13 @@ export default function Candidate() {
               scroll={{ x: true }} 
               onRow={(record, rowIndex) => {
                 return {
-                  onClick: event => {handlerClickRow(record)}, // click row 
+                  onClick: () => {handlerClickRow(record)}, // click row 
                 };
               }}
               pagination={{
                 showSizeChanger: false,
                 showQuickJumper: true,
-                total: data.count,
+                total: count,
                 onChange: handlerChangePagination,
               }}
             />

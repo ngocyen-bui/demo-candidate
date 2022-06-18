@@ -70,10 +70,16 @@ export default function AddCandidate(props) {
     if (Boolean(localStorage.getItem('personal-infomation'))) return true;
     return false;
   });
+
+  
+  const [prevData, setPrevData] = useState()
+
+
   const { data: listCountries } = useQuery("repoData", () => getValueFlag());
   const { data: listNationality } = useQuery("repoNationality", () =>
     getNationality()
   ); 
+  
   const { data: listPosition } = useQuery(
     "position", () => getPosition(),
   );
@@ -87,43 +93,43 @@ export default function AddCandidate(props) {
     () => getLocationFromCity(city),
     { enabled: Boolean(city) }
   ); 
+ 
+useEffect(()=>{
+  if(params.id){
+     getCandidate(params.id).then(dataCandidate =>{
+      const x =({
+        address:  dataCandidate?.addresses,
+        date: null,
+        directReports: 2,
+        emails: dataCandidate?.emails?.map((e,i) =>({key: i,email: e})) || [],
+        firstName: dataCandidate?.first_name,
+        gender: dataCandidate?.gender,
+        lastName: dataCandidate?.last_name,
+        maritalStatus: null,
+        middleName: dataCandidate?.middle_name,
+        month: null,
+        nationality: dataCandidate?.nationality,
+        phones: dataCandidate?.phones?.map((e,i) =>({key: i, phone: e.number}))|| [],
+        positionApplied: 544,
+        primaryStatus: null,
+        source: null,
+        year: null,
+        yearOfManagement: dataCandidate?.management_years,
+        yearOfServices: 1, 
+      }); 
+      setPrevData(x)
+    });
+  }else{
+    setPrevData(JSON.parse(localStorage.getItem('personal-infomation')))
+  }
+})
+ 
 
-  const { data: dataCandidate} = useQuery(
-    ["getDetail", params.id],
-    () => getCandidate(params.id),
-    { enabled: Boolean(params.id)}
-  );   
-  
   useEffect(()=>{
-    // const x =({
-    //   address: [],
-    //   date: null,
-    //   directReports: 2,
-    //   emails: dataCandidate?.emails?.map(e =>({email: e})) || [],
-    //   firstName: dataCandidate?.first_name,
-    //   gender: dataCandidate?.gender,
-    //   lastName: dataCandidate?.last_name,
-    //   maritalStatus: null,
-    //   middleName: dataCandidate?.middle_name,
-    //   month: null,
-    //   nationality: dataCandidate?.nationality,
-    //   phones: dataCandidate?.phones?.map(e =>({phone: e.number}))|| [],
-    //   positionApplied: 544,
-    //   primaryStatus: null,
-    //   source: null,
-    //   year: null,
-    //   yearOfManagement: dataCandidate?.management_years,
-    //   yearOfServices: 1,
-
-    // });
+    
     if(params?.id)setDisabled(false);
-  },[dataCandidate,params?.id])
+  },[params?.id])
 
-  const [prevData, setPrevData] = useState(()=>{
-     
-    return JSON.parse(localStorage.getItem('personal-infomation'));
-  })
-  
   const onChange = (value) => {
     setCurrent(value);
   };
@@ -166,7 +172,8 @@ export default function AddCandidate(props) {
       // localStorage.removeItem('personal-infomation')
     }, secondsToGo * 1000);
   };   
-   return (
+  if(prevData || !params?.id)
+  return (
     <Layout>
       <Layout
         style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
