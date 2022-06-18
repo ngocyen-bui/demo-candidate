@@ -12,6 +12,8 @@ export default function Login(){
   
   const onFinish = (values) => {
     login({user_name:values.username,password: values.password}); 
+    
+
   };
   
     const onFinishFailed = (errorInfo) => {

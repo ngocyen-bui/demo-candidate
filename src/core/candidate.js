@@ -15,8 +15,6 @@ export const getListCandidate = (number) => {return axios.get(DOMAIN+'/nadh-api-
  }).then((res) => res.data)}
 
 
-
-
  export const getLocationFromCountry = (number) => {return axios.get(DOMAIN+'/nadh-api-crm/api/locations?type=1&parent_id='+number+'&limit=500', 
  {
      headers: HeaderFetch, 

@@ -1,5 +1,5 @@
 
-const token= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0Y2YxMzk5LWMyMGMtNGEwYy05NWU4LTdmODEyNjE5NzEwOCIsInVzZXJfaWQiOjEyLCJpYXQiOjE2NTU1MTY5OTIsImV4cCI6MTY1NjEyMTc5Mn0.hGgDaDljATIXQFKA19YOl4kky35oEBAr5TgvR3JD85gmDmmF-X3oz4nVM17WaP6vTq00xaiao-DEEQODNCKWbw';
+const token = localStorage.getItem('auth');
 export const HeaderFetch = {
   Authorization:
     "Bearer " + token,
