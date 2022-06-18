@@ -19,7 +19,7 @@ import Table from "antd/lib/table";
 import { Content } from "antd/lib/layout/layout";
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
-import { getCandidateByPriorityStatus, getListCandidate } from "../../core/candidate";
+import { getCandidateByPriorityStatus, getDefaultProp, getKeyPageCDD, getListCandidate } from "../../core/candidate";
 import {
   candidate_priority_status as statusPriority,
   findFlowStatus,
@@ -265,69 +265,83 @@ export default function Candidate() {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState(''); 
 
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [count, setCount] =useState(0)
   const [listData, setListData] = useState();
   const [resetFilter, setResetFilter] = useState(false);
+  const [listSearch, setListSearch] = useState({}) 
+  
+  
 
-
-
-
+  //search   
   const [keyPriority, setKeyPriority] = useState(0);
-  // const [listColumn, setListColumn] = useState([]);
+    
   const searchInput = useRef(null);
   const { data: totalData } = useQuery(
     ["listCandidate", page],
     () => getListCandidate(page),
     { keepPreviousData: true, staleTime: 5000 }
-  );
-  
+  ); 
+    //Get data default key page 
+  const { data: listDefaultKeyPage } = useQuery("keyPage", () => getKeyPageCDD(), { keepPreviousData: true, staleTime: 5000 });
+  const { data: listDefaultProp } = useQuery("defaultProps", () => getDefaultProp(), { keepPreviousData: true, staleTime: 5000 }); 
+
   const { data: getFromPriorityStatus} = useQuery(
     ["getDataByPriority", keyPriority],
     () => getCandidateByPriorityStatus(keyPriority),
     { enabled: Boolean(keyPriority) }
   ); 
-  // Prefetch the next page!
-  useEffect(() => {
-    if (totalData?.hasMore) {
-      queryClient.prefetchQuery(["projects", page + 1], () =>
-        getListCandidate(page + 1)
-      );
-    }
-  }, [totalData, page, queryClient]);
+  // Prefetch the next page!  
   useEffect(() => { 
     setListData(formatData(totalData));
     setCount(totalData?.count)
   }, [totalData]);
-useEffect(() =>{
-  setListData(formatData(getFromPriorityStatus));
-  setCount(getFromPriorityStatus?.count);
-},[getFromPriorityStatus]) 
+
+
+  useEffect(() =>{
+    if(keyPriority){
+      setListData(formatData(getFromPriorityStatus));
+      setCount(getFromPriorityStatus?.count);
+    }
+  },[getFromPriorityStatus,keyPriority])   
+
   useEffect(()=>{
-    if(resetFilter && totalData?.hasMore){
-      queryClient.prefetchQuery(["projects", page], () =>
+    if(resetFilter || totalData?.hasMore){
+      queryClient.prefetchQuery(["listCandidate", page], () =>
       getListCandidate(page)
     );
     }
   },[resetFilter,totalData?.hasMore,page,queryClient]) 
 
+  const clearAllFilter = ()=>{ 
+    queryClient.prefetchQuery(["listCandidate", page], () =>
+      getListCandidate(page)
+    );
+
+    setListData(formatData(totalData));
+    setCount(totalData?.count)
+  }
   const handlerClickRow = (data)=>{ 
     navigate("/candidate-detail/"+data.id);
   }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm(); 
-  };
+    if(dataIndex === 'primaryStatus'){
+      setKeyPriority(selectedKeys[0]);
 
+      setListSearch(prevState => ({ 
+        ...prevState.objName,
+        [dataIndex]: selectedKeys[0],  
+        }))
+    }
+    confirm(); 
+  }; 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
-  }; 
+  };  
 
-  const onChangeData =(e)=>{
-    setKeyPriority(e)
-  } 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
       setSelectedKeys,
@@ -439,7 +453,8 @@ useEffect(() =>{
               display: 'block',
               marginTop: 10
             }}    
-            onChange={(value) => onChangeData(value)}
+            defaultValue={listSearch?.dataIndex}
+            onSelect={(e) => setSelectedKeys(e? [e] : [])}
             placeholder="Search to Select"
             optionFilterProp="children"
             filterOption={(input, option) => option.children.includes(input)}
@@ -468,9 +483,11 @@ useEffect(() =>{
       }
     },
   });
+
   const handlerChangePagination = (page) => {
     setPage(page);
   };
+  
   const columns = formatColumn(getColumnSearchProps, getColumnSelectProps);
 
   if (listData)
@@ -493,7 +510,7 @@ useEffect(() =>{
                 Candidates List ({count})
               </div>
               <div style={{ textAlign: "end" }}>
-                <Button style={{ marginRight: 10 }}>Clear all filters</Button>
+                <Button style={{ marginRight: 10 }} onClick={clearAllFilter} >Clear all filters</Button>
                 <Link to="/add-candidate">
                   <Button type="primary">
                     <PlusOutlined />

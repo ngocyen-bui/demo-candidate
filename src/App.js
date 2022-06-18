@@ -22,8 +22,7 @@ const listTitleNavBar = [
   {
     icon: <HomeOutlined />,
     title: "Dashboard", 
-    key: '1',
-    
+    key: '1', 
   },
   {
     icon: <SolutionOutlined />,
