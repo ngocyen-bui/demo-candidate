@@ -168,7 +168,7 @@ const countDown = () => {
     });
   }, 1000);
 
-  setTimeout(() => {
+setTimeout(() => {
     clearInterval(timer);
     modal.destroy(); 
     navigate("/candidates");

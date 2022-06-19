@@ -26,38 +26,16 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useNavigate } from "react-router-dom";
-  
-const formatData = (arr) => {
-  if (arr?.data) {
-    return arr.data.map((e, index) => {
-      return {
-        key: index,
-        id: e.candidate_id,
-        name: e.full_name,
-        primaryStatus: findPriorityStatus(e.priority_status)?.label,
-        languages: e?.languages?.map((e) => e.label),
-        highestDegree: e.highest_education.label || "",
-        city: e.address || "",
-        industry: e?.business_line?.map(
-          (e) => "* " + (e?.category?.label || e.sector?.label)
-        ),
-        YOB: "",
-        activity: findFlowStatus(e.flow_status)?.label,
-        recentCompany: e.current_employments.map((e) => e?.organization?.label),
-        recentPositions: [],
-        yearOfServices: 0,
-        yearOfManagement: 0,
-      };
-    });
-  }
-};
-const formatColumn = (funcSearch,funcSelect) => {
+import { Link, useNavigate } from "react-router-dom"; 
+ 
+const formatColumn = (funcSearch,funcSelect,key) => {
+  // console.log(key);
+  if(key)
   return [
     {
       title: "ID",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: key[0],
+      key: key[0],
       render: (name) => (
         <p
           style={{
@@ -69,12 +47,12 @@ const formatColumn = (funcSearch,funcSelect) => {
           {name}
         </p>
       ),
-      ...funcSearch("id"),
+      ...funcSearch(key[0]),
     },
     {
       title: "Name",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: key[1],
+      key: key[1],
       render: (name) => (
         <span
           style={{
@@ -86,96 +64,102 @@ const formatColumn = (funcSearch,funcSelect) => {
           {name}
         </span>
       ),
-      ...funcSearch("name"),
+      ...funcSearch(key[1]),
     },
     {
       title: "Primary Status",
-      dataIndex: "primaryStatus",
-      key: "primaryStatus",
-      render: (text) => {
-        let x = statusPriority.filter((e) => e.name === text)[0];
+      dataIndex: key[2],
+      key: key[2],
+      render: (text) => {  
+        let x = findPriorityStatus(text);
         return (
           <Tag
             style={{
-              color: x.color,
-              borderColor: x.color,
+              color: x?.color,
+              borderColor: x?.color,
               background: "#f6ffed",
             }}
           >
-            {x.label}
+            {x?.label}
           </Tag>
         );
       },
-      ...funcSelect("primaryStatus", getlistStatus),
+      ...funcSelect(key[2], getlistStatus),
     },
     {
       title: "Languages",
-      dataIndex: "languages",
-      key: "languages",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("languages"),
+      dataIndex: key[3]+'s',
+      key: key[3]+'s',
+      render: (text) => text?.map((e, i) => <p key={i}>- {e?.label}</p>),
+      ...funcSearch(key[3]),
     },
     {
       title: "Highest degree",
-      dataIndex: "highestDegree",
-      key: "highestDegree",
-      ...funcSearch("highestDegree"),
+      dataIndex: key[4],
+      key: key[4],
+      render: text => <p>{text.label}</p>,
+      ...funcSearch(key[4]),
     },
     {
       title: "City",
-      dataIndex: "city",
-      key: "city",
-      ...funcSearch("city"),
+      dataIndex: 'addresses',
+      key: 'addresses',
+      render: text => {
+        return text?.map((e, i)=> <div key={i}> {e?.city?.label} {e?.country?.label} {e?.district?.label}</div>)
+      },
+      ...funcSearch('addresses'),
     },
     {
       title: "Industry",
-      dataIndex: "industry",
-      key: "industry",
-      render: (text) => text.map((e, i) => <p key={i}>{e}</p>),
-      ...funcSearch("industry"),
+      dataIndex: 'business_line',
+      key: 'business_line',
+      render: (text) => text?.map((e, i) => <p key={i}>* {e?.sector?.label || e?.industry?.label}</p>),
+      ...funcSearch('business_line'),
     },
     {
       title: "YOB",
-      dataIndex: "yob",
-      key: "yob",
-      ...funcSearch("yob"),
+      dataIndex: 'dob',
+      key: 'dob',
+      render: text => {return <p>{text?.slice(0,4)}</p>},
+      ...funcSearch('dob'),
     },
     {
       title: "Activity",
-      dataIndex: "activity",
-      key: "activity",
-      ...funcSearch("activity"),
+      dataIndex: key[8],
+      key: key[8],
+      render: (text) => <p >{findFlowStatus(text)?.label}</p>,
+      ...funcSearch(key[8]),
     },
     {
       title: "Recent companies",
-      dataIndex: "recentCompany",
-      key: "recentCompany",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("recentCompany"),
+      dataIndex: 'current_employments',
+      key: 'current_employments',
+      render: (text) => text?.map((e, i) => <p key={i}>- {e?.organization?.label}</p>),
+      ...funcSearch('current_employments'),
     },
     {
       title: "Recent positions",
-      dataIndex: "recentPositions",
-      key: "recentPositions",
-      render: (text) => text.map((e, i) => <p key={i}>- {e}</p>),
-      ...funcSearch("recentPositions"),
+      dataIndex: 'current_employments',
+      key: 'current_employments',
+      render: (text) => text?.map((e, i) => <p key={i}>- {e?.title?.label}</p>),
+      ...funcSearch('current_employments'),
     },
     {
       title: "Year of services",
-      dataIndex: "yearOfServices",
-      key: "yearOfServices",
-      ...funcSearch("yearOfServices"),
+      dataIndex: key[11],
+      key: key[11],
+      ...funcSearch(key[11]),
     },
     {
       title: "Year of management",
-      dataIndex: "yearOfManagement",
-      key: "yearOfManagement",
-      ...funcSearch("yearOfManagement"),
+      dataIndex: key[12],
+      key: key[12],
+      ...funcSearch(key[12]),
     },
     {
       title: "Action",
-      dataIndex: "action",
-      key: "action",
+      dataIndex: key[13],
+      key: key[13],
       render: () => <EyeOutlined style={{ cursor: "pointer" }} />,
     },
   ];
@@ -272,7 +256,9 @@ export default function Candidate() {
   const [listData, setListData] = useState();
   const [resetFilter, setResetFilter] = useState(false);
   const [listSearch, setListSearch] = useState({}) 
-  
+  const [filters,setFilters] = useState( () => {
+    return localStorage.getItem('filtersCDD') || [];
+  })
   
 
   //search   
@@ -285,48 +271,30 @@ export default function Candidate() {
     { keepPreviousData: true, staleTime: 5000 }
   ); 
     //Get data default key page 
-  const { data: listDefaultKeyPage } = useQuery("keyPage", () => getKeyPageCDD(), { keepPreviousData: true, staleTime: 5000 });
-  const { data: listDefaultProp } = useQuery("defaultProps", () => getDefaultProp(), { keepPreviousData: true, staleTime: 5000 }); 
-
-  const { data: getFromPriorityStatus} = useQuery(
-    ["getDataByPriority", keyPriority],
-    () => getCandidateByPriorityStatus(keyPriority),
-    { enabled: Boolean(keyPriority) }
-  ); 
-  // Prefetch the next page!  
+  const { data: listDefaultKeyPage } = useQuery("keyPage", () => getKeyPageCDD());
+  const { data: listDefaultProp } = useQuery("defaultProps", () => getDefaultProp());   
+ 
   useEffect(() => { 
-    setListData(formatData(totalData));
-    setCount(totalData?.count)
-  }, [totalData]);
-
-
-  useEffect(() =>{
-    if(keyPriority){
-      setListData(formatData(getFromPriorityStatus));
-      setCount(getFromPriorityStatus?.count);
+    if(totalData){
+      console.log(totalData.data);
+      setListData(totalData.data);
+      setCount(totalData.count)
     }
-  },[getFromPriorityStatus,keyPriority])   
-
-  useEffect(()=>{
-    if(resetFilter || totalData?.hasMore){
-      queryClient.prefetchQuery(["listCandidate", page], () =>
-      getListCandidate(page)
-    );
-    }
-  },[resetFilter,totalData?.hasMore,page,queryClient]) 
-
+  }, [totalData]); 
+  
   const clearAllFilter = ()=>{ 
-    queryClient.prefetchQuery(["listCandidate", page], () =>
-      getListCandidate(page)
-    );
+    // queryClient.prefetchQuery(["listCandidate", page], () =>
+    //   getListCandidate(page)
+    // );
 
-    setListData(formatData(totalData));
-    setCount(totalData?.count)
+    // setListData(totalData);
+    // setCount(totalData?.count)
   }
   const handlerClickRow = (data)=>{ 
-    navigate("/candidate-detail/"+data.id);
+    navigate("/candidate-detail/"+data.candidate_id);
   }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    // console.log(dataIndex);
     if(dataIndex === 'primaryStatus'){
       setKeyPriority(selectedKeys[0]);
 
@@ -337,8 +305,9 @@ export default function Candidate() {
     }
     confirm(); 
   }; 
-  const handleReset = (clearFilters) => {
+  const handleReset = (clearFilters,confirm) => {
     clearFilters();
+    confirm(); 
     setSearchText('');
   };  
 
@@ -356,7 +325,7 @@ export default function Candidate() {
       >
         <Space>
           <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
+            onClick={() => clearFilters && handleReset(clearFilters,confirm)}
             size="small"
             style={{
               background: "white",
@@ -483,13 +452,10 @@ export default function Candidate() {
       }
     },
   });
-
-  const handlerChangePagination = (page) => {
-    setPage(page);
-  };
   
-  const columns = formatColumn(getColumnSearchProps, getColumnSelectProps);
-
+  
+  const columns = formatColumn(getColumnSearchProps, getColumnSelectProps,listDefaultKeyPage?.data);
+console.log(columns);
   if (listData)
     return (
       <Layout>
@@ -536,14 +502,14 @@ export default function Candidate() {
               scroll={{ x: true }} 
               onRow={(record, rowIndex) => {
                 return {
-                  onClick: () => {handlerClickRow(record)}, // click row 
+                  onClick: () => { handlerClickRow(record)}, // click row 
                 };
               }}
               pagination={{
                 showSizeChanger: false,
                 showQuickJumper: true,
                 total: count,
-                onChange: handlerChangePagination,
+                onChange: () =>  setPage(page),
               }}
             />
           </Content>
