@@ -56,13 +56,15 @@ const formatList = listTitleNavBar.map((e, index) => ({
   label: e.title,
 }));
 const App = () =>{ 
-  
   const [token] = useState(localStorage.getItem('auth'));
+  const [auth,setAuth] = useState(localStorage.getItem('auth'))
   
+ 
   return ( 
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <Layout>
+      {auth?<>
         <Header className="header app-header">
           <Link to="/">
           <Image
@@ -71,14 +73,14 @@ const App = () =>{
             src="https://nadh.lubrytics.com/static/media/logo_white.0fe5940b.png"
           />
           </Link> 
-          <Link to='/' onClick={()=> localStorage.removeItem('auth')} style={{ float: "right" }} >
+          <a href='/' onClick={()=> localStorage.removeItem('auth')} style={{ float: "right" }} >
             <Avatar
               
               src={
                 "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
               }
             />
-          </Link>
+          </a>
         </Header> 
         <Menu
           theme="light"
@@ -87,7 +89,8 @@ const App = () =>{
           defaultSelectedKeys={[1]}
           items={formatList}
         >  
-        </Menu>
+        </Menu></>: <></>}
+        
          <Routes>
           <Route path="/" element={!  Boolean(token)?<Login/>:<></>} />
           <Route path="candidates" element={<Candidate/>} />

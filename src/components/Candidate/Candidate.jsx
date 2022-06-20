@@ -250,6 +250,7 @@ export default function Candidate() {
   const [searchedColumn, setSearchedColumn] = useState(''); 
 
   const navigate = useNavigate(); 
+  const [auth,setAuth] = useState(localStorage.getItem('auth'))
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [count, setCount] =useState(0)
@@ -273,7 +274,7 @@ export default function Candidate() {
   const { data: listDefaultKeyPage } = useQuery("keyPage", () => getKeyPageCDD());
   const { data: listDefaultProp } = useQuery("defaultProps", () => getDefaultProp());   
  
-  console.log(totalData);
+  // console.log(totalData);
   useEffect(() => { 
     if(totalData){ 
       setListData(totalData.data);
@@ -303,9 +304,9 @@ export default function Candidate() {
     localStorage.setItem('filtersCDD', JSON.stringify(filters));
     confirm(); 
   }; 
-  console.log(filters?.reduce((e,r)=>{
-    return e+r;
-  }));
+  // console.log(filters?.reduce((e,r)=>{
+  //   return e+r;
+  // }));
   const handleReset = (clearFilters,confirm) => {
     clearFilters();
     confirm(); 
@@ -456,6 +457,9 @@ export default function Candidate() {
   
   
   const columns = formatColumn(getColumnSearchProps, getColumnSelectProps,listDefaultKeyPage?.data); 
+  if(!auth){ 
+    window.location.pathname = "/"
+  }
   if (listData)
     return (
       <Layout>

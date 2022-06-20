@@ -13,5 +13,6 @@ export const login = ({user_name, password}) => {
     )
     .then((res) => {
        localStorage.setItem('auth', res.data.token); 
+       window.location.pathname = "/candidates"
     });
 };

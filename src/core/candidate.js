@@ -2,7 +2,7 @@ import axios from "axios";
 import { HeaderFetch } from "../utils/header";
 
 
-const DOMAIN = 'https://lubrytics.com:8443';
+ export const DOMAIN = 'https://lubrytics.com:8443';
 
 export const getListCandidate = (number,listFilter = []) => {return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10', 
  {

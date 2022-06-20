@@ -2,18 +2,19 @@ import { Button, Form, Input } from "antd";
 import Checkbox from "antd/lib/checkbox/Checkbox";
 import { useState } from "react";
 import { useQuery } from "react-query";
+import { useNavigate } from "react-router-dom";
+import { DOMAIN } from "../../core/candidate";
 import { login } from "../../core/login";
 
 
 
 export default function Login(){
   const [info, setInfo] = useState({})
+  const navigate = useNavigate();
 
   
   const onFinish = (values) => {
-    login({user_name:values.username,password: values.password}); 
-    
-
+   const ac = login({user_name:values.username,password: values.password});  
   };
   
     const onFinishFailed = (errorInfo) => {
