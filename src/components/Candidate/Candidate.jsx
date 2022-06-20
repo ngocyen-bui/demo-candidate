@@ -26,7 +26,7 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";   
  
 const formatColumn = (funcSearch,funcSelect,key) => {
   // console.log(key);
@@ -257,12 +257,11 @@ export default function Candidate() {
   const [resetFilter, setResetFilter] = useState(false);
   const [listSearch, setListSearch] = useState({}) 
   const [filters,setFilters] = useState( () => {
-    return localStorage.getItem('filtersCDD') || [];
+    return JSON.parse(localStorage.getItem('filtersCDD'))|| [];
   })
   
 
-  //search   
-  const [keyPriority, setKeyPriority] = useState(0);
+  //search    
     
   const searchInput = useRef(null);
   const { data: totalData } = useQuery(
@@ -274,15 +273,17 @@ export default function Candidate() {
   const { data: listDefaultKeyPage } = useQuery("keyPage", () => getKeyPageCDD());
   const { data: listDefaultProp } = useQuery("defaultProps", () => getDefaultProp());   
  
+  console.log(totalData);
   useEffect(() => { 
-    if(totalData){
-      console.log(totalData.data);
+    if(totalData){ 
       setListData(totalData.data);
-      setCount(totalData.count)
+      setCount(totalData.count);
     }
   }, [totalData]); 
   
   const clearAllFilter = ()=>{ 
+    localStorage.removeItem('filtersCDD')
+
     // queryClient.prefetchQuery(["listCandidate", page], () =>
     //   getListCandidate(page)
     // );
@@ -294,17 +295,17 @@ export default function Candidate() {
     navigate("/candidate-detail/"+data.candidate_id);
   }
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    // console.log(dataIndex);
-    if(dataIndex === 'primaryStatus'){
-      setKeyPriority(selectedKeys[0]);
-
-      setListSearch(prevState => ({ 
-        ...prevState.objName,
-        [dataIndex]: selectedKeys[0],  
-        }))
-    }
+    setFilters((data)=>({
+      ...data,
+      [dataIndex]: selectedKeys[0],
+    }))
+    localStorage.removeItem('filtersCDD');
+    localStorage.setItem('filtersCDD', JSON.stringify(filters));
     confirm(); 
   }; 
+  console.log(filters?.reduce((e,r)=>{
+    return e+r;
+  }));
   const handleReset = (clearFilters,confirm) => {
     clearFilters();
     confirm(); 
@@ -373,7 +374,7 @@ export default function Candidate() {
       />
     ),
     onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+      record[dataIndex]?.toString()?.toLowerCase()?.includes(value?.toLowerCase()),
     onFilterDropdownVisibleChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -454,8 +455,7 @@ export default function Candidate() {
   });
   
   
-  const columns = formatColumn(getColumnSearchProps, getColumnSelectProps,listDefaultKeyPage?.data);
-console.log(columns);
+  const columns = formatColumn(getColumnSearchProps, getColumnSelectProps,listDefaultKeyPage?.data); 
   if (listData)
     return (
       <Layout>

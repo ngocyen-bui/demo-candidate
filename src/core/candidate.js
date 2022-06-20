@@ -4,7 +4,7 @@ import { HeaderFetch } from "../utils/header";
 
 const DOMAIN = 'https://lubrytics.com:8443';
 
-export const getListCandidate = (number) => {return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10', 
+export const getListCandidate = (number,listFilter = []) => {return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10', 
  {
      headers: HeaderFetch, 
  }).then((res) => res.data)}

@@ -13,3 +13,6 @@ const searchCompany = DOMAIN +'/nadh-api-crm/api/candidates?page=1&perPage=10&cu
 const searchCurrentPosition = DOMAIN +'/nadh-api-crm/api/candidates?page=1&perPage=10&current_position_text=A';
 const searchYearofService = DOMAIN +'/nadh-api-crm/api/candidates?page=1&perPage=10&industry_years_from=0&industry_years_to=3';
 const searchYearOfManegement = DOMAIN +'/nadh-api-crm/api/candidates?page=1&perPage=10&management_years_from=12&management_years_to=123'
+
+
+
