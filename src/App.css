@@ -5,3 +5,18 @@
   background: -o-linear-gradient(352deg,#4286f4 0,#00ce7f 60%);
   background: linear-gradient(98deg,#4286f4,#00ce7f 60%);
 }
+.ant-table-filter-column { 
+  width: 120px; 
+}
+.label-add-candidate{
+  padding-bottom: 20px;
+  margin-top: 30px;
+}
+.title-add-candidate{
+  color: #465f7b;
+  font-weight: 600;
+  font-size: 16px;
+}
+.ant-form-item {
+  margin: 0;
+}

@@ -4,7 +4,13 @@ import { HeaderFetch } from "../utils/header";
 
  export const DOMAIN = 'https://lubrytics.com:8443';
 
-export const getListCandidate = (number,listFilter = []) => {return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10', 
+export const getListCandidate = (number,listFilter) => { 
+    let ft = '';
+    for (const filter in listFilter) {
+        if(listFilter[filter]) ft+=('&'+filter+"="+listFilter[filter])
+    } 
+    console.log(ft);
+    return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
  {
      headers: HeaderFetch, 
  }).then((res) => res.data)}
@@ -55,4 +61,10 @@ export const getListCandidate = (number,listFilter = []) => {return axios.get(DO
      headers: HeaderFetch, 
  }).then((res) => res.data)} 
  
- 
+ // 
+ export const debounceSearch = (text)=>{
+    return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=language&value=`+ text, 
+    {
+        headers: HeaderFetch, 
+    }).then((res) => res.data)
+ } 

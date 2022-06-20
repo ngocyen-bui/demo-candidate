@@ -12,8 +12,7 @@ import {
   Steps,
 } from "antd";
 import Layout, { Content } from "antd/lib/layout/layout";
-import { useEffect, useState } from "react";
-import "./AddCandidate.css";
+import { useEffect, useState } from "react"; 
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import {
