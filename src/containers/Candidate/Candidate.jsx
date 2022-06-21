@@ -1,16 +1,12 @@
-import {
-  DownOutlined,
+import {  
   EyeOutlined,
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import {
-  Button,
-  Checkbox,
-  Dropdown,
+  Button, 
   Input,
-  Layout,
-  Menu,
+  Layout, 
   Select,
   Space,
   Tag,
@@ -18,15 +14,13 @@ import {
 import Table from "antd/lib/table";
 import { Content } from "antd/lib/layout/layout";
 import React, { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
-import {
-  getCandidateByPriorityStatus,
+import { useQuery } from "react-query";
+import { 
   getDefaultProp,
   getKeyPageCDD,
   getListCandidate,
-} from "../../core/candidate";
-import {
-  candidate_priority_status as statusPriority,
+} from "../../features/candidate";
+import { 
   findFlowStatus,
   findPriorityStatus,
   getlistStatus,
@@ -35,12 +29,17 @@ import { Link, useNavigate } from "react-router-dom";
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
+  let degree;
   if (listProps) {
     let a = Object.values(listProps).find((obj) => {
-      return obj.name == "language";
+      return obj.name === "language";
+    });
+    let b = Object.values(listProps).find((obj) => {
+      return obj.name === "degree";
     });
    language = a?.values;
-  } 
+   degree = b?.values
+  }  
   if (key)
     return [
       {
@@ -109,7 +108,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         dataIndex: key[4],
         key: key[4],
         render: (text) => <p>{text.label}</p>,
-        ...funcSearch(key[4]),
+        ...funcSearch(key[4],"select", degree),
       },
       {
         title: "City",
@@ -117,8 +116,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         key: "addresses",
         render: (text) => {
           return text?.map((e, i) => (
-            <div key={i}>
-              {" "}
+            <div key={i}> 
               {e?.city?.label} {e?.country?.label} {e?.district?.label}
             </div>
           ));
@@ -188,98 +186,96 @@ const formatColumn = (funcSearch, key, listProps) => {
     ];
 };
 
-const menu = (
-  <Menu
-    items={[
-      {
-        label: "ID",
-        key: "1",
-        icon: <Checkbox />,
-        disabled: true,
-      },
-      {
-        label: "Name",
-        key: "2",
-        icon: <Checkbox />,
-        disabled: true,
-      },
-      {
-        label: "Primary Status",
-        key: "3",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Languages",
-        key: "4",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Highest degree",
-        key: "5",
-        icon: <Checkbox />,
-      },
-      {
-        label: "City",
-        key: "6",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Industry",
-        key: "7",
-        icon: <Checkbox />,
-      },
-      {
-        label: "YOB",
-        key: "8",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Activity",
-        key: "9",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Recent companies",
-        key: "10",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Recent positions",
-        key: "11",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Year of services",
-        key: "12",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Year of management",
-        key: "13",
-        icon: <Checkbox />,
-      },
-      {
-        label: "Action",
-        key: "14",
-        icon: <Checkbox />,
-        disabled: true,
-      },
-    ]}
-  />
-);
+// const menu = (
+//   <Menu
+//     items={[
+//       {
+//         label: "ID",
+//         key: "1",
+//         icon: <Checkbox />,
+//         disabled: true,
+//       },
+//       {
+//         label: "Name",
+//         key: "2",
+//         icon: <Checkbox />,
+//         disabled: true,
+//       },
+//       {
+//         label: "Primary Status",
+//         key: "3",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Languages",
+//         key: "4",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Highest degree",
+//         key: "5",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "City",
+//         key: "6",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Industry",
+//         key: "7",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "YOB",
+//         key: "8",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Activity",
+//         key: "9",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Recent companies",
+//         key: "10",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Recent positions",
+//         key: "11",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Year of services",
+//         key: "12",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Year of management",
+//         key: "13",
+//         icon: <Checkbox />,
+//       },
+//       {
+//         label: "Action",
+//         key: "14",
+//         icon: <Checkbox />,
+//         disabled: true,
+//       },
+//     ]}
+//   />
+// );
 export default function Candidate() {
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
+  // const [searchText, setSearchText] = useState("");
+  // const [searchedColumn, setSearchedColumn] = useState("");
 
   const navigate = useNavigate();
-  const [auth, setAuth] = useState(localStorage.getItem("auth"));
-  const queryClient = useQueryClient();
+  const [auth] = useState(localStorage.getItem("auth")); 
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
-  const [listData, setListData] = useState();
-  const [listSearch, setListSearch] = useState({});
+  const [listData, setListData] = useState(); 
   const [filters, setFilters] = useState(() => {
-    return JSON.parse(localStorage.getItem("filtersCDD")) || {};
+    return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   });
 
   //search 
@@ -305,8 +301,7 @@ export default function Candidate() {
   }, [totalData]);
 
   const clearAllFilter = () => {
-    setFilters({});
-    localStorage.removeItem("filtersCDD");
+    setFilters({}); 
   };
   const handlerClickRow = (data) => {
     navigate("/candidate-detail/" + data.candidate_id);
@@ -314,28 +309,26 @@ export default function Candidate() {
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
     if (selectedKeys === []) {
-      return setFilters((filters) => {
-        delete filters[dataIndex];
+      setFilters((filters) => {
+        delete filters[dataIndex];    
       });
-    }
-    setFilters((data) => ({
-      ...data,
-      [dataIndex]: selectedKeys[0],
-    }));
+    }else{
+      setFilters((data) => ({
+        ...data,
+        [dataIndex]: selectedKeys[0],
+      })); 
+    } 
+   
   };
   useEffect(() => {
     localStorage.removeItem("filtersCDD");
     localStorage.setItem("filtersCDD", JSON.stringify(filters));
   }, [filters]);
 
-  const handleReset = (clearFilters, confirm, dataIndex) => {
-    let check = delete filters[dataIndex];
-    if(check){
-        setFilters(filters);
-    }  
-    clearFilters();
-    confirm();
-    setSearchText("");
+  const handleReset = (clearFilters, confirm, dataIndex) => {  
+    setFilters((filters) => {
+      return  delete filters[dataIndex] || {}; 
+    }); 
   };
   const getColumnSearchProps = (dataIndex,type, listData) => ({ 
     filterDropdown: ({
@@ -375,8 +368,7 @@ export default function Candidate() {
           </Button>
         </Space>
         {type === "input" ? (
-          <Input
-            ref={searchInput}
+          <Input ref={searchInput}
             placeholder={`Search ${dataIndex}`}
             value={selectedKeys[0]}
             onChange={(e) =>
@@ -402,8 +394,8 @@ export default function Candidate() {
               width: 200,
               display: "block",
               marginTop: 10,
-            }}
-            defaultValue={listSearch?.dataIndex}
+            }} 
+
             onSelect={(e) => setSelectedKeys(e ? [e] : [])}
             placeholder="Search to Select"
             optionFilterProp="children"
@@ -416,8 +408,8 @@ export default function Candidate() {
           >
             {listData?.map((e, i) => {
               return (
-                <Select.Option key={i} value={e.key}>
-                  {e.name}
+                <Select.Option key={i}  value={e.key}>
+                  {e.label}
                 </Select.Option>
               );
             })}
@@ -428,18 +420,22 @@ export default function Candidate() {
         {type === 'multiselect'?
           <>
             <Select
+              style={{
+                width: '100%',
+                display: "block",
+                marginTop: 10,
+              }} 
               mode="multiple"
               onSelect={(e) => setSelectedKeys(e ? [e] : [])}
-              allowClear
-              style={{ width: '100%' }}
+              allowClear 
               placeholder="Please select" 
             >
-               {listData?.map((e)=>{
-                 return <Select.Option key={e?.key}>{e?.label}</Select.Option>
+               {listData?.map((e,i)=>{
+                 return <Select.Option key={i} value={e.label}>{e.label}</Select.Option>
                })}
             </Select> 
           </>
-       :''}
+       :('')}
       </div>
     ),
     filterIcon: (filtered) => (
@@ -450,7 +446,11 @@ export default function Candidate() {
       />
     ),
   });
-
+  const handleTag = (key)=>{ 
+    setFilters((filters) => {
+      return  delete filters[key] || {}; 
+    }); 
+  }
   const columns = formatColumn(
     getColumnSearchProps,
     listDefaultKeyPage?.data,
@@ -458,7 +458,7 @@ export default function Candidate() {
   );
   if (!auth) {
     window.location.pathname = "/";
-  }
+  } 
   if (listData)
     return (
       <Layout>
@@ -500,9 +500,15 @@ export default function Candidate() {
                 </Button>
               </Dropdown>
             </Space> */}
-
+            {filters? 
+                Object.keys(filters)?.map(function(key) {
+                  return <Tag closable id={key} key={key} onClose={()=> handleTag(key)}>
+                  {key} = {filters[key]} 
+                </Tag>
+              })
+            :<></>}
             <Table
-            style={{marginTop: 20}}
+              style={{marginTop: 20}}
               columns={columns}
               dataSource={listData}
               scroll={{ x: true }}

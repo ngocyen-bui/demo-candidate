@@ -1,9 +1,5 @@
-import {
-  HomeOutlined,
-  ScheduleOutlined,
-  SearchOutlined,
-  SolutionOutlined,
-  UserOutlined,
+import { 
+  SolutionOutlined, 
 } from "@ant-design/icons";
 import { Avatar, BackTop, Image, Layout, Menu } from "antd";
 import React, { useState } from "react";
@@ -11,9 +7,10 @@ import "antd/dist/antd.min.css";
 import "./App.css";
 import Candidate from "./containers/Candidate/Candidate";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { BrowserRouter, Link, Route, Routes, Navigate } from "react-router-dom"; 
-import AddCandidate from './components/AddCandidate/AddCandidate';
+import { BrowserRouter, Link, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./containers/Login/Login";
+import AddCandidate from "./containers/AddCandidate/AddCandidate";
+import EditCandidate from "./containers/EditCandidate/EditCandidate";
 const { Header } = Layout;
 // Create a client
 const queryClient = new QueryClient();
@@ -21,13 +18,13 @@ const queryClient = new QueryClient();
 const listTitleNavBar = [
   // {
   //   icon: <HomeOutlined />,
-  //   title: "Dashboard", 
-  //   key: '1', 
+  //   title: "Dashboard",
+  //   key: '1',
   // },
   {
     icon: <SolutionOutlined />,
-    title: <Link to='candidates'>Candidates</Link>, 
-    key: '2'
+    title: <Link to="candidates">Candidates</Link>,
+    key: "2",
   },
   // {
   //   icon: <ScheduleOutlined />,
@@ -36,7 +33,7 @@ const listTitleNavBar = [
   // },
   // {
   //   icon: <UserOutlined />,
-  //   title: "Systems Users", 
+  //   title: "Systems Users",
   //   key: '4'
   // },
   // {
@@ -55,55 +52,70 @@ const formatList = listTitleNavBar.map((e, index) => ({
   icon: e.icon,
   label: e.title,
 }));
-const App = () =>{ 
-  const [token] = useState(localStorage.getItem('auth'));
-  const [auth,setAuth] = useState(localStorage.getItem('auth'))
-  
- 
-  return ( 
-  <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
-      <Layout>
-      {auth?<>
-        <Header className="header app-header">
-          <Link to="/">
-          <Image
-          preview={false}
-            width={90}
-            src="https://nadh.lubrytics.com/static/media/logo_white.0fe5940b.png"
-          />
-          </Link> 
-          <a href='/' onClick={()=> localStorage.removeItem('auth')} style={{ float: "right" }} >
-            <Avatar
-              
-              src={
-                "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
+const App = () => { 
+  const [auth] = useState(localStorage.getItem("auth"));
+
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <Layout>
+          {auth ? (
+            <>
+              <Header className="header app-header">
+                <Link to="/">
+                  <Image
+                    preview={false}
+                    width={90}
+                    src="https://nadh.lubrytics.com/static/media/logo_white.0fe5940b.png"
+                  />
+                </Link>
+                <a
+                  href="/"
+                  onClick={() => localStorage.removeItem("auth")}
+                  style={{ float: "right" }}
+                >
+                  <Avatar
+                    src={
+                      "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
+                    }
+                  />
+                </a>
+              </Header>
+              <Menu
+                theme="light"
+                mode="horizontal"
+                style={{ paddingLeft: 10 }}
+                defaultSelectedKeys={[1]}
+                items={formatList}
+              ></Menu>
+            </>
+          ) : (
+            <></>
+          )}
+
+          <Routes>
+            <Route
+              exact
+              path="/login"
+              element={
+                Boolean(auth) ? <Navigate to="/candidates" /> : <Login />
               }
             />
-          </a>
-        </Header> 
-        <Menu
-          theme="light"
-          mode="horizontal"
-          style={{ paddingLeft: 10 }}
-          defaultSelectedKeys={[1]}
-          items={formatList}
-        >  
-        </Menu></>: <></>}
-        
-         <Routes> 
-          <Route exact path="/" element= {Boolean(token) ? <Navigate to="/candidates" /> : <Login/>}/> 
-          <Route exact path="/candidates" element={<Candidate/>} />
-          <Route exact path="/candidate-detail/:id" element={<AddCandidate />} />
-          <Route exact path="/add-candidate" element={<AddCandidate />} />
-        </Routes>
-      </Layout>
-      <>
-    <BackTop /> 
-  </>
-    </QueryClientProvider>
-  </BrowserRouter>
-  
-)}
+            <Route exact path="/candidates" element={<Candidate />} />
+            <Route
+              exact
+              path="/candidate-detail/:id"
+              element={<EditCandidate />}
+            />
+            <Route exact path="/add-candidate" element={<AddCandidate />} />
+          </Routes>
+        </Layout>
+        <>
+          <BackTop />
+        </>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+};
 
 export default App;

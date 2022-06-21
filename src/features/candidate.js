@@ -8,8 +8,7 @@ export const getListCandidate = (number,listFilter) => {
     let ft = '';
     for (const filter in listFilter) {
         if(listFilter[filter]) ft+=('&'+filter+"="+listFilter[filter])
-    } 
-    console.log(ft);
+    }  
     return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
  {
      headers: HeaderFetch, 
@@ -49,8 +48,6 @@ export const getListCandidate = (number,listFilter) => {
      headers: HeaderFetch, 
  }).then((res) => res.data)} 
  
-
- 
  export const getKeyPageCDD = () => {return axios.get( DOMAIN+`/nadh-api-crm/api/user_pages?key_page=candidates`, 
  {
      headers: HeaderFetch, 
@@ -60,11 +57,15 @@ export const getListCandidate = (number,listFilter) => {
  {
      headers: HeaderFetch, 
  }).then((res) => res.data)} 
- 
- // 
- export const debounceSearch = (text)=>{
-    return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=language&value=`+ text, 
-    {
-        headers: HeaderFetch, 
-    }).then((res) => res.data)
- } 
+
+ //post request 
+ export const createCandidate =(obj) =>  axios.post( DOMAIN +'/nadh-api-crm/api/candidates', obj,{
+    headers: HeaderFetch, 
+})
+  .then((res) => res.data) 
+
+
+export const updateCandidate =(id,obj) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
+    headers: HeaderFetch, 
+})
+  .then((res) => res.data)
