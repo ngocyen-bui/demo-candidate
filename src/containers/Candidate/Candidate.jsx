@@ -27,7 +27,7 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"; 
+import { Link, useLocation, useNavigate } from "react-router-dom"; 
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;

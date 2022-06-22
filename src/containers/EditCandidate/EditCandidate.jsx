@@ -1,6 +1,5 @@
 import {
-    Breadcrumb,
-    Steps,
+    Breadcrumb, 
   } from "antd";
   import Layout from "antd/lib/layout/layout";
   import { useEffect, useState } from "react"; 
@@ -15,7 +14,7 @@ import {
   export default function AddCandidate(props) { 
   
     const params = useParams();
-    const [current, setCurrent] = useState(0);
+    // const [current, setCurrent] = useState(0);
     const [checkInfo, setCheckInfo]= useState(); 
     const [disabled, setDisabled] = useState(() => {
       if (Boolean(localStorage.getItem('personal-infomation'))) return true;
@@ -27,8 +26,7 @@ import {
   useEffect(()=>{
     if(params.id){ 
        getCandidate(params.id).then(dataCandidate =>{
-        const dob = dataCandidate?.dob?.split("-") || [];
-        console.log(dob);
+        const dob = dataCandidate?.dob?.split("-") || []; 
         const x =({
           id: dataCandidate?.id,
           address:  dataCandidate?.addresses,
@@ -61,8 +59,7 @@ import {
     if(params.id)setDisabled(false);
   },[params.id])
   
-  const onChange = (value) => {
-    setCurrent(value);
+  const onChange = (value) => { 
   };
   
   useEffect(()=>{

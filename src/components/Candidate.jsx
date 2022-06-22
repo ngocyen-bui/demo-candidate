@@ -60,7 +60,7 @@ const month = [
 ];
 
 const cv = (x)=>{
-  if(x < 10){
+  if(x.toString().length < 2){
     return "0" + x;
   }
   return x;
@@ -86,7 +86,7 @@ const result = (obj) => {
     dob:
       (obj?.year ? obj?.year + "-" : "") +
       (obj?.month ? cv(obj?.month)+ "-" : "") +
-      (obj?.date ? obj?.date : ""),
+      (obj?.date ? cv(obj?.date ): ""),
     full_name:
       (obj?.firstName ? obj?.firstName + " " : "") +
       (obj?.month ? obj?.month + " " : "") +
