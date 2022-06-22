@@ -1,7 +1,7 @@
 import axios from "axios"; 
 import { HeaderFetch } from "../utils/header"; 
 
- export const DOMAIN = 'https://lubrytics.com:8443';
+const DOMAIN = 'https://lubrytics.com:8443';
 
 export const getListCandidate = (number,listFilter) => { 
     let ft = ''; 

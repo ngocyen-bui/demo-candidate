@@ -27,7 +27,11 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useLocation, useNavigate } from "react-router-dom"; 
+import { Link, useLocation, useNavigate } from "react-router-dom";  
+import { useDispatch, useSelector } from "react-redux";
+import { addListCandidate, listCandidateSlice } from "../../redux/reducer"; 
+import { getList } from "../../redux/selector";
+import { candidateApi } from "../../redux-api/store";
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
@@ -187,13 +191,17 @@ const formatColumn = (funcSearch, key, listProps) => {
       },
     ];
 };
- 
+
 export default function Candidate() { 
 
+  const { data: todos } = candidateApi.useGetAllQuery(); 
+  dispatch(addListCandidate(todos));
+ 
   const navigate = useNavigate();
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
-
+ 
+  const dispatch = useDispatch();
 
   const [auth] = useState(localStorage.getItem("auth")); 
   const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
@@ -203,26 +211,34 @@ export default function Candidate() {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   }); 
   //search 
-  const searchInput = useRef(null); 
+  const listCandidate = useSelector(getList);   
+
   const { data: totalData, isFetching } = useQuery(
     ["listCandidate", page, filters],
-    () => getListCandidate(page, filters),
+     async () => await getListCandidate(page, filters),
     { keepPreviousData: true, staleTime: 5000 }
   );
+ 
+  useEffect(()=>{ 
+    if(totalData) dispatch(listCandidateSlice.actions.addListCandidate(totalData));
+  },[totalData,dispatch])  
+
   //Get data default key page
   const { data: listDefaultKeyPage } = useQuery("keyPage", () =>
     getKeyPageCDD()
   );
+
   const { data: listDefaultProp } = useQuery("defaultProps", () =>
     getDefaultProp()
   );
 
-  useEffect(() => { 
-    if (totalData) {
+  useEffect(() => {  
+    if (!isFetching && totalData) {
       setListData(totalData.data);
       setCount(totalData.count);
     } 
-  }, [totalData]);
+  }, [totalData,isFetching]);
+
 
   const clearAllFilter = () => {
     setFilters({});  
@@ -295,7 +311,7 @@ export default function Candidate() {
           </Button>
         </Space>
         {type === "input" ? (
-          <Input ref={searchInput}
+          <Input 
             placeholder={`Search ${dataIndex}`}
             value={selectedKeys[0]}
             onChange={(e) =>
