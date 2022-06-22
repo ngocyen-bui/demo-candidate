@@ -1,4 +1,4 @@
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { LoadingOutlined, MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import {
   Button,
   Col,
@@ -9,6 +9,7 @@ import {
   Radio,
   Row,
   Select,
+  Spin,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect, useState } from "react";
@@ -27,7 +28,11 @@ import {
 const day = () => {
   let arr = [];
   for (let index = 1; index <= 31; index++) {
-    arr.push(index);
+    if(index < 10){ 
+      arr.push("0"+index);
+    }else{ 
+      arr.push(index);
+    }
   }
   return arr;
 };
@@ -54,8 +59,13 @@ const month = [
   "December",
 ];
 
-const result = (obj) => {
-  console.log(obj);
+const cv = (x)=>{
+  if(x < 10){
+    return "0" + x;
+  }
+  return x;
+}
+const result = (obj) => { 
   let listPhone = obj?.phones?.map((e) => {
     let key = e?.countryCode || "+84";
     return {
@@ -68,18 +78,18 @@ const result = (obj) => {
   });
   let listEmail = obj?.emails?.map((e) => {
     return e.email;
-  });
+  }); 
   return { 
     nationality: obj?.nationality,
     middle_name: obj?.middleName,
     highest_education: obj?.highest_education,
     dob:
       (obj?.year ? obj?.year + "-" : "") +
-      (obj?.month ? obj?.month + "-" : "") +
+      (obj?.month ? cv(obj?.month)+ "-" : "") +
       (obj?.date ? obj?.date : ""),
     full_name:
-      (obj?.firstName ? obj?.firstName + "-" : "") +
-      (obj?.month ? obj?.month + "-" : "") +
+      (obj?.firstName ? obj?.firstName + " " : "") +
+      (obj?.month ? obj?.month + " " : "") +
       (obj?.lastName ? obj?.lastName : ""),
     relocating_willingness: obj?.readyToMove,
     first_name: obj?.firstName,
@@ -91,6 +101,7 @@ const result = (obj) => {
     gender: obj?.gender,
     martial_status: obj?.martialStatus,
     source: obj?.source,
+    priority_status: obj?.primaryStatus,
     type: 3,
   };
 };
@@ -133,9 +144,9 @@ export function DetailCandidate(prop) {
       });
       setListProps(b?.values);
     }
-  }, [listDefaultProp]);
+  }, [listDefaultProp]); 
 
-  const onFinish = (values) => {
+  const onFinish = (values) => { 
     countDown();
     if (values && !edit) {
       createCandidate(result(values)); 
@@ -183,6 +194,9 @@ export function DetailCandidate(prop) {
       // localStorage.removeItem('personal-infomation')
     }, secondsToGo * 1000);
   };
+  if(!prevData && edit) {
+    return <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
+  } 
   return (
     <Content
       className="site-layout-background"
@@ -200,6 +214,11 @@ export function DetailCandidate(prop) {
         name="basic"
         layout="vertical"
         initialValues={{
+          date: prevData?.date || null,
+          year: prevData?.year || null,
+          month: prevData?.month || null,
+          firstName: prevData?.firstName || null,
+          lastName: prevData?.lastName || null,
           emails: [...(prevData?.emails || [""])],
           phones: [...(prevData?.phones || [""])],
           address: [...(prevData?.address || [""])],
@@ -217,7 +236,9 @@ export function DetailCandidate(prop) {
               </div>
               <Form.Item
                 name="firstName"
-                rules={[
+                rules={[ {
+                  type: "text", 
+                },
                   {
                     required: true,
                     message: "Please input First Name!",
@@ -225,10 +246,10 @@ export function DetailCandidate(prop) {
                 ]}
               >
                 <Input
+                  defaultValue={prevData?.firstName || null} 
                   disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please Input First Name"
-                  defaultValue={prevData?.firstName || null}
                 />
               </Form.Item>
             </div>
@@ -494,7 +515,7 @@ export function DetailCandidate(prop) {
                         {emails.length > 1 ? (
                           <MinusCircleOutlined
                             disabled={disabled}
-                            style={{ marginLeft: 10, paddingTop: 10 }}
+                            style={{ marginLeft: 10, paddingTop: 10, color: 'red' }}
                             onClick={() => remove(name)}
                           />
                         ) : null}
@@ -590,7 +611,7 @@ export function DetailCandidate(prop) {
                         {phones.length > 1 ? (
                           <MinusCircleOutlined
                             disabled={disabled}
-                            style={{ marginLeft: 10, paddingTop: 10 }}
+                            style={{ marginLeft: 10, paddingTop: 10 , color: 'red'}}
                             onClick={() => remove(name)}
                           />
                         ) : null}
@@ -735,6 +756,7 @@ export function DetailCandidate(prop) {
                             style={{
                               marginLeft: 10,
                               paddingTop: 10, 
+                              color: 'red'
                             }}
                             onClick={() => (disabled ? remove(name) : "")}
                           />
@@ -776,8 +798,7 @@ export function DetailCandidate(prop) {
                   disabled={disabled}
                   optionFilterProp="children"
                   placeholder="Please choose a nationality"
-                  showSearch
-                  onChange={(e) => onChangeCountryAddress(e)}
+                  showSearch 
                 >
                   {listNationality?.data?.map((e, i) => {
                     return (
@@ -806,8 +827,7 @@ export function DetailCandidate(prop) {
                   disabled={disabled}
                   optionFilterProp="children"
                   placeholder="Select or add your position applied"
-                  showSearch
-                  onChange={(e) => onChangeCountryAddress(e)}
+                  showSearch 
                 >
                   {listPosition?.data?.map((e, i) => {
                     return (
@@ -913,13 +933,12 @@ export function DetailCandidate(prop) {
               >
                 Reset
               </Button>
-            )}
+            )} 
 
             <Button
               style={{ float: "right", marginRight: 40 }}
               type="primary"
-              htmlType="submit"
-              onClick={() =>onFinish}
+              htmlType="submit" 
             >
               {edit ? "Update" : " Create and Next"}
             </Button>

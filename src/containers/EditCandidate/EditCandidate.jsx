@@ -10,7 +10,6 @@ import {
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
-  const { Step } = Steps;
   
   
   export default function AddCandidate(props) { 
@@ -23,29 +22,31 @@ import {
       return false;
     }); 
     const [prevData, setPrevData] = useState() 
-  
+  console.log(prevData);
    
   useEffect(()=>{
-    if(params.id){
+    if(params.id){ 
        getCandidate(params.id).then(dataCandidate =>{
+        const dob = dataCandidate?.dob?.split("-") || [];
+        console.log(dob);
         const x =({
           id: dataCandidate?.id,
           address:  dataCandidate?.addresses,
-          date: null,
+          date: dob[2],
           directReports: 2,
           emails: dataCandidate?.emails?.map((e,i) =>({key: i,email: e})) || [],
           firstName: dataCandidate?.first_name,
           gender: dataCandidate?.gender,
           lastName: dataCandidate?.last_name,
-          maritalStatus: null,
+          maritalStatus: dataCandidate?.extra?.martial_status,
           middleName: dataCandidate?.middle_name,
-          month: null,
+          month: dob[1],
           nationality: dataCandidate?.nationality,
           phones: dataCandidate?.phones?.map((e,i) =>({key: i, phone: e.number}))|| [],
           positionApplied: 544,
-          primaryStatus: null,
-          source: null,
-          year: null,
+          primaryStatus: dataCandidate?.priority_status,
+          source: dataCandidate?.source,
+          year: dob[0],
           yearOfManagement: dataCandidate?.management_years,
           yearOfServices: 1, 
         }); 

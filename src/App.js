@@ -108,7 +108,7 @@ const App = () => {
                 Boolean(auth) ? <Navigate to="/candidates" /> : <Login />
               }
             />
-            <Route exact path="/candidates" element={<Candidate />} />
+            <Route path="/candidates" element={<Candidate />} />
             <Route
               exact
               path="/candidate-detail/:id"

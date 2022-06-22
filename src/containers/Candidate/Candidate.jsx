@@ -1,5 +1,6 @@
 import {  
   EyeOutlined,
+  LoadingOutlined,
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
@@ -9,6 +10,7 @@ import {
   Layout, 
   Select,
   Space,
+  Spin,
   Tag,
 } from "antd";
 import Table from "antd/lib/table";
@@ -25,7 +27,7 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"; 
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
@@ -126,7 +128,7 @@ const formatColumn = (funcSearch, key, listProps) => {
       {
         title: "Industry",
         dataIndex: "business_line",
-        key: "business_line",
+        key: "business_line", 
         render: (text) =>
           text?.map((e, i) => (
             <p key={i}>* {e?.sector?.label || e?.industry?.label}</p>
@@ -185,102 +187,24 @@ const formatColumn = (funcSearch, key, listProps) => {
       },
     ];
 };
-
-// const menu = (
-//   <Menu
-//     items={[
-//       {
-//         label: "ID",
-//         key: "1",
-//         icon: <Checkbox />,
-//         disabled: true,
-//       },
-//       {
-//         label: "Name",
-//         key: "2",
-//         icon: <Checkbox />,
-//         disabled: true,
-//       },
-//       {
-//         label: "Primary Status",
-//         key: "3",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Languages",
-//         key: "4",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Highest degree",
-//         key: "5",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "City",
-//         key: "6",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Industry",
-//         key: "7",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "YOB",
-//         key: "8",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Activity",
-//         key: "9",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Recent companies",
-//         key: "10",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Recent positions",
-//         key: "11",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Year of services",
-//         key: "12",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Year of management",
-//         key: "13",
-//         icon: <Checkbox />,
-//       },
-//       {
-//         label: "Action",
-//         key: "14",
-//         icon: <Checkbox />,
-//         disabled: true,
-//       },
-//     ]}
-//   />
-// );
-export default function Candidate() {
-  // const [searchText, setSearchText] = useState("");
-  // const [searchedColumn, setSearchedColumn] = useState("");
+ 
+export default function Candidate() { 
 
   const navigate = useNavigate();
+  const search = useLocation().search;
+  const pageUrl = new URLSearchParams(search).get("page");
+
+
   const [auth] = useState(localStorage.getItem("auth")); 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
   const [count, setCount] = useState(0);
   const [listData, setListData] = useState(); 
   const [filters, setFilters] = useState(() => {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
-  });
-
+  }); 
   //search 
-  const searchInput = useRef(null);
-  const { data: totalData } = useQuery(
+  const searchInput = useRef(null); 
+  const { data: totalData, isFetching } = useQuery(
     ["listCandidate", page, filters],
     () => getListCandidate(page, filters),
     { keepPreviousData: true, staleTime: 5000 }
@@ -293,15 +217,15 @@ export default function Candidate() {
     getDefaultProp()
   );
 
-  useEffect(() => {
+  useEffect(() => { 
     if (totalData) {
       setListData(totalData.data);
       setCount(totalData.count);
-    }
+    } 
   }, [totalData]);
 
   const clearAllFilter = () => {
-    setFilters({}); 
+    setFilters({});  
   };
   const handlerClickRow = (data) => {
     navigate("/candidate-detail/" + data.candidate_id);
@@ -309,9 +233,9 @@ export default function Candidate() {
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
     if (selectedKeys === []) {
-      setFilters((filters) => {
-        delete filters[dataIndex];    
-      });
+      const temp = filters;
+      delete temp[dataIndex];    
+      setFilters(temp);
     }else{
       setFilters((data) => ({
         ...data,
@@ -319,16 +243,19 @@ export default function Candidate() {
       })); 
     } 
    
-  };
+    setPage(1)
+    navigate("?page="+1);
+    localStorage.setItem('pagination',1)
+  };   
   useEffect(() => {
     localStorage.removeItem("filtersCDD");
     localStorage.setItem("filtersCDD", JSON.stringify(filters));
   }, [filters]);
 
   const handleReset = (clearFilters, confirm, dataIndex) => {  
-    setFilters((filters) => {
-      return  delete filters[dataIndex] || {}; 
-    }); 
+    const temp = filters;
+    delete temp[dataIndex];    
+    setFilters(temp);
   };
   const getColumnSearchProps = (dataIndex,type, listData) => ({ 
     filterDropdown: ({
@@ -431,11 +358,12 @@ export default function Candidate() {
               placeholder="Please select" 
             >
                {listData?.map((e,i)=>{
-                 return <Select.Option key={i} value={e.label}>{e.label}</Select.Option>
+                 return <Select.Option key={i} value={e.key}>{e.label}</Select.Option>
                })}
             </Select> 
           </>
        :('')}
+       {type === "range"}
       </div>
     ),
     filterIcon: (filtered) => (
@@ -446,20 +374,33 @@ export default function Candidate() {
       />
     ),
   });
-  const handleTag = (key)=>{ 
-    setFilters((filters) => {
-      return  delete filters[key] || {}; 
-    }); 
+  const handleTag = (key)=>{  
+    // setFilters((filters) => {
+    //   return  delete filters[key] || {}; 
+    // }); 
+    const temp = filters;
+    delete temp[key];    
+    setFilters(temp);
+
+    localStorage.removeItem("filtersCDD");
+    localStorage.setItem("filtersCDD", JSON.stringify(temp));
   }
   const columns = formatColumn(
     getColumnSearchProps,
     listDefaultKeyPage?.data,
     listDefaultProp
   );
+  const handlerClickPagination = (e)=>{ 
+    localStorage.setItem('pagination',e)
+    navigate("?page="+e);
+    setPage(e);
+  }
   if (!auth) {
     window.location.pathname = "/";
   } 
-  if (listData)
+  if (isFetching){
+    return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
+  }
     return (
       <Layout>
         <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
@@ -519,11 +460,12 @@ export default function Candidate() {
                   }, // click row
                 };
               }}
-              pagination={{
+              pagination={{ 
+                current: page,
                 showSizeChanger: false,
                 showQuickJumper: true,
                 total: count,
-                onChange: () => setPage(page),
+                onChange: (e) => handlerClickPagination(e),
               }}
             />
           </Content>

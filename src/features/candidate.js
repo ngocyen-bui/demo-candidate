@@ -1,11 +1,10 @@
 import axios from "axios"; 
-import { HeaderFetch } from "../utils/header";
-
+import { HeaderFetch } from "../utils/header"; 
 
  export const DOMAIN = 'https://lubrytics.com:8443';
 
 export const getListCandidate = (number,listFilter) => { 
-    let ft = '';
+    let ft = ''; 
     for (const filter in listFilter) {
         if(listFilter[filter]) ft+=('&'+filter+"="+listFilter[filter])
     }  
