@@ -6,16 +6,15 @@ import { login } from "../../core/login";
 
 export default function Login(){
   // const [info, setInfo] = useState({})
-  // const navigate = useNavigate();
-
+  // const navigate = useNavigate(); 
   
   const onFinish = (values) => {
     login({user_name:values.username,password: values.password});  
   };
   
-    const onFinishFailed = (errorInfo) => {
-      console.log('Failed:', errorInfo);
-    };
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
     return (
         <Form
           style={{marginTop: 100, minHeight: 700}}

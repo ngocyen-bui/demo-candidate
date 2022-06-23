@@ -17,22 +17,20 @@ import {
     // const [current, setCurrent] = useState(0);
     const [checkInfo, setCheckInfo]= useState(); 
     const [disabled, setDisabled] = useState(() => {
-      if (Boolean(localStorage.getItem('personal-infomation'))) return true;
-      return false;
+      return (Boolean(localStorage.getItem('personal-infomation')))  
     }); 
-    const [prevData, setPrevData] = useState() 
-  console.log(prevData);
+    const [prevData, setPrevData] = useState()  
    
   useEffect(()=>{
     if(params.id){ 
-       getCandidate(params.id).then(dataCandidate =>{
+       getCandidate(params.id).then(dataCandidate =>{  
         const dob = dataCandidate?.dob?.split("-") || []; 
         const x =({
           id: dataCandidate?.id,
-          address:  dataCandidate?.addresses,
+          addresses:  dataCandidate?.addresses|| [""],
           date: dob[2],
           directReports: 2,
-          emails: dataCandidate?.emails?.map((e,i) =>({key: i,email: e})) || [],
+          emails: dataCandidate?.emails?.map((e,i) =>({key: i,email: e})) || [""],
           firstName: dataCandidate?.first_name,
           gender: dataCandidate?.gender,
           lastName: dataCandidate?.last_name,
@@ -40,7 +38,7 @@ import {
           middleName: dataCandidate?.middle_name,
           month: dob[1],
           nationality: dataCandidate?.nationality,
-          phones: dataCandidate?.phones?.map((e,i) =>({key: i, phone: e.number}))|| [],
+          phones: dataCandidate?.phones?.map((e) =>({ countryCode: "+"+e.phone_code.key, phone: e.number}))|| [""],
           positionApplied: 544,
           primaryStatus: dataCandidate?.priority_status,
           source: dataCandidate?.source,

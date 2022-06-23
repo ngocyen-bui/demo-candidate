@@ -1,6 +1,6 @@
 
-export const token = localStorage.getItem('auth'); 
-//const token  = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0Y2YxMzk5LWMyMGMtNGEwYy05NWU4LTdmODEyNjE5NzEwOCIsInVzZXJfaWQiOjEyLCJpYXQiOjE2NTU4NjM2OTYsImV4cCI6MTY1NjQ2ODQ5Nn0.VPm_b3uMW5tJjvlSh7gsZxH_S4nNloRHvp044RNVgvH0G5IIiYZFHaAe4tMU3g9v8WtOhkz6dlFWVLu71azyxw';
+//export const token = localStorage.getItem('auth'); 
+export const token='eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0Y2YxMzk5LWMyMGMtNGEwYy05NWU4LTdmODEyNjE5NzEwOCIsInVzZXJfaWQiOjEyLCJpYXQiOjE2NTU5NzYxMTcsImV4cCI6MTY1NjU4MDkxN30.XmS6phUS5fj0jF-HJ9ldoQl7nyS1Ut878WHjPMvnko7ytC5rqzm-50P0RroufJKOcJvz1xTgvMnrE4lr8nia2w';
 export const HeaderFetch = {
   Authorization:
     "Bearer " + token,

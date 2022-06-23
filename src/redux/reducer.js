@@ -5,7 +5,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const filtersSlice = createSlice({
     name: 'filters',
     initialState:{
-        searchID: '',
+        searchID: '123',
         searchName:'',
         searPrioriry: '',
     },
@@ -33,4 +33,4 @@ export const listCandidateSlice = createSlice({
 })
 
 
-export const {addCandidate, editCandidate,addListCandidate} = listCandidateSlice.render;
+export const {addCandidate, editCandidate,addListCandidate} = listCandidateSlice.actions;

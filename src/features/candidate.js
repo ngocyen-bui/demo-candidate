@@ -27,12 +27,7 @@ export const getListCandidate = (number,listFilter) => {
  export const getLocationFromCity = (number) => {return axios.get(DOMAIN+'/nadh-api-crm/api/locations?type=2&parent_id='+number+'&limit=500', 
  {
      headers: HeaderFetch, 
- }).then((res) => res.data)}
-
- export const getNationality = () => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=nationality`, 
- {
-     headers: HeaderFetch, 
- }).then((res) => res.data)}
+ }).then((res) => res.data)} 
  export const getPosition = () => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=position`, 
  {
      headers: HeaderFetch, 
@@ -57,14 +52,47 @@ export const getListCandidate = (number,listFilter) => {
      headers: HeaderFetch, 
  }).then((res) => res.data)} 
 
+//get degree 
+
+export const getDegree = () => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=degree`, 
+{    headers: HeaderFetch, 
+}).then((res) => res.data)} 
+
+
  //post request 
  export const createCandidate =(obj) =>  axios.post( DOMAIN +'/nadh-api-crm/api/candidates', obj,{
     headers: HeaderFetch, 
 })
-  .then((res) => res.data) 
+  .then((res) => res.data).then((res)=> res.json())
 
 
 export const updateCandidate =(id,obj) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
     headers: HeaderFetch, 
 })
-  .then((res) => res.data)
+.then((res) => res.data).then((res)=> res.json())
+
+
+
+  ///get nationality
+  export const getNationality = (value) => {
+    if (value) {
+      return axios.get(
+        DOMAIN + `/nadh-api-crm/api/property_values?property_name=nationality&value=${value}`,
+        {
+          headers: HeaderFetch,
+        }
+      ).then((res) => res.data);
+    }
+    return axios.get(
+      DOMAIN + `/nadh-api-crm/api/property_values?property_name=nationality`,
+      {
+        headers: HeaderFetch,
+      }
+    ).then((res) => res.data);
+  };
+
+  // logout  
+
+  export const logout = () => {return axios.get( DOMAIN+`/nadh-api-crm/logout`, 
+  {    headers: HeaderFetch, 
+  }).then((res) => res.data)} 

@@ -30,12 +30,11 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";  
 import { useDispatch, useSelector } from "react-redux";
 import { addListCandidate, listCandidateSlice } from "../../redux/reducer"; 
-import { getList } from "../../redux/selector";
-import { candidateApi } from "../../redux-api/store";
+import { getFilterSearchID, getList } from "../../redux/selector"; 
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
-  let degree;
+  let degree; 
   if (listProps) {
     let a = Object.values(listProps).find((obj) => {
       return obj.name === "language";
@@ -55,6 +54,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         render: (name) => (
           <p
             style={{
+              cursor: "pointer",
               color: "rgb(24, 144, 255)",
               fontWeight: "bold",
               width: "90px",
@@ -72,6 +72,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         render: (name) => (
           <span
             style={{
+              cursor: "pointer",
               color: "rgb(24, 144, 255)",
               textTransform: "capitalize",
               fontWeight: "bold",
@@ -192,17 +193,13 @@ const formatColumn = (funcSearch, key, listProps) => {
     ];
 };
 
-export default function Candidate() { 
-
-  const { data: todos } = candidateApi.useGetAllQuery(); 
-  dispatch(addListCandidate(todos));
+export default function Candidate() {  
  
   const navigate = useNavigate();
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
  
-  const dispatch = useDispatch();
-
+  const dispatch = useDispatch(); 
   const [auth] = useState(localStorage.getItem("auth")); 
   const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
   const [count, setCount] = useState(0);
@@ -211,7 +208,7 @@ export default function Candidate() {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   }); 
   //search 
-  const listCandidate = useSelector(getList);   
+  const listCandidateReducer = useSelector(getFilterSearchID);   
 
   const { data: totalData, isFetching } = useQuery(
     ["listCandidate", page, filters],
@@ -220,9 +217,9 @@ export default function Candidate() {
   );
  
   useEffect(()=>{ 
-    if(totalData) dispatch(listCandidateSlice.actions.addListCandidate(totalData));
+    if(true) dispatch(addListCandidate({1:1}));
   },[totalData,dispatch])  
-
+ 
   //Get data default key page
   const { data: listDefaultKeyPage } = useQuery("keyPage", () =>
     getKeyPageCDD()
@@ -465,6 +462,7 @@ export default function Candidate() {
               })
             :<></>}
             <Table
+              rowKey={'id'}
               style={{marginTop: 20}}
               columns={columns}
               dataSource={listData}
