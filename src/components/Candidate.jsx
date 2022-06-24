@@ -19,8 +19,10 @@ import {
 import { Content } from "antd/lib/layout/layout";
 import { useState } from "react";
 import { useQuery } from "react-query";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {   
+  createCandidate,
   getDegree,
   getLocationFromCity,
   getLocationFromCountry,
@@ -29,6 +31,7 @@ import {
   getValueFlag,
   updateCandidate,
 } from "../features/candidate";
+import { increment } from "../redux/reducer";
 const day = () => {
   let arr = [];
   for (let index = 1; index <= 31; index++) {
@@ -81,11 +84,22 @@ const result = (obj) => {
   });
   let listEmail = obj?.emails?.map((e) => {
     return e.email;
-  });   
+  });    
+  let nation = obj?.nationality?.map((n) => {
+    if(typeof(n) === 'object') {
+      return n
+    }
+    return {key: n}
+  }) 
+  let highest_education = {key: obj?.highest_education}
+
+  if(typeof(obj?.highest_education) === 'object'){
+    highest_education = obj?.highest_education
+  }
   let result =  {
-    nationality: obj?.nationality,
+    nationality: [...nation],
     middle_name: obj?.middleName,
-    highest_education: obj?.highest_education,
+    highest_education: highest_education,
     dob:
       (obj?.year ? obj?.year + "-" : "") +
       (obj?.month ? cv(obj?.month) + "-" : "") +
@@ -115,6 +129,8 @@ const result = (obj) => {
   return result;
 };
 
+
+
 export function DetailCandidate(prop) {
   const prevData = prop.prevData;
   const params = prop.params;
@@ -123,10 +139,18 @@ export function DetailCandidate(prop) {
   const [country, setCountry] = useState();
   const [nationality, setNationality] = useState('');
   const [value, setValue] = useState();
-  const [city, setCity] = useState(); 
-  // const [listProps, setListProps] = useState();
+  const [city, setCity] = useState();  
   const [loadings, setLoadings] = useState([]);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  let styleButton = {};
+  if(edit){
+    styleButton = {float: "right", marginRight: 10, position: 'fixed', bottom: 20, right: 20}
+  }else{
+    styleButton = {float: "right", marginRight: 10}
+    
+  }
 
   const { data: listCountries } = useQuery("repoData", () => getValueFlag());
 
@@ -140,10 +164,7 @@ export function DetailCandidate(prop) {
     ["locationFromCity", city],
     () => getLocationFromCity(city),
     { enabled: Boolean(city) }
-  );
-  // const { data: listDefaultProp } = useQuery("defaultProps", () =>
-  //   getDefaultProp()
-  // ); 
+  ); 
   const { data: listDegree } = useQuery("listDegree", () =>
     getDegree()
   ); 
@@ -154,23 +175,40 @@ export function DetailCandidate(prop) {
 
   const onFinish = (values) => { 
     if (values && !edit) {
-    //  const result = createCandidate(result(values));  
-      // countDown(); 
+      setTimeout(() => {
+        createCandidate(result(values)).then(res => { 
+          if(res.status === 200) {
+             countDown();  
+          }else{
+            error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
+          }
+        }); 
+       },1000) 
   
-      // localStorage.setItem("personal-infomation", JSON.stringify(values));
+      localStorage.setItem("personal-infomation", JSON.stringify(values));
     } else if (values && edit) {
      setTimeout(() => {
-      updateCandidate(prevData?.id, result(values)).then(res => {
-        console.log(res)
+      updateCandidate(prevData?.id, result(values)).then(res => { 
         if(res.status === 200) {
+          dispatch(increment(values));
            countDown();  
         }else{
-          error("Please check field "+res.response.data[0].message+ "with" + res.response.data[0].message)
+          error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
         }
       }); 
      },1000)
     } 
   };
+  const onFinishFailed = values => { 
+   return Modal.warning({
+      title: 'Please complete field required',
+      content: (
+        <div>
+          {values.errorFields.map((field,index) => <p key={index}>{field.name[0]}</p>)} 
+        </div>
+      ),
+    });
+  }
   const onValuesChange = (values) => {
     setValue(values);
   };
@@ -195,7 +233,7 @@ export function DetailCandidate(prop) {
         return newLoadings;
       });
     }, 2000);
-  };
+  }; 
   const error = (message) => {
     Modal.error({
       title: 'Please check your infomation',
@@ -251,22 +289,15 @@ export function DetailCandidate(prop) {
         name="basic"
         layout="vertical"
         initialValues={{
-          ...prevData,
-          // readyToMove: prevData?.readyToMove || 1,
-          // primaryStatus: prevData?.primaryStatus || 1,
-          // middleName: prevData?.middleName || null,
-          // date: prevData?.date || null,
-          // year: prevData?.year || null,
-          // month: prevData?.month || null,
-          // firstName: prevData?.firstName || null,
-          // lastName: prevData?.lastName || null,
-          positionApplied: prevData?.positionApplied ,
+          ...prevData,  
           emails: [...(prevData?.emails || [""])],
           phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
-          addresses: [...(prevData?.addresses || [""])],  
+          addresses: [...(prevData?.addresses || [""])],    
+          readyToMove: prevData?.readyToMove || 1,
         }}
         autoComplete="off"
         onFinish={onFinish}
+        onFinishFailed={onFinishFailed} 
         onValuesChange={onValuesChange}
       >
         <Row className="wrapper-name-add-candidate">
@@ -582,17 +613,22 @@ export function DetailCandidate(prop) {
                           <Form.Item name={[index, "countryCode"]}>
                             <Select 
                               style={{ width: 100 }}
-                              showSearch
-                              rules={[{ required: true }]}
+                              showSearch  
+                              rules={[  
+                                {
+                                  required: true,
+                                  message: "Please choose you country code!",
+                                },
+                              ]}
                             >
                               {listCountries?.data.map((e, i) => {
                                 return (
-                                  <Select.Option 
+                                  <Select.Option  
                                     key={i}
                                     value={e?.extra?.dial_code}
                                     maxTagTextLength={10}
                                   >
-                                    {e?.extra?.dial_code}
+                                    {e?.extra?.dial_code || "+84"}
                                   </Select.Option>
                                 );
                               })}
@@ -958,26 +994,26 @@ export function DetailCandidate(prop) {
           ""
         ) : (
           <>
-          <Button
-          style={{ float: "right", marginRight: 10 }}
-          type="primary"
-          htmlType="submit"
-          loading={loadings[0]}
-          onClick={() => enterLoading(0)}
-        >
-          {edit ? "Update" : " Create and Next"}
-        </Button>
-        {edit ? (
-          <></>
-        ) : (
-          <Button
-            style={{ float: "right", marginRight: 20 }}
-            loading={loadings[1]}
-            onClick={() => enterLoading(1)}
-          >
-            Reset
-          </Button>
-        )}
+              <Button 
+                style={styleButton}
+                type="primary"
+                htmlType="submit"
+                loading={loadings[0]}
+                onClick={() => enterLoading(0)}
+              >
+                {edit ? "Update" : " Create and Next"}
+              </Button>
+              {edit ? (
+                <></>
+              ) : (
+                <Button
+                  style={{ float: "right", marginRight: 20 }}
+                  loading={loadings[1]}
+                  onClick={() => enterLoading(1)}
+                >
+                  Reset
+                </Button>
+              )}
           </>
         )}
       </Form>

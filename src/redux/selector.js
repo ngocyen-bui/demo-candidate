@@ -9,6 +9,8 @@ export const getFilterSearchID = (state) => {
     return state.filters
 }
 
-export const listCandidateRemainingSelectors = createSelector(getList, getFilterSearchID,(list, getFilterSearchID) => {
+export const listCandidateRemainingSelectors = createSelector(getList, getFilterSearchID,
+    
+    (list, getFilterSearchID) => {
     return list;
 })

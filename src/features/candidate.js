@@ -11,7 +11,7 @@ export const getListCandidate = (number,listFilter) => {
     return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
  {
      headers: HeaderFetch, 
- }).then((res) => res.data)}
+ }).then((res) => res.data).catch((err) => err.response)}
 
  export const getValueFlag = () => {return axios.get(DOMAIN+'/nadh-api-crm/api/locations?type=4', 
  {

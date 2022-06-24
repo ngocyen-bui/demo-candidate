@@ -1,14 +1,11 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { filtersSlice, listCandidateSlice } from "./reducer";
-
+import { configureStore } from "@reduxjs/toolkit";  
+import candidatesReducer from "./reducer"
 
 const store = configureStore({
-    reducer: {
-        filter: filtersSlice.reducer ,
-        listCandidate: listCandidateSlice.reducer
-    }
+    reducer: { 
+        candidate: candidatesReducer
+    }, 
 })
 
 
-export default store ;
-
+export default store ; 

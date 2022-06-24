@@ -10,13 +10,11 @@ import { candidateApi } from "./redux-api/store";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <Provider store={store}>
-    <ApiProvider api={candidateApi}>
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    </ApiProvider>
-  </Provider>
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -1,7 +1,7 @@
 import { 
   SolutionOutlined, 
 } from "@ant-design/icons";
-import { Avatar, BackTop, Image, Layout, Menu } from "antd";
+import { Avatar, BackTop, Dropdown, Image, Layout, Menu } from "antd";
 import React, { useState } from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
@@ -56,7 +56,22 @@ const formatList = listTitleNavBar.map((e, index) => ({
 const App = () => { 
   const authSettings = (localStorage.getItem("auth") && localStorage.getItem("auth").length > 0);
   const [auth] = useState(authSettings);
-
+  const menu = (
+    <Menu
+      items={[ 
+        {
+          label: (
+            <a 
+              href="/"
+              onClick={() => {logout();localStorage.removeItem("auth")}} >
+                Logout
+            </a>
+          ), 
+        }, 
+      ]}
+    />
+  );
+  
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
@@ -70,18 +85,17 @@ const App = () => {
                     width={90}
                     src="https://nadh.lubrytics.com/static/media/logo_white.0fe5940b.png"
                   />
-                </Link>
-                <a
-                  href="/"
-                  onClick={() => {logout();localStorage.removeItem("auth")}}
-                  style={{ float: "right" }}
-                >
-                  <Avatar
-                    src={
-                      "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
-                    }
-                  />
-                </a>
+                </Link> 
+                  <Dropdown overlay={menu}>
+                    <a onClick={e => e.preventDefault() }
+                           style={{ float: "right" }}>
+                        <Avatar
+                        src={
+                          "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
+                        }
+                      />
+                    </a>
+                </Dropdown> 
               </Header>
               <Menu
                 theme="light"

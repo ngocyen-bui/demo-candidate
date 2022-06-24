@@ -28,9 +28,7 @@ import {
   getlistStatus,
 } from "../../utils/interface";
 import { Link, useLocation, useNavigate } from "react-router-dom";  
-import { useDispatch, useSelector } from "react-redux";
-import { addListCandidate, listCandidateSlice } from "../../redux/reducer"; 
-import { getFilterSearchID, getList } from "../../redux/selector"; 
+import { useDispatch, useSelector } from "react-redux"; 
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
@@ -199,7 +197,7 @@ export default function Candidate() {
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
  
-  const dispatch = useDispatch(); 
+  // const dispatch = useDispatch(); 
   const [auth] = useState(localStorage.getItem("auth")); 
   const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
   const [count, setCount] = useState(0);
@@ -207,8 +205,10 @@ export default function Candidate() {
   const [filters, setFilters] = useState(() => {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   }); 
-  //search 
-  const listCandidateReducer = useSelector(getFilterSearchID);   
+  //search  
+  // const todoIds = useSelector(selectFilteredCandidateIds);
+  // const loadingStatus = useSelector((state) => state.candidates)
+  // console.log(todoIds);
 
   const { data: totalData, isFetching } = useQuery(
     ["listCandidate", page, filters],
@@ -216,9 +216,9 @@ export default function Candidate() {
     { keepPreviousData: true, staleTime: 5000 }
   );
  
-  useEffect(()=>{ 
-    if(true) dispatch(addListCandidate({1:1}));
-  },[totalData,dispatch])  
+  // useEffect(()=>{ 
+  //   if(true) dispatch(addListCandidate({1:1}));
+  // },[totalData,dispatch])  
  
   //Get data default key page
   const { data: listDefaultKeyPage } = useQuery("keyPage", () =>
