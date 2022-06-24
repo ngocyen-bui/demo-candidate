@@ -1,7 +1,12 @@
-import { LoadingOutlined, MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  LoadingOutlined,
+  MinusCircleOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Col,
+  Divider,
   Form,
   Input,
   InputNumber,
@@ -12,12 +17,11 @@ import {
   Spin,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
-import {
-  createCandidate,
-  getDefaultProp,
+import {   
+  getDegree,
   getLocationFromCity,
   getLocationFromCountry,
   getNationality,
@@ -28,9 +32,9 @@ import {
 const day = () => {
   let arr = [];
   for (let index = 1; index <= 31; index++) {
-    if(index < 10){ 
-      arr.push("0"+index);
-    }else{ 
+    if (index < 10) {
+      arr.push("0" + index);
+    } else {
       arr.push(index);
     }
   }
@@ -57,15 +61,14 @@ const month = [
   "October",
   "November",
   "December",
-];
-
-const cv = (x)=>{
-  if(x.toString().length < 2){
+]; 
+const cv = (x) => {
+  if (x.toString().length < 2) {
     return "0" + x;
   }
   return x;
-}
-const result = (obj) => { 
+};
+const result = (obj) => {
   let listPhone = obj?.phones?.map((e) => {
     let key = e?.countryCode || "+84";
     return {
@@ -78,15 +81,15 @@ const result = (obj) => {
   });
   let listEmail = obj?.emails?.map((e) => {
     return e.email;
-  }); 
-  return { 
+  });   
+  let result =  {
     nationality: obj?.nationality,
     middle_name: obj?.middleName,
     highest_education: obj?.highest_education,
     dob:
       (obj?.year ? obj?.year + "-" : "") +
-      (obj?.month ? cv(obj?.month)+ "-" : "") +
-      (obj?.date ? cv(obj?.date ): ""),
+      (obj?.month ? cv(obj?.month) + "-" : "") +
+      (obj?.date ? cv(obj?.date) : ""),
     full_name:
       (obj?.firstName ? obj?.firstName + " " : "") +
       (obj?.month ? obj?.month + " " : "") +
@@ -97,31 +100,35 @@ const result = (obj) => {
     phones: listPhone,
     emails: listEmail,
     current_emails: [],
-    addresses: [],
+    addresses:  obj?.addresses,
     gender: obj?.gender,
     martial_status: obj?.martialStatus,
     source: obj?.source,
     priority_status: obj?.primaryStatus,
+    management_years: obj?.yearOfManagement,
+    industry_years: obj?.yearOfServices,
     type: 3,
   };
+  if(result.dob === ""){
+    delete result.dob;
+  }
+  return result;
 };
 
 export function DetailCandidate(prop) {
   const prevData = prop.prevData;
   const params = prop.params;
   const onChange = prop.onChange;
-  const edit = prop.edit || false; 
+  const edit = prop.edit || false;
   const [country, setCountry] = useState();
+  const [nationality, setNationality] = useState('');
   const [value, setValue] = useState();
-  const [city, setCity] = useState();
-  const [disabled, setDisabled] = useState(prop.disabled);
-  const [listProps, setListProps] = useState();
+  const [city, setCity] = useState(); 
+  // const [listProps, setListProps] = useState();
+  const [loadings, setLoadings] = useState([]);
   const navigate = useNavigate();
 
   const { data: listCountries } = useQuery("repoData", () => getValueFlag());
-  const { data: listNationality } = useQuery("repoNationality", () =>
-    getNationality()
-  );
 
   const { data: listPosition } = useQuery("position", () => getPosition());
   const { data: dataFromCountry } = useQuery(
@@ -134,39 +141,67 @@ export function DetailCandidate(prop) {
     () => getLocationFromCity(city),
     { enabled: Boolean(city) }
   );
-  const { data: listDefaultProp } = useQuery("defaultProps", () =>
-    getDefaultProp()
-  );
-  useEffect(() => {
-    if (listDefaultProp) {
-      let b = Object.values(listDefaultProp).find((obj) => {
-        return obj.name === "certificate";
-      });
-      setListProps(b?.values);
-    }
-  }, [listDefaultProp]); 
+  // const { data: listDefaultProp } = useQuery("defaultProps", () =>
+  //   getDefaultProp()
+  // ); 
+  const { data: listDegree } = useQuery("listDegree", () =>
+    getDegree()
+  ); 
+  const { data: listNationality } = useQuery(
+    ["getNationalityByValue", nationality],
+    () => getNationality(nationality), 
+  );  
 
   const onFinish = (values) => { 
-    countDown();
     if (values && !edit) {
-      createCandidate(result(values)); 
-      localStorage.setItem("personal-infomation", JSON.stringify(values));
-      setDisabled(true);
-    }else if (values && edit) { 
-        updateCandidate(prevData?.id,result(values))
-        setDisabled(false); 
-    }
+    //  const result = createCandidate(result(values));  
+      // countDown(); 
+  
+      // localStorage.setItem("personal-infomation", JSON.stringify(values));
+    } else if (values && edit) {
+     setTimeout(() => {
+      updateCandidate(prevData?.id, result(values)).then(res => {
+        console.log(res)
+        if(res.status === 200) {
+           countDown();  
+        }else{
+          error("Please check field "+res.response.data[0].message+ "with" + res.response.data[0].message)
+        }
+      }); 
+     },1000)
+    } 
   };
   const onValuesChange = (values) => {
     setValue(values);
   };
   const onChangeCountryAddress = (e) => {
+
     setCountry(e);
   };
   const onChangeCityAddress = (e) => {
-    setCity(e);
+    setCity(e);   
   };
-
+  
+  const enterLoading = (index) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        return newLoadings;
+      });
+    }, 2000);
+  };
+  const error = (message) => {
+    Modal.error({
+      title: 'Please check your infomation',
+      content: message,
+    });
+  };
   const countDown = () => {
     let secondsToGo = 2;
     let mess = "";
@@ -194,9 +229,11 @@ export function DetailCandidate(prop) {
       // localStorage.removeItem('personal-infomation')
     }, secondsToGo * 1000);
   };
-  if(!prevData && edit) {
-    return <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
-  } 
+  if (!prevData && edit) {
+    return (
+      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+    );
+  }  
   return (
     <Content
       className="site-layout-background"
@@ -214,14 +251,19 @@ export function DetailCandidate(prop) {
         name="basic"
         layout="vertical"
         initialValues={{
-          date: prevData?.date || null,
-          year: prevData?.year || null,
-          month: prevData?.month || null,
-          firstName: prevData?.firstName || null,
-          lastName: prevData?.lastName || null,
+          ...prevData,
+          // readyToMove: prevData?.readyToMove || 1,
+          // primaryStatus: prevData?.primaryStatus || 1,
+          // middleName: prevData?.middleName || null,
+          // date: prevData?.date || null,
+          // year: prevData?.year || null,
+          // month: prevData?.month || null,
+          // firstName: prevData?.firstName || null,
+          // lastName: prevData?.lastName || null,
+          positionApplied: prevData?.positionApplied ,
           emails: [...(prevData?.emails || [""])],
-          phones: [...(prevData?.phones || [""])],
-          address: [...(prevData?.address || [""])],
+          phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
+          addresses: [...(prevData?.addresses || [""])],  
         }}
         autoComplete="off"
         onFinish={onFinish}
@@ -236,9 +278,7 @@ export function DetailCandidate(prop) {
               </div>
               <Form.Item
                 name="firstName"
-                rules={[ {
-                  type: "text", 
-                },
+                rules={[
                   {
                     required: true,
                     message: "Please input First Name!",
@@ -246,8 +286,6 @@ export function DetailCandidate(prop) {
                 ]}
               >
                 <Input
-                  defaultValue={prevData?.firstName || null} 
-                  disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please Input First Name"
                 />
@@ -271,10 +309,8 @@ export function DetailCandidate(prop) {
                 ]}
               >
                 <Input
-                  disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please Input Last Name"
-                  defaultValue={prevData?.lastName || null}
                 />
               </Form.Item>
             </div>
@@ -286,10 +322,8 @@ export function DetailCandidate(prop) {
 
               <Form.Item name="middleName">
                 <Input
-                  disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please Input Middle Name"
-                  defaultValue={prevData?.middleName || null}
                 />
               </Form.Item>
             </div>
@@ -300,11 +334,9 @@ export function DetailCandidate(prop) {
               <div className="label-add-candidate">Primary status:</div>
               <Form.Item required name="primaryStatus">
                 <Select
-                  disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please select primary status"
                   optionFilterProp="children"
-                  defaultValue={prevData?.primaryStatus || null}
                   filterOption={(input, option) =>
                     option.children.toLowerCase().includes(input.toLowerCase())
                   }
@@ -325,14 +357,13 @@ export function DetailCandidate(prop) {
                 <Col span={8} style={{ paddingRight: 10 }}>
                   <Form.Item name="date">
                     <Select
-                      disabled={disabled}
                       style={{ width: "100%" }}
                       showSearch
                       placeholder="Date"
                       optionFilterProp="children"
-                      defaultValue={prevData?.date || null}
                       filterOption={(input, option) =>
                         option.children
+                          .toString()
                           .toLowerCase()
                           .includes(input.toLowerCase())
                       }
@@ -350,12 +381,10 @@ export function DetailCandidate(prop) {
                 <Col span={8} style={{ paddingInline: 5 }}>
                   <Form.Item name="month">
                     <Select
-                      disabled={disabled}
                       style={{ width: "100%" }}
                       showSearch
                       placeholder="Month"
                       optionFilterProp="children"
-                      defaultValue={prevData?.month || null}
                       filterOption={(input, option) =>
                         option.children
                           .toLowerCase()
@@ -375,14 +404,12 @@ export function DetailCandidate(prop) {
                 <Col span={8} style={{ paddingLeft: 10 }}>
                   <Form.Item name="year">
                     <Select
-                      disabled={disabled}
                       style={{ width: "100%" }}
                       showSearch
                       placeholder="Year"
-                      optionFilterProp="children"
-                      defaultValue={prevData?.year || null}
                       filterOption={(input, option) =>
                         option.children
+                          .toString()
                           .toLowerCase()
                           .includes(input.toLowerCase())
                       }
@@ -400,18 +427,14 @@ export function DetailCandidate(prop) {
               </Row>
             </div>
           </Col>
-          {/* Space */}
+          {/* Spaceaddresses*/}
           <Col span={12}></Col>
           {/* Gender */}
           <Col span={12}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Gender:</div>
               <Form.Item required name="gender">
-                <Radio.Group
-                  onChange={onChange}
-                  disabled={disabled}
-                  defaultValue={prevData?.gender || null}
-                >
+                <Radio.Group onChange={onChange}>
                   <Radio value={1}>Male</Radio>
                   <Radio value={2}>Female</Radio>
                   <Radio value={3}>Complicated</Radio>
@@ -424,11 +447,7 @@ export function DetailCandidate(prop) {
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Marital Status:</div>
               <Form.Item required name="maritalStatus">
-                <Radio.Group
-                  onChange={onChange}
-                  disabled={disabled}
-                  defaultValue={prevData?.maritalStatus || null}
-                >
+                <Radio.Group onChange={onChange}>
                   <Radio value={1}>Yes</Radio>
                   <Radio value={-1}>No</Radio>
                 </Radio.Group>
@@ -442,10 +461,8 @@ export function DetailCandidate(prop) {
 
               <Form.Item required name="readyToMove">
                 <Select
-                  disabled={disabled}
                   style={{ width: "100%", cursor: "pointer" }}
                   optionFilterProp="children"
-                  defaultValue={prevData?.readyToMove || "Yes"}
                   filterOption={(input, option) =>
                     option.children.toLowerCase().includes(input.toLowerCase())
                   }
@@ -463,8 +480,6 @@ export function DetailCandidate(prop) {
               <div className="label-add-candidate">Source:</div>
               <Form.Item required name="source">
                 <Input
-                  defaultValue={prevData?.source || null}
-                  disabled={disabled}
                   style={{ width: "100%" }}
                   placeholder="Please input source"
                 />
@@ -480,9 +495,9 @@ export function DetailCandidate(prop) {
               <Form.List name="emails">
                 {(emails, { add, remove }) => (
                   <>
-                    {emails.map(({ key, name, ...restField }) => (
+                    {emails.map((email, index) => (
                       <div
-                        key={key}
+                        key={email.key}
                         style={{
                           width: "65%",
                           display: "flex",
@@ -491,9 +506,8 @@ export function DetailCandidate(prop) {
                         align="baseline"
                       >
                         <Form.Item
-                          {...restField}
                           style={{ flex: 1 }}
-                          name={[key, "email"]}
+                          name={[index, "email"]}
                           rules={[
                             {
                               type: "email",
@@ -506,17 +520,18 @@ export function DetailCandidate(prop) {
                           ]}
                         >
                           <Input
-                            defaultValue={prevData?.emails[key]?.email || null}
-                            disabled={disabled}
                             style={{ width: "100%" }}
                             placeholder={"ex: email@email.com"}
                           />
                         </Form.Item>
                         {emails.length > 1 ? (
                           <MinusCircleOutlined
-                            disabled={disabled}
-                            style={{ marginLeft: 10, paddingTop: 10, color: 'red' }}
-                            onClick={() => remove(name)}
+                            style={{
+                              marginLeft: 10,
+                              paddingTop: 10,
+                              color: "red",
+                            }}
+                            onClick={() => remove(email.name)}
                           />
                         ) : null}
                       </div>
@@ -525,7 +540,6 @@ export function DetailCandidate(prop) {
                     {emails.length < 5 ? (
                       <Form.Item style={{ width: "60%", textAlign: "end" }}>
                         <Button
-                          disabled={disabled}
                           style={{
                             width: "70%",
                             color: "#40a9ff",
@@ -554,9 +568,9 @@ export function DetailCandidate(prop) {
               <Form.List name="phones">
                 {(phones, { add, remove }) => (
                   <>
-                    {phones.map(({ key, name }) => (
+                    {phones.map((phone, index) => (
                       <div
-                        key={key}
+                        key={phone.key}
                         style={{
                           display: "flex",
                           width: "65%",
@@ -565,17 +579,15 @@ export function DetailCandidate(prop) {
                         align="baseline"
                       >
                         <Input.Group style={{ display: "flex" }} compact>
-                          <Form.Item name={[key, "countryCode"]}>
-                            <Select
-                              disabled={disabled}
+                          <Form.Item name={[index, "countryCode"]}>
+                            <Select 
                               style={{ width: 100 }}
-                              defaultValue="+84"
                               showSearch
                               rules={[{ required: true }]}
                             >
                               {listCountries?.data.map((e, i) => {
                                 return (
-                                  <Select.Option
+                                  <Select.Option 
                                     key={i}
                                     value={e?.extra?.dial_code}
                                     maxTagTextLength={10}
@@ -587,8 +599,12 @@ export function DetailCandidate(prop) {
                             </Select>
                           </Form.Item>
                           <Form.Item
-                            name={[key, "phone"]}
-                            rules={[
+                            name={[index, "phone"]}
+                            rules={[ 
+                              {
+                                pattern: /^(?:\d*)$/,
+                                message: "Please input numbers only",
+                              },
                               {
                                 required: true,
                                 message: "Please input your number phone!",
@@ -599,20 +615,17 @@ export function DetailCandidate(prop) {
                               width: "100%",
                             }}
                           >
-                            <Input
-                              defaultValue={
-                                prevData?.phones[key]?.phone || null
-                              }
-                              disabled={disabled}
-                              placeholder="ex: 371234567"
-                            />
+                            <Input maxLength={11} placeholder="ex: 371234567" />
                           </Form.Item>
                         </Input.Group>
                         {phones.length > 1 ? (
                           <MinusCircleOutlined
-                            disabled={disabled}
-                            style={{ marginLeft: 10, paddingTop: 10 , color: 'red'}}
-                            onClick={() => remove(name)}
+                            style={{
+                              marginLeft: 10,
+                              paddingTop: 10,
+                              color: "red",
+                            }}
+                            onClick={() => remove(phone.name)}
                           />
                         ) : null}
                       </div>
@@ -621,7 +634,6 @@ export function DetailCandidate(prop) {
                     {phones.length < 5 ? (
                       <Form.Item style={{ width: "60%", textAlign: "end" }}>
                         <Button
-                          disabled={disabled}
                           style={{
                             width: "70%",
                             color: "#40a9ff",
@@ -641,16 +653,16 @@ export function DetailCandidate(prop) {
               </Form.List>
             </div>
           </Col>
-          {/* Address */}
+          {/* Addresses */}
           <Col span={24}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Address:</div>
-              <Form.List name={"address"}>
-                {(address, { add, remove }) => (
+              <Form.List name={"addresses"}>
+                {(addresses, { add, remove }) => (
                   <>
-                    {address.map(({ key, name, ...restField }) => (
+                    {addresses.map((address, index) => (
                       <div
-                        key={key}
+                        key={address.key}
                         style={{
                           display: "flex",
                           marginBottom: 8,
@@ -659,9 +671,8 @@ export function DetailCandidate(prop) {
                       >
                         <Row style={{ flex: 1 }}>
                           <Col span={8} style={{ paddingRight: 5 }}>
-                            <Form.Item name={[key, "country"]}>
+                            <Form.Item name={[index, "country"]}>
                               <Select
-                                disabled={disabled}
                                 optionFilterProp="children"
                                 placeholder="Country"
                                 showSearch
@@ -673,23 +684,23 @@ export function DetailCandidate(prop) {
                                       key={i}
                                       children={e?.label}
                                       value={e?.key}
+                                      placeholder="Country"
                                       maxTagTextLength={10}
                                     >
                                       {e?.label}
                                     </Select.Option>
-                                  );
-                                })}
+                                  ); 
+                                })} 
                               </Select>
                             </Form.Item>
                           </Col>
                           <Col span={8} style={{ paddingInline: 10 }}>
-                            <Form.Item name={[key, "city"]}>
+                            <Form.Item name={[index, "city"]}>
                               <Select
                                 optionFilterProp="children"
                                 disabled={
                                   (!dataFromCountry?.data.length > 0 &&
-                                    !params?.id) ||
-                                  disabled
+                                    !params?.id) 
                                 }
                                 placeholder="City"
                                 showSearch
@@ -698,7 +709,6 @@ export function DetailCandidate(prop) {
                                 {dataFromCountry?.data?.map((e, i) => {
                                   return (
                                     <Select.Option
-                                      disabled={disabled}
                                       key={i}
                                       children={e?.label}
                                       value={e?.key}
@@ -712,15 +722,14 @@ export function DetailCandidate(prop) {
                             </Form.Item>
                           </Col>
                           <Col span={8} style={{ paddingLeft: 5 }}>
-                            <Form.Item name={[key, "district"]}>
+                            <Form.Item name={[index, "district"]}>
                               <Select
                                 disabled={
                                   (!dataFromCity?.data.length > 0 &&
-                                    !params?.id) ||
-                                  disabled
+                                    !params?.id) 
                                 }
-                                defaultValue="District"
                                 showSearch
+                                placeholder="District"
                               >
                                 {dataFromCity?.data.map((e, i) => {
                                   return (
@@ -738,10 +747,9 @@ export function DetailCandidate(prop) {
                           </Col>
                           <Form.Item
                             style={{ width: "100%" }}
-                            name={[key, "street"]}
+                            name={[index, "address"]}
                           >
                             <Input
-                              disabled={disabled}
                               style={{
                                 width: "100%",
                                 marginTop: 20,
@@ -750,24 +758,25 @@ export function DetailCandidate(prop) {
                             />
                           </Form.Item>
                         </Row>
-                        {address.length > 1 ? (
+                        {addresses.length > 1 ? (
                           <MinusCircleOutlined
                             twoToneColor={"red"}
                             style={{
                               marginLeft: 10,
-                              paddingTop: 10, 
-                              color: 'red'
+                              paddingTop: 10,
+                              color: "red",
                             }}
-                            onClick={() => (disabled ? remove(name) : "")}
+                            onClick={() =>
+                              remove(address.name) 
+                            }
                           />
                         ) : null}
                       </div>
                     ))}
 
-                    {address.length < 5 ? (
+                    {addresses.length < 5 ? (
                       <Form.Item style={{ textAlign: "center" }}>
                         <Button
-                          disabled={disabled}
                           style={{
                             width: "50%",
                             color: "#40a9ff",
@@ -781,7 +790,7 @@ export function DetailCandidate(prop) {
                           Add field
                         </Button>
                       </Form.Item>
-                    ) : null}
+                    ) : <></>}
                   </>
                 )}
               </Form.List>
@@ -791,17 +800,37 @@ export function DetailCandidate(prop) {
           <Col span={24}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Nationality :</div>
-              <Form.Item required name="nationality">
+              <Form.Item name="nationality">
                 <Select
                   mode="multiple"
-                  defaultValue={prevData?.nationality}
-                  disabled={disabled}
                   optionFilterProp="children"
-                  placeholder="Please choose a nationality"
-                  showSearch 
+                  placeholder="Please choose or add a nationality"
+                  showSearch   
+                  onKeyUp={(e)=>{ setTimeout(() =>{return setNationality(e.target.value)},600)}} 
+                  onBlur={()=>{setNationality()}}
+                  // filterOption={(input, option) => setTimeout(() =>{return setNationality(input)},600)}
+                  filterSort={(optionA, optionB) =>
+                    optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                  }
+                  dropdownRender={menu => (
+                    <div>
+                      {menu}
+                      {(listNationality?.data?.length > 0)?<></>: <>
+                        <Divider style={{ margin: '4px 0' }} />
+                        <div
+                          style={{ padding: '4px 8px', cursor: 'pointer' }}
+                          // onMouseDown={e => console.log(e)}
+                          // onClick={()=> console.log(1)}
+                        >
+                          <PlusOutlined /> Add item
+                        </div>
+                      </>}
+                      
+                    </div>
+                  )}
                 >
                   {listNationality?.data?.map((e, i) => {
-                    return (
+                    return ( 
                       <Select.Option
                         key={i}
                         children={e?.label}
@@ -809,10 +838,11 @@ export function DetailCandidate(prop) {
                         maxTagTextLength={10}
                       >
                         {e?.label}
-                      </Select.Option>
+                      </Select.Option> 
                     );
                   })}
-                </Select>
+
+                </Select> 
               </Form.Item>
             </div>
           </Col>
@@ -823,11 +853,9 @@ export function DetailCandidate(prop) {
               <Form.Item required name="positionApplied">
                 <Select
                   mode="multiple"
-                  defaultValue={prevData?.positionApplied}
-                  disabled={disabled}
                   optionFilterProp="children"
                   placeholder="Select or add your position applied"
-                  showSearch 
+                  showSearch
                 >
                   {listPosition?.data?.map((e, i) => {
                     return (
@@ -849,25 +877,27 @@ export function DetailCandidate(prop) {
           <Col span={24}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Highest Education :</div>
-              <Form.Item required name="highest_education">
+              <Form.Item name="highest_education">
                 <Select
-                  defaultValue={prevData?.highest_education || null}
-                  disabled={disabled}
                   optionFilterProp="children"
-                  placeholder="Select or add your highest education"
+                  placeholder="Select your highest education"
                   showSearch
+                  filterSort={(optionA, optionB) =>
+                    optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                  }
                 >
-                  {listProps?.map((e, i) => {
+                  {listDegree?.data?.map((e, i) => {
                     return (
                       <Select.Option
-                        key={i}
+                        key={i} 
+                        children={e?.label}
                         value={e?.key}
                         maxTagTextLength={10}
                       >
                         {e?.label}
                       </Select.Option>
                     );
-                  })}
+                  })} 
                 </Select>
               </Form.Item>
             </div>
@@ -878,12 +908,13 @@ export function DetailCandidate(prop) {
               <div className="label-add-candidate">
                 Industry Year of Services:
               </div>
-              <Form.Item name="yearOfServices">
+              <Form.Item name="yearOfServices" rules={ [{
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
-                  defaultValue={prevData?.yearOfServices || null}
-                  disabled={disabled}
                   style={{ width: "100%" }}
-                  min={1}
+                  min={0}
                   placeholder="0"
                 />
               </Form.Item>
@@ -893,12 +924,14 @@ export function DetailCandidate(prop) {
           <Col span={12}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Year of Management:</div>
-              <Form.Item name="yearOfManagement">
+              <Form.Item name="yearOfManagement"
+              rules={ [{
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
-                  defaultValue={prevData?.yearOfManagement || null}
-                  disabled={disabled}
                   style={{ width: "100%" }}
-                  min={1}
+                  min={0}
                   placeholder="0"
                 />
               </Form.Item>
@@ -908,41 +941,44 @@ export function DetailCandidate(prop) {
           <Col span={12}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">No. of Direct Reports:</div>
-              <Form.Item name="directReports">
+              <Form.Item name="directReports"rules={[ {
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
-                  defaultValue={prevData?.directReports || null}
-                  disabled={disabled}
                   style={{ width: "100%" }}
-                  min={1}
+                  min={0}
                   placeholder="0"
                 />
               </Form.Item>
             </div>
           </Col>
         </Row>
-        {!value && !disabled ? (
+        {!value? (
           ""
         ) : (
-          <Form.Item label=" " colon={false}>
-            {edit ? (
-              <></>
-            ) : (
-              <Button
-                type="primary"
-                onClick={() => localStorage.removeItem("personal-infomation")}
-              >
-                Reset
-              </Button>
-            )} 
-
-            <Button
-              style={{ float: "right", marginRight: 40 }}
-              type="primary"
-              htmlType="submit" 
-            >
-              {edit ? "Update" : " Create and Next"}
-            </Button>
-          </Form.Item>
+          <>
+          <Button
+          style={{ float: "right", marginRight: 10 }}
+          type="primary"
+          htmlType="submit"
+          loading={loadings[0]}
+          onClick={() => enterLoading(0)}
+        >
+          {edit ? "Update" : " Create and Next"}
+        </Button>
+        {edit ? (
+          <></>
+        ) : (
+          <Button
+            style={{ float: "right", marginRight: 20 }}
+            loading={loadings[1]}
+            onClick={() => enterLoading(1)}
+          >
+            Reset
+          </Button>
+        )}
+          </>
         )}
       </Form>
     </Content>

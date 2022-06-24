@@ -1,21 +1,50 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Modal } from "antd";
 import Checkbox from "antd/lib/checkbox/Checkbox"; 
 import { login } from "../../core/login";
 
 
+const countDown = () => {
+  let secondsToGo = 2;
+
+  const modal = Modal.error({
+    title: 'Please check username or password again!',
+    content: `This modal will be destroyed after ${secondsToGo} second.`,
+  });
+
+  const timer = setInterval(() => {
+    secondsToGo -= 1;
+    modal.update({
+      content: `This modal will be destroyed after ${secondsToGo} second.`,
+    });
+  }, 1000);
+
+  setTimeout(() => {
+    clearInterval(timer);
+    modal.destroy();
+  }, secondsToGo * 1000);
+};
 
 export default function Login(){
   // const [info, setInfo] = useState({})
-  // const navigate = useNavigate();
-
+  // const navigate = useNavigate(); 
   
   const onFinish = (values) => {
-    login({user_name:values.username,password: values.password});  
+   login({user_name:values.username,password: values.password}).then(res =>{
+    console.log(res);
+    if(res.status === 200){ 
+      localStorage.removeItem('auth')
+      localStorage.setItem('auth', res.data.token); 
+       window.location.pathname = "/candidates"
+    }else {
+      countDown();
+    }
+
+   });  
   };
   
-    const onFinishFailed = (errorInfo) => {
-      console.log('Failed:', errorInfo);
-    };
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
     return (
         <Form
           style={{marginTop: 100, minHeight: 700}}

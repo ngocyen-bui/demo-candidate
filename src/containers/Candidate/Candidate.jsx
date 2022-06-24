@@ -27,11 +27,14 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useLocation, useNavigate } from "react-router-dom"; 
+import { Link, useLocation, useNavigate } from "react-router-dom";  
+import { useDispatch, useSelector } from "react-redux";
+import { addListCandidate, listCandidateSlice } from "../../redux/reducer"; 
+import { getFilterSearchID, getList } from "../../redux/selector"; 
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
-  let degree;
+  let degree; 
   if (listProps) {
     let a = Object.values(listProps).find((obj) => {
       return obj.name === "language";
@@ -51,6 +54,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         render: (name) => (
           <p
             style={{
+              cursor: "pointer",
               color: "rgb(24, 144, 255)",
               fontWeight: "bold",
               width: "90px",
@@ -68,6 +72,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         render: (name) => (
           <span
             style={{
+              cursor: "pointer",
               color: "rgb(24, 144, 255)",
               textTransform: "capitalize",
               fontWeight: "bold",
@@ -187,14 +192,14 @@ const formatColumn = (funcSearch, key, listProps) => {
       },
     ];
 };
- 
-export default function Candidate() { 
 
+export default function Candidate() {  
+ 
   const navigate = useNavigate();
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
-
-
+ 
+  const dispatch = useDispatch(); 
   const [auth] = useState(localStorage.getItem("auth")); 
   const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
   const [count, setCount] = useState(0);
@@ -203,26 +208,34 @@ export default function Candidate() {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   }); 
   //search 
-  const searchInput = useRef(null); 
+  const listCandidateReducer = useSelector(getFilterSearchID);   
+
   const { data: totalData, isFetching } = useQuery(
     ["listCandidate", page, filters],
-    () => getListCandidate(page, filters),
+     async () => await getListCandidate(page, filters),
     { keepPreviousData: true, staleTime: 5000 }
   );
+ 
+  useEffect(()=>{ 
+    if(true) dispatch(addListCandidate({1:1}));
+  },[totalData,dispatch])  
+ 
   //Get data default key page
   const { data: listDefaultKeyPage } = useQuery("keyPage", () =>
     getKeyPageCDD()
   );
+
   const { data: listDefaultProp } = useQuery("defaultProps", () =>
     getDefaultProp()
   );
 
-  useEffect(() => { 
-    if (totalData) {
+  useEffect(() => {  
+    if (!isFetching && totalData) {
       setListData(totalData.data);
       setCount(totalData.count);
     } 
-  }, [totalData]);
+  }, [totalData,isFetching]);
+
 
   const clearAllFilter = () => {
     setFilters({});  
@@ -295,7 +308,7 @@ export default function Candidate() {
           </Button>
         </Space>
         {type === "input" ? (
-          <Input ref={searchInput}
+          <Input 
             placeholder={`Search ${dataIndex}`}
             value={selectedKeys[0]}
             onChange={(e) =>
@@ -449,6 +462,7 @@ export default function Candidate() {
               })
             :<></>}
             <Table
+              rowKey={'id'}
               style={{marginTop: 20}}
               columns={columns}
               dataSource={listData}

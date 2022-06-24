@@ -11,6 +11,7 @@ import { BrowserRouter, Link, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./containers/Login/Login";
 import AddCandidate from "./containers/AddCandidate/AddCandidate";
 import EditCandidate from "./containers/EditCandidate/EditCandidate";
+import { logout } from "./features/candidate";
 const { Header } = Layout;
 // Create a client
 const queryClient = new QueryClient();
@@ -53,7 +54,8 @@ const formatList = listTitleNavBar.map((e, index) => ({
   label: e.title,
 }));
 const App = () => { 
-  const [auth] = useState(localStorage.getItem("auth"));
+  const authSettings = (localStorage.getItem("auth") && localStorage.getItem("auth").length > 0);
+  const [auth] = useState(authSettings);
 
   return (
     <BrowserRouter>
@@ -71,7 +73,7 @@ const App = () => {
                 </Link>
                 <a
                   href="/"
-                  onClick={() => localStorage.removeItem("auth")}
+                  onClick={() => {logout();localStorage.removeItem("auth")}}
                   style={{ float: "right" }}
                 >
                   <Avatar
@@ -98,7 +100,7 @@ const App = () => {
               exact
               path="/"
               element={
-                Boolean(auth) ? <Navigate to="/login" /> : <Login />
+                <Navigate to="/login" />
               }
             />
             <Route
@@ -108,9 +110,8 @@ const App = () => {
                 Boolean(auth) ? <Navigate to="/candidates" /> : <Login />
               }
             />
-            <Route path="/candidates" element={<Candidate />} />
-            <Route
-              exact
+            <Route exact path="/candidates" element={<Candidate />} />
+            <Route 
               path="/candidate-detail/:id"
               element={<EditCandidate />}
             />
