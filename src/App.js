@@ -54,13 +54,14 @@ const formatList = listTitleNavBar.map((e, index) => ({
   label: e.title,
 }));
 const App = () => { 
-  const [auth] = useState(localStorage.getItem("auth"));
+  const authSettings = (localStorage.getItem("auth") && localStorage.getItem("auth").length > 0);
+  const [auth] = useState(authSettings);
 
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <Layout>
-          {auth.length >0 ? (
+          {auth ? (
             <>
               <Header className="header app-header">
                 <Link to="/">
@@ -106,7 +107,7 @@ const App = () => {
               exact
               path="/login"
               element={
-                Boolean(auth.length > 0) ? <Navigate to="/candidates" /> : <Login />
+                Boolean(auth) ? <Navigate to="/candidates" /> : <Login />
               }
             />
             <Route exact path="/candidates" element={<Candidate />} />

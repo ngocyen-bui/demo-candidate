@@ -17,12 +17,10 @@ import {
   Spin,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
-import { 
-  createCandidate,
-  getDefaultProp,
+import {   
   getDegree,
   getLocationFromCity,
   getLocationFromCountry,
@@ -70,7 +68,7 @@ const cv = (x) => {
   }
   return x;
 };
-const result = (obj,nationality) => {
+const result = (obj) => {
   let listPhone = obj?.phones?.map((e) => {
     let key = e?.countryCode || "+84";
     return {
@@ -83,15 +81,9 @@ const result = (obj,nationality) => {
   });
   let listEmail = obj?.emails?.map((e) => {
     return e.email;
-  });
-  let nation = obj?.nationality?.map((e) => {
-    return nationality?.data?.find((n) => {
-      return e === n.key
-    })
-  }); 
-
+  });   
   let result =  {
-    nationality: nation,
+    nationality: obj?.nationality,
     middle_name: obj?.middleName,
     highest_education: obj?.highest_education,
     dob:
@@ -113,6 +105,8 @@ const result = (obj,nationality) => {
     martial_status: obj?.martialStatus,
     source: obj?.source,
     priority_status: obj?.primaryStatus,
+    management_years: obj?.yearOfManagement,
+    industry_years: obj?.yearOfServices,
     type: 3,
   };
   if(result.dob === ""){
@@ -130,7 +124,8 @@ export function DetailCandidate(prop) {
   const [nationality, setNationality] = useState('');
   const [value, setValue] = useState();
   const [city, setCity] = useState(); 
-  const [listProps, setListProps] = useState();
+  // const [listProps, setListProps] = useState();
+  const [loadings, setLoadings] = useState([]);
   const navigate = useNavigate();
 
   const { data: listCountries } = useQuery("repoData", () => getValueFlag());
@@ -146,36 +141,34 @@ export function DetailCandidate(prop) {
     () => getLocationFromCity(city),
     { enabled: Boolean(city) }
   );
-  const { data: listDefaultProp } = useQuery("defaultProps", () =>
-    getDefaultProp()
-  ); 
+  // const { data: listDefaultProp } = useQuery("defaultProps", () =>
+  //   getDefaultProp()
+  // ); 
   const { data: listDegree } = useQuery("listDegree", () =>
     getDegree()
   ); 
   const { data: listNationality } = useQuery(
     ["getNationalityByValue", nationality],
     () => getNationality(nationality), 
-  ); 
- 
-  useEffect(() => {
-    if (listDefaultProp) {
-      let b = Object.values(listDefaultProp).find((obj) => {
-        return obj.name === "certificate";
-      });
-      setListProps(b?.values);
-    }
-  }, [listDefaultProp]);
+  );  
 
-  const onFinish = (values) => {
+  const onFinish = (values) => { 
     if (values && !edit) {
     //  const result = createCandidate(result(values));  
       // countDown(); 
   
       // localStorage.setItem("personal-infomation", JSON.stringify(values));
     } else if (values && edit) {
-      const resultUpdate = updateCandidate(prevData?.id, result(values,listNationality));
-      // countDown(); 
-  
+     setTimeout(() => {
+      updateCandidate(prevData?.id, result(values)).then(res => {
+        console.log(res)
+        if(res.status === 200) {
+           countDown();  
+        }else{
+          error("Please check field "+res.response.data[0].message+ "with" + res.response.data[0].message)
+        }
+      }); 
+     },1000)
     } 
   };
   const onValuesChange = (values) => {
@@ -188,7 +181,27 @@ export function DetailCandidate(prop) {
   const onChangeCityAddress = (e) => {
     setCity(e);   
   };
-
+  
+  const enterLoading = (index) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        return newLoadings;
+      });
+    }, 2000);
+  };
+  const error = (message) => {
+    Modal.error({
+      title: 'Please check your infomation',
+      content: message,
+    });
+  };
   const countDown = () => {
     let secondsToGo = 2;
     let mess = "";
@@ -220,9 +233,7 @@ export function DetailCandidate(prop) {
     return (
       <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
     );
-  }
-
-  // console.log(prevData);
+  }  
   return (
     <Content
       className="site-layout-background"
@@ -240,14 +251,16 @@ export function DetailCandidate(prop) {
         name="basic"
         layout="vertical"
         initialValues={{
-          readyToMove: prevData?.readyToMove || 1,
-          primaryStatus: prevData?.primaryStatus || 1,
-          middleName: prevData?.middleName || null,
-          date: prevData?.date || null,
-          year: prevData?.year || null,
-          month: prevData?.month || null,
-          firstName: prevData?.firstName || null,
-          lastName: prevData?.lastName || null,
+          ...prevData,
+          // readyToMove: prevData?.readyToMove || 1,
+          // primaryStatus: prevData?.primaryStatus || 1,
+          // middleName: prevData?.middleName || null,
+          // date: prevData?.date || null,
+          // year: prevData?.year || null,
+          // month: prevData?.month || null,
+          // firstName: prevData?.firstName || null,
+          // lastName: prevData?.lastName || null,
+          positionApplied: prevData?.positionApplied ,
           emails: [...(prevData?.emails || [""])],
           phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
           addresses: [...(prevData?.addresses || [""])],  
@@ -787,11 +800,11 @@ export function DetailCandidate(prop) {
           <Col span={24}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Nationality :</div>
-              <Form.Item required name="nationality">
+              <Form.Item name="nationality">
                 <Select
                   mode="multiple"
                   optionFilterProp="children"
-                  placeholder="Please choose a nationality"
+                  placeholder="Please choose or add a nationality"
                   showSearch   
                   onKeyUp={(e)=>{ setTimeout(() =>{return setNationality(e.target.value)},600)}} 
                   onBlur={()=>{setNationality()}}
@@ -802,14 +815,14 @@ export function DetailCandidate(prop) {
                   dropdownRender={menu => (
                     <div>
                       {menu}
-                      {false?<></>: <>
+                      {(listNationality?.data?.length > 0)?<></>: <>
                         <Divider style={{ margin: '4px 0' }} />
-                          <div
-                            style={{ padding: '4px 8px', cursor: 'pointer' }}
-                            onMouseDown={e => e.preventDefault()}
-                            // onClick={}
-                          >
-                            <PlusOutlined /> Add item
+                        <div
+                          style={{ padding: '4px 8px', cursor: 'pointer' }}
+                          // onMouseDown={e => console.log(e)}
+                          // onClick={()=> console.log(1)}
+                        >
+                          <PlusOutlined /> Add item
                         </div>
                       </>}
                       
@@ -864,24 +877,27 @@ export function DetailCandidate(prop) {
           <Col span={24}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Highest Education :</div>
-              <Form.Item required name="highest_education">
+              <Form.Item name="highest_education">
                 <Select
                   optionFilterProp="children"
-                  placeholder="Select or add your highest education"
+                  placeholder="Select your highest education"
                   showSearch
+                  filterSort={(optionA, optionB) =>
+                    optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                  }
                 >
                   {listDegree?.data?.map((e, i) => {
                     return (
                       <Select.Option
-                        key={i}
+                        key={i} 
+                        children={e?.label}
                         value={e?.key}
                         maxTagTextLength={10}
                       >
                         {e?.label}
                       </Select.Option>
                     );
-                  })}
-                  {listProps?<></>:<Select.Option>123</Select.Option>}
+                  })} 
                 </Select>
               </Form.Item>
             </div>
@@ -892,7 +908,10 @@ export function DetailCandidate(prop) {
               <div className="label-add-candidate">
                 Industry Year of Services:
               </div>
-              <Form.Item name="yearOfServices">
+              <Form.Item name="yearOfServices" rules={ [{
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
                   style={{ width: "100%" }}
                   min={0}
@@ -905,7 +924,11 @@ export function DetailCandidate(prop) {
           <Col span={12}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">Year of Management:</div>
-              <Form.Item name="yearOfManagement">
+              <Form.Item name="yearOfManagement"
+              rules={ [{
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
                   style={{ width: "100%" }}
                   min={0}
@@ -918,7 +941,10 @@ export function DetailCandidate(prop) {
           <Col span={12}>
             <div style={{ paddingInline: 10 }}>
               <div className="label-add-candidate">No. of Direct Reports:</div>
-              <Form.Item name="directReports">
+              <Form.Item name="directReports"rules={[ {
+                pattern: /^(?:\d*)$/,
+                message: "Please input integers numbers only",
+              }]}>
                 <InputNumber
                   style={{ width: "100%" }}
                   min={0}
@@ -936,6 +962,8 @@ export function DetailCandidate(prop) {
           style={{ float: "right", marginRight: 10 }}
           type="primary"
           htmlType="submit"
+          loading={loadings[0]}
+          onClick={() => enterLoading(0)}
         >
           {edit ? "Update" : " Create and Next"}
         </Button>
@@ -944,7 +972,8 @@ export function DetailCandidate(prop) {
         ) : (
           <Button
             style={{ float: "right", marginRight: 20 }}
-            onClick={() => localStorage.removeItem("personal-infomation")}
+            loading={loadings[1]}
+            onClick={() => enterLoading(1)}
           >
             Reset
           </Button>
