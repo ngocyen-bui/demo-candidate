@@ -63,13 +63,13 @@ export const getDegree = () => {return axios.get( DOMAIN+`/nadh-api-crm/api/prop
  export const createCandidate =(obj) =>  axios.post( DOMAIN +'/nadh-api-crm/api/candidates', obj,{
     headers: HeaderFetch, 
 })
-  .then((res) => res.data).then((res)=> res.json())
+  .then((res) => res.data)
 
 
 export const updateCandidate =(id,obj) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
     headers: HeaderFetch, 
 })
-.then((res) => res.data).then((res)=> res.json())
+.then((res) => res).catch((err) => err)
 
 
 

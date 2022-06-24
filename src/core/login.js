@@ -12,8 +12,6 @@ export const login = ({user_name, password}) => {
       } 
     )
     .then((res) => {
-      localStorage.removeItem('auth')
-       localStorage.setItem('auth', res.data.token); 
-       window.location.pathname = "/candidates"
-    });
+       return res;
+    }).catch(err => err.response.status);
 };

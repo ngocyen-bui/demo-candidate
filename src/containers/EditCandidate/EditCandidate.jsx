@@ -1,5 +1,5 @@
 import {
-    Breadcrumb, 
+    Breadcrumb, Spin, 
   } from "antd";
   import Layout from "antd/lib/layout/layout";
   import { useEffect, useState } from "react"; 
@@ -9,6 +9,7 @@ import {
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
+import { LoadingOutlined } from "@ant-design/icons";
   
   
   export default function AddCandidate(props) { 
@@ -28,23 +29,25 @@ import {
         const x =({
           id: dataCandidate?.id,
           addresses:  dataCandidate?.addresses|| [""],
-          date: dob[2],
-          directReports: 2,
+          date: dob[2], 
           emails: dataCandidate?.emails?.map((e,i) =>({key: i,email: e})) || [""],
-          firstName: dataCandidate?.first_name,
+          firstName: dataCandidate?.first_name|| null,
           gender: dataCandidate?.gender,
-          lastName: dataCandidate?.last_name,
+          lastName: dataCandidate?.last_name|| null,
           maritalStatus: dataCandidate?.extra?.martial_status,
-          middleName: dataCandidate?.middle_name,
+          middleName: dataCandidate?.middle_name || null,
           month: dob[1],
+          highest_education: dataCandidate?.highest_education,
+          readyToMove: dataCandidate?.readyToMove || 1,
           nationality: dataCandidate?.nationality,
           phones: dataCandidate?.phones?.map((e) =>({ countryCode: "+"+e.phone_code.key, phone: e.number}))|| [""],
-          positionApplied: 544,
+          positionApplied: dataCandidate?.prefer_position?.positions,
           primaryStatus: dataCandidate?.priority_status,
           source: dataCandidate?.source,
           year: dob[0],
           yearOfManagement: dataCandidate?.management_years,
-          yearOfServices: 1, 
+          yearOfServices: dataCandidate?.industry_years,
+          directReports: dataCandidate?.direct_reports
         }); 
         setPrevData(x)
       });
@@ -56,33 +59,33 @@ import {
   useEffect(()=>{
     if(params.id)setDisabled(false);
   },[params.id])
-  
-  const onChange = (value) => { 
-  };
-  
   useEffect(()=>{
     if(prevData || !params.id) setCheckInfo(true) 
   },[prevData,params.id])
-  if(checkInfo) return (
-    <Layout>
-      <Layout
-        style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
-      >
-        <Breadcrumb separator="/">
-          <Breadcrumb.Item>
-            <Link to="/candidates">Candidates List</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item href="">Detail Candidate</Breadcrumb.Item>
-        </Breadcrumb>
-  
-        {params?.id?  <Layout style={{padding: '10px 20px', background: '#fff', marginTop: 20, }}>
-          <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Overview</h4>
-          <TextArea placeholder="Overview" rows={4} />
-        </Layout>:
-        <></>}
-        <DetailCandidate disabled={disabled} prevData={prevData} params={params} edit={true} onChange={onChange}/>
+  if(checkInfo) {
+    return (
+      <Layout>
+        <Layout
+          style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
+        >
+          <Breadcrumb separator="/">
+            <Breadcrumb.Item>
+              <Link to="/candidates">Candidates List</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item href="">Detail Candidate</Breadcrumb.Item>
+          </Breadcrumb>
+    
+          {params?.id?  <Layout style={{padding: '10px 20px', background: '#fff', marginTop: 20, }}>
+            <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Overview</h4>
+            <TextArea placeholder="Overview" rows={4} />
+          </Layout>:
+          <></>}
+          <DetailCandidate disabled={disabled} prevData={prevData} params={params} edit={true} />
+        </Layout>
       </Layout>
-    </Layout>
-  ); 
+    ); 
+  }else{
+    return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
+  }
   }
   
