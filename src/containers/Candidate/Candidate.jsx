@@ -22,6 +22,7 @@ import {
   getDefaultProp,
   getKeyPageCDD,
   getListCandidate,
+  logout,
 } from "../../features/candidate";
 import { 
   findFlowStatus,
@@ -440,6 +441,10 @@ export default function Candidate() {
     window.location.pathname = "/";
   } 
   if (isFetching){
+    setTimeout(()=>{
+      localStorage.removeItem('auth');
+      logout();
+    },1000)
     return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
   }
     return (
