@@ -7,6 +7,7 @@ import {
 import {
   Button, 
   Input,
+  InputNumber,
   Layout, 
   Select,
   Space,
@@ -243,18 +244,20 @@ export default function Candidate() {
     navigate("/candidate-detail/" + data.candidate_id);
   };
 
-  const handleSearch = (selectedKeys, confirm, dataIndex) => { 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {   
     if (selectedKeys === []) {
       const temp = filters;
       delete temp[dataIndex];    
-      setFilters(temp);
-    }else{
-      setFilters((data) => ({
-        ...data,
-        [dataIndex]: selectedKeys[0],
-      })); 
-    } 
+      return setFilters(temp);
+    }
+    
+    setFilters((data) => ({
+      ...data,
+      [dataIndex]: selectedKeys[0],
+    }));  
+    
    
+    
     setPage(1)
     navigate("?page="+1);
     localStorage.setItem('pagination',1)
@@ -375,32 +378,30 @@ export default function Candidate() {
           </>
        :('')}
        {type === "range"? 
-       <Input.Group compact> 
-        <Input
+       <Input.Group compact style={{marginTop: 10}}> 
+        <InputNumber
           style={{
-            width: 100,
+            width: '100px',
             textAlign: 'center',
-          }}
-          placeholder="Minimum"
-        />
-        <Input
-          className="site-input-split"
-          style={{
-            width: 30,
-            borderLeft: 0,
-            borderRight: 0,
-            pointerEvents: 'none',
-          }}
-          placeholder="~"
-          disabled
-        />
-        <Input
+            marginRight: '10px',
+          }} 
+          onChange={(e) =>
+            setSelectedKeys(e? [e] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          placeholder="From"
+        /> 
+        <InputNumber
           className="site-input-right"
           style={{
             width: 100,
             textAlign: 'center',
-          }}
-          placeholder="Maximum"
+          }} 
+          onChange={(e) =>
+            setSelectedKeys(e ? [...selectedKeys,e] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          placeholder="To"
         />
      </Input.Group>:<></>
       }

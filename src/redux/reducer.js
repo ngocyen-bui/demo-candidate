@@ -10,19 +10,19 @@ export const HTTP_STATUS = Object.freeze({
 
 const namespace = 'candidates'
 
-export const fetchUpdateCandidate = createAsyncThunk(
+export const fetchCreateCandidate = createAsyncThunk(
   `${namespace}/fetchUpdateCandidate`,
-  async (id,obj) => { 
-    const { data } = await updateCandidate(id,obj); 
-    return data
+  async ({data}) => {  
+    const { results } = await createCandidate(data); 
+    return results
   }
     
 )
-export const fetchCreateCandidate = createAsyncThunk(
+export const fetchUpdateCandidate = createAsyncThunk(
   `${namespace}/fetchUpdateCandidate`,
-  async (obj) => { 
-    const { data } = await createCandidate(obj); 
-    return data
+  async ({id,data}) => {  
+    const { results } = await updateCandidate(id,data); 
+    return results
   }
     
 )

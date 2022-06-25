@@ -174,7 +174,8 @@ export function DetailCandidate(prop) {
 
   const onFinish = (values) => { 
     if (values && !edit) { 
-      dispatch(fetchCreateCandidate( result(values)))
+      let data = result(values);
+      dispatch(fetchCreateCandidate( {data}))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
         countDown();
@@ -198,11 +199,14 @@ export function DetailCandidate(prop) {
   
       localStorage.setItem("personal-infomation", JSON.stringify(values));
     } else if (values && edit) {
-       dispatch(fetchUpdateCandidate(prevData?.id, result(values)))
+      let data = {
+        id: prevData?.id,
+        data:result(values)
+      };
+       dispatch(fetchUpdateCandidate(data))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
-        countDown(); 
-        console.log(originalPromiseResult);
+        countDown();  
       })
       .catch((rejectedValueOrSerializedError) => { 
         console.log(rejectedValueOrSerializedError);
