@@ -84,17 +84,34 @@ const result = (obj) => {
   let listEmail = obj?.emails?.map((e) => {
     return e.email;
   });    
-  let nation = obj?.nationality?.map((n) => {
-    if(typeof(n) === 'object') {
-      return n
-    }
-    return {key: n}
-  }) 
+  let nation = [];
+  if(obj?.nationality){
+    nation = obj?.nationality?.map((n) => {
+      if(typeof(n) === 'object') {
+        return n
+      }
+      return {key: n}
+    })
+  }
+ 
   let highest_education = {key: obj?.highest_education}
 
   if(typeof(obj?.highest_education) === 'object'){
     highest_education = obj?.highest_education
+  } 
+
+  let addressModify = []; 
+  console.log(obj)
+  if(obj){
+    addressModify = obj?.addresses?.map((n) => {
+      if(typeof(n.country) === 'object') {
+        return n
+      }
+      return {country: {key:n.country}}
+    })
   }
+
+
   let result =  {
     nationality: [...nation],
     middle_name: obj?.middleName,
@@ -113,7 +130,7 @@ const result = (obj) => {
     phones: listPhone,
     emails: listEmail,
     current_emails: [],
-    addresses:  obj?.addresses,
+    addresses: addressModify || [],
     gender: obj?.gender,
     martial_status: obj?.martialStatus,
     source: obj?.source,
@@ -206,6 +223,7 @@ export function DetailCandidate(prop) {
        dispatch(fetchUpdateCandidate(data))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
+        console.log(originalPromiseResult);
         countDown();  
       })
       .catch((rejectedValueOrSerializedError) => { 
@@ -319,7 +337,7 @@ export function DetailCandidate(prop) {
           ...prevData,  
           emails: [...(prevData?.emails || [""])],
           phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
-          addresses: [...(prevData?.addresses || [""])],    
+          addresses: [...(prevData?.addresses || [{}])],    
           readyToMove: prevData?.readyToMove || 1,
         }}
         autoComplete="off"
