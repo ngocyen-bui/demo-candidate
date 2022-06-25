@@ -87,14 +87,13 @@ const App = () => {
                   />
                 </Link> 
                   <Dropdown overlay={menu}>
-                    <a onClick={e => e.preventDefault() }
-                           style={{ float: "right" }}>
+                    <div onClick={e => e.preventDefault()} style={{ float: "right", cursor: 'pointer' }}>
                         <Avatar
                         src={
                           "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
                         }
                       />
-                    </a>
+                    </div>
                 </Dropdown> 
               </Header>
               <Menu

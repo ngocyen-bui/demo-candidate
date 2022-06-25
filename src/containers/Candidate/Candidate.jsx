@@ -15,7 +15,7 @@ import {
 } from "antd";
 import Table from "antd/lib/table";
 import { Content } from "antd/lib/layout/layout";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { 
   getDefaultProp,
@@ -27,8 +27,7 @@ import {
   findPriorityStatus,
   getlistStatus,
 } from "../../utils/interface";
-import { Link, useLocation, useNavigate } from "react-router-dom";  
-import { useDispatch, useSelector } from "react-redux"; 
+import { Link, useLocation, useNavigate } from "react-router-dom";   
 
 const formatColumn = (funcSearch, key, listProps) => {
   let language;
@@ -145,7 +144,7 @@ const formatColumn = (funcSearch, key, listProps) => {
         render: (text) => {
           return <p>{text?.slice(0, 4)}</p>;
         },
-        ...funcSearch("dob"),
+        ...funcSearch("dob","range"),
       },
       {
         title: "Activity",
@@ -308,8 +307,7 @@ export default function Candidate() {
           </Button>
         </Space>
         {type === "input" ? (
-          <Input 
-            placeholder={`Search ${dataIndex}`}
+          <Input placeholder={`Search ${dataIndex}`}
             value={selectedKeys[0]}
             onChange={(e) =>
               setSelectedKeys(e.target.value ? [e.target.value] : [])
@@ -376,7 +374,36 @@ export default function Candidate() {
             </Select> 
           </>
        :('')}
-       {type === "range"}
+       {type === "range"? 
+       <Input.Group compact> 
+        <Input
+          style={{
+            width: 100,
+            textAlign: 'center',
+          }}
+          placeholder="Minimum"
+        />
+        <Input
+          className="site-input-split"
+          style={{
+            width: 30,
+            borderLeft: 0,
+            borderRight: 0,
+            pointerEvents: 'none',
+          }}
+          placeholder="~"
+          disabled
+        />
+        <Input
+          className="site-input-right"
+          style={{
+            width: 100,
+            textAlign: 'center',
+          }}
+          placeholder="Maximum"
+        />
+     </Input.Group>:<></>
+      }
       </div>
     ),
     filterIcon: (filtered) => (

@@ -3,6 +3,7 @@ import {
   MinusCircleOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import { unwrapResult } from "@reduxjs/toolkit";
 import {
   Button,
   Col,
@@ -21,17 +22,15 @@ import { useState } from "react";
 import { useQuery } from "react-query";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {   
-  createCandidate,
+import {    
   getDegree,
   getLocationFromCity,
   getLocationFromCountry,
   getNationality,
   getPosition,
-  getValueFlag,
-  updateCandidate,
+  getValueFlag, 
 } from "../features/candidate";
-import { increment } from "../redux/reducer";
+import {  fetchCreateCandidate, fetchUpdateCandidate } from "../redux/reducer";
 const day = () => {
   let arr = [];
   for (let index = 1; index <= 31; index++) {
@@ -174,29 +173,53 @@ export function DetailCandidate(prop) {
   );  
 
   const onFinish = (values) => { 
-    if (values && !edit) {
-      setTimeout(() => {
-        createCandidate(result(values)).then(res => { 
-          if(res.status === 200) {
-             countDown();  
-          }else{
-            error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
-          }
-        }); 
-       },1000) 
+    if (values && !edit) { 
+      dispatch(fetchCreateCandidate( result(values)))
+      .then(unwrapResult)
+      .then((originalPromiseResult) => {
+        countDown();
+        console.log(originalPromiseResult);
+      })
+      .catch((rejectedValueOrSerializedError) => {
+        console.log(rejectedValueOrSerializedError);
+        error("Please check you infomation");
+        // handle result here
+      })
+
+      // setTimeout(() => {
+      //   createCandidate(result(values)).then(res => { 
+      //     if(res.status === 200) {
+      //        countDown();  
+      //     }else{
+      //       error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
+      //     }
+      //   }); 
+      //  },1000) 
   
       localStorage.setItem("personal-infomation", JSON.stringify(values));
     } else if (values && edit) {
-     setTimeout(() => {
-      updateCandidate(prevData?.id, result(values)).then(res => { 
-        if(res.status === 200) {
-          dispatch(increment(values));
-           countDown();  
-        }else{
-          error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
-        }
-      }); 
-     },1000)
+       dispatch(fetchUpdateCandidate(prevData?.id, result(values)))
+      .then(unwrapResult)
+      .then((originalPromiseResult) => {
+        countDown(); 
+        console.log(originalPromiseResult);
+      })
+      .catch((rejectedValueOrSerializedError) => { 
+        console.log(rejectedValueOrSerializedError);
+        error("Please check you infomation");
+        // handle result here
+      })
+
+    //  setTimeout(() => {
+    //   updateCandidate(prevData?.id, result(values)).then(res => { 
+    //     if(res.status === 200) {
+    //       dispatch(increment(values));
+    //        countDown();  
+    //     }else{
+    //       error("Please check field "+res.response.data[0].field+ "with" + res.response.data[0].message)
+    //     }
+    //   }); 
+    //  },1000)
     } 
   };
   const onFinishFailed = values => { 
