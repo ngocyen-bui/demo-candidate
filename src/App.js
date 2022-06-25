@@ -53,6 +53,7 @@ const formatList = listTitleNavBar.map((e, index) => ({
   icon: e.icon,
   label: e.title,
 }));
+
 const App = () => { 
   const authSettings = (localStorage.getItem("auth") && localStorage.getItem("auth").length > 0);
   const [auth] = useState(authSettings);

@@ -100,10 +100,10 @@ const result = (obj) => {
     highest_education = obj?.highest_education
   } 
 
-  let addressModify = []; 
-  console.log(obj)
-  if(obj){
-    addressModify = obj?.addresses?.map((n) => {
+  let addressModify = [];  
+  if(obj){ 
+    let temp = obj?.addresses?.filter(e => Boolean(e.country));
+    addressModify = temp.map((n) => {
       if(typeof(n.country) === 'object') {
         return n
       }
@@ -132,7 +132,7 @@ const result = (obj) => {
     current_emails: [],
     addresses: addressModify || [],
     gender: obj?.gender,
-    martial_status: obj?.martialStatus,
+    martial_status: obj?.maritalStatus,
     source: obj?.source,
     priority_status: obj?.primaryStatus,
     management_years: obj?.yearOfManagement,
