@@ -130,6 +130,7 @@ const App = () => {
               element={<EditCandidate />}
             />
             <Route exact path="/add-candidate" element={<AddCandidate />} />
+            <Route path="*" element={<Navigate to="/login" />}/>
           </Routes>
         </Layout>
         <>

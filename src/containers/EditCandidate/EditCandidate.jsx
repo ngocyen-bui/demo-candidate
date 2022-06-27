@@ -16,11 +16,12 @@ import { LoadingOutlined } from "@ant-design/icons";
   
     const params = useParams();
     // const [current, setCurrent] = useState(0);
-    const [checkInfo, setCheckInfo]= useState(); 
+    const [checkInfo, setCheckInfo]= useState(false); 
+    const [notFound,setNotFound] = useState(false);
     const [disabled, setDisabled] = useState(() => {
       return (Boolean(localStorage.getItem('personal-infomation')))  
     }); 
-    const [prevData, setPrevData] = useState()  
+    const [prevData, setPrevData] = useState([])  
    
   useEffect(()=>{
     if(params.id){ 
@@ -49,20 +50,28 @@ import { LoadingOutlined } from "@ant-design/icons";
           yearOfServices: dataCandidate.industry_years,
           directReports: dataCandidate.direct_reports
         }); 
+        setCheckInfo(true)
         setPrevData(x)
+      }).catch(err => { 
+        setCheckInfo(false) 
       });
     }else{
       setPrevData(JSON.parse(localStorage.getItem('personal-infomation')))
     }
   },[params.id]) 
-  
-  useEffect(()=>{
-    if(params.id)setDisabled(false);
-  },[params.id])
-  useEffect(()=>{
-    if(prevData || !params.id) setCheckInfo(true) 
-  },[prevData,params.id])
-  if(checkInfo) {
+ 
+if(notFound){
+  return <div style={{height: '900px', textAlign: 'center', lineHeight: '400px', fontSize: '32px', fontWeight: 600, opacity: 0.5}}>Not found this candidate.</div>
+}
+   
+if(!checkInfo){
+  // setTimeout(()=>{
+  //   if(checkInfo){ 
+  //     setNotFound(true)
+  //   }
+  // },3000)
+  return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
+}else {
     return (
       <Layout>
         <Layout
@@ -84,8 +93,6 @@ import { LoadingOutlined } from "@ant-design/icons";
         </Layout>
       </Layout>
     ); 
-  }else{
-    return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
-  }
+  } 
   }
   

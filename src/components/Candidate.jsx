@@ -257,9 +257,10 @@ export function DetailCandidate(prop) {
   const onValuesChange = (values) => {
     setValue(values);
   };
-  const onChangeCountryAddress = (e) => {
-
+  const onChangeCountryAddress = (e) => { 
     setCountry(e);
+    setCity();   
+
   };
   const onChangeCityAddress = (e) => {
     setCity(e);   
@@ -313,755 +314,761 @@ export function DetailCandidate(prop) {
     }, secondsToGo * 1000);
   };
   if (!prevData && edit) {
+    setTimeout(() => {
+      return <div>123</div>
+    },3000);
     return (
       <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
     );
-  }  
-  return (
-    <Content
-      className="site-layout-background"
-      style={{
-        padding: 24,
-        paddingTop: 12,
-        margin: 0,
-        marginTop: 20,
-        minHeight: 280,
-        backgroundColor: "white",
-      }}
-    >
-      <div className="title-add-candidate">PERSONAL INFORMATION</div>
-      <Form
-        name="basic"
-        layout="vertical"
-        initialValues={{
-          ...prevData,  
-          emails: [...(prevData?.emails || [""])],
-          phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
-          addresses: [...(prevData?.addresses || [{}])],    
-          readyToMove: prevData?.readyToMove || 1,
+  }
+    return (
+      <Content
+        className="site-layout-background"
+        style={{
+          padding: 24,
+          paddingTop: 12,
+          margin: 0,
+          marginTop: 20,
+          minHeight: 280,
+          backgroundColor: "white",
         }}
-        autoComplete="off"
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed} 
-        onValuesChange={onValuesChange}
       >
-        <Row className="wrapper-name-add-candidate">
-          {/* First */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">
-                First Name<span style={{ color: "red" }}>*</span>:
-              </div>
-              <Form.Item
-                name="firstName"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input First Name!",
-                  },
-                ]}
-              >
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Please Input First Name"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Lastname */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">
-                Last Name<span style={{ color: "red" }}>*</span>:
-              </div>
-              <Form.Item
-                style={{ width: "100%" }}
-                name="lastName"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input Last Name!",
-                  },
-                ]}
-              >
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Please Input Last Name"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Middle name */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Middle Name:</div>
-
-              <Form.Item name="middleName">
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Please Input Middle Name"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Primary status */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Primary status:</div>
-              <Form.Item required name="primaryStatus">
-                <Select
-                  style={{ width: "100%" }}
-                  placeholder="Please select primary status"
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
+        <div className="title-add-candidate">PERSONAL INFORMATION</div>
+        <Form
+          name="basic"
+          layout="vertical"
+          initialValues={{
+            ...prevData,  
+            emails: [...(prevData?.emails || [""])],
+            phones: [...(prevData?.phones ||  [{ countryCode: "+84", phone: null}])],
+            addresses: [...(prevData?.addresses || [{}])],    
+            readyToMove: prevData?.readyToMove || 1,
+          }}
+          autoComplete="off"
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed} 
+          onValuesChange={onValuesChange}
+        >
+          <Row className="wrapper-name-add-candidate">
+            {/* First */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">
+                  First Name<span style={{ color: "red" }}>*</span>:
+                </div>
+                <Form.Item
+                  name="firstName"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input First Name!",
+                    },
+                  ]}
                 >
-                  <Select.Option value={1}>Active</Select.Option>
-                  <Select.Option value={-1}>Off-limit</Select.Option>
-                  <Select.Option value={-2}>Blacklist</Select.Option>
-                  <Select.Option value={5}>Inactive</Select.Option>
-                </Select>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Birthday */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Birthday:</div>
-              <Row>
-                <Col span={8} style={{ paddingRight: 10 }}>
-                  <Form.Item name="date">
-                    <Select
-                      style={{ width: "100%" }}
-                      showSearch
-                      placeholder="Date"
-                      optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        option.children
-                          .toString()
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                    >
-                      {day().map(function (x, i) {
-                        return (
-                          <Select.Option key={i} value={x}>
-                            {x}
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={8} style={{ paddingInline: 5 }}>
-                  <Form.Item name="month">
-                    <Select
-                      style={{ width: "100%" }}
-                      showSearch
-                      placeholder="Month"
-                      optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        option.children
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                    >
-                      {month.map(function (x, i) {
-                        return (
-                          <Select.Option key={i} value={i + 1}>
-                            {x}
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={8} style={{ paddingLeft: 10 }}>
-                  <Form.Item name="year">
-                    <Select
-                      style={{ width: "100%" }}
-                      showSearch
-                      placeholder="Year"
-                      filterOption={(input, option) =>
-                        option.children
-                          .toString()
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                    >
-                      {year().map(function (x, i) {
-                        return (
-                          <Select.Option key={i} value={x}>
-                            {x}
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-          </Col>
-          {/* Spaceaddresses*/}
-          <Col span={12}></Col>
-          {/* Gender */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Gender:</div>
-              <Form.Item required name="gender">
-                <Radio.Group onChange={onChange}>
-                  <Radio value={1}>Male</Radio>
-                  <Radio value={2}>Female</Radio>
-                  <Radio value={3}>Complicated</Radio>
-                </Radio.Group>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Marital Status */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Marital Status:</div>
-              <Form.Item required name="maritalStatus">
-                <Radio.Group onChange={onChange}>
-                  <Radio value={1}>Yes</Radio>
-                  <Radio value={-1}>No</Radio>
-                </Radio.Group>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Ready to move */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Ready to move:</div>
-
-              <Form.Item required name="readyToMove">
-                <Select
-                  style={{ width: "100%", cursor: "pointer" }}
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  <Select.Option value={1}>Yes</Select.Option>
-                  <Select.Option value={-1}>No</Select.Option>
-                  <Select.Option value={2}>Available</Select.Option>
-                </Select>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Source */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Source:</div>
-              <Form.Item required name="source">
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Please input source"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Email */}
-          <Col span={22}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">
-                Email<span style={{ color: "red" }}>*</span>:
+                  <Input
+                    style={{ width: "100%" }}
+                    placeholder="Please Input First Name"
+                  />
+                </Form.Item>
               </div>
-              <Form.List name="emails">
-                {(emails, { add, remove }) => (
-                  <>
-                    {emails.map((email, index) => (
-                      <div
-                        key={email.key}
-                        style={{
-                          width: "65%",
-                          display: "flex",
-                          marginBottom: 8,
-                        }}
-                        align="baseline"
+            </Col>
+            {/* Lastname */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">
+                  Last Name<span style={{ color: "red" }}>*</span>:
+                </div>
+                <Form.Item
+                  style={{ width: "100%" }}
+                  name="lastName"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input Last Name!",
+                    },
+                  ]}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    placeholder="Please Input Last Name"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Middle name */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Middle Name:</div>
+  
+                <Form.Item name="middleName">
+                  <Input
+                    style={{ width: "100%" }}
+                    placeholder="Please Input Middle Name"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Primary status */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Primary status:</div>
+                <Form.Item required name="primaryStatus">
+                  <Select
+                    style={{ width: "100%" }}
+                    placeholder="Please select primary status"
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    <Select.Option value={1}>Active</Select.Option>
+                    <Select.Option value={-1}>Off-limit</Select.Option>
+                    <Select.Option value={-2}>Blacklist</Select.Option>
+                    <Select.Option value={5}>Inactive</Select.Option>
+                  </Select>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Birthday */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Birthday:</div>
+                <Row>
+                  <Col span={8} style={{ paddingRight: 10 }}>
+                    <Form.Item name="date">
+                      <Select
+                        style={{ width: "100%" }}
+                        showSearch
+                        placeholder="Date"
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toString()
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
                       >
-                        <Form.Item
-                          style={{ flex: 1 }}
-                          name={[index, "email"]}
-                          rules={[
-                            {
-                              type: "email",
-                              message: "The input is not valid Email!",
-                            },
-                            {
-                              required: true,
-                              message: "Please input Email!",
-                            },
-                          ]}
-                        >
-                          <Input
-                            style={{ width: "100%" }}
-                            placeholder={"ex: email@email.com"}
-                          />
-                        </Form.Item>
-                        {emails.length > 1 ? (
-                          <MinusCircleOutlined
-                            style={{
-                              marginLeft: 10,
-                              paddingTop: 10,
-                              color: "red",
-                            }}
-                            onClick={() => remove(email.name)}
-                          />
-                        ) : null}
-                      </div>
-                    ))}
-
-                    {emails.length < 5 ? (
-                      <Form.Item style={{ width: "60%", textAlign: "end" }}>
-                        <Button
+                        {day().map(function (x, i) {
+                          return (
+                            <Select.Option key={i} value={x}>
+                              {x}
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={8} style={{ paddingInline: 5 }}>
+                    <Form.Item name="month">
+                      <Select
+                        style={{ width: "100%" }}
+                        showSearch
+                        placeholder="Month"
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                      >
+                        {month.map(function (x, i) {
+                          return (
+                            <Select.Option key={i} value={i + 1}>
+                              {x}
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={8} style={{ paddingLeft: 10 }}>
+                    <Form.Item name="year">
+                      <Select
+                        style={{ width: "100%" }}
+                        showSearch
+                        placeholder="Year"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toString()
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                      >
+                        {year().map(function (x, i) {
+                          return (
+                            <Select.Option key={i} value={x}>
+                              {x}
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            </Col>
+            {/* Spaceaddresses*/}
+            <Col span={12}></Col>
+            {/* Gender */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Gender:</div>
+                <Form.Item required name="gender">
+                  <Radio.Group onChange={onChange}>
+                    <Radio value={1}>Male</Radio>
+                    <Radio value={2}>Female</Radio>
+                    <Radio value={3}>Complicated</Radio>
+                  </Radio.Group>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Marital Status */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Marital Status:</div>
+                <Form.Item required name="maritalStatus">
+                  <Radio.Group onChange={onChange}>
+                    <Radio value={1}>Yes</Radio>
+                    <Radio value={-1}>No</Radio>
+                  </Radio.Group>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Ready to move */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Ready to move:</div>
+  
+                <Form.Item required name="readyToMove">
+                  <Select
+                    style={{ width: "100%", cursor: "pointer" }}
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    <Select.Option value={1}>Yes</Select.Option>
+                    <Select.Option value={-1}>No</Select.Option>
+                    <Select.Option value={2}>Available</Select.Option>
+                  </Select>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Source */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Source:</div>
+                <Form.Item required name="source">
+                  <Input
+                    style={{ width: "100%" }}
+                    placeholder="Please input source"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Email */}
+            <Col span={22}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">
+                  Email<span style={{ color: "red" }}>*</span>:
+                </div>
+                <Form.List name="emails">
+                  {(emails, { add, remove }) => (
+                    <>
+                      {emails.map((email, index) => (
+                        <div
+                          key={email.key}
                           style={{
-                            width: "70%",
-                            color: "#40a9ff",
-                            borderColor: "#40a9ff",
+                            width: "65%",
+                            display: "flex",
+                            marginBottom: 8,
                           }}
-                          type="double"
-                          onClick={() => add()}
-                          block
-                          icon={<PlusOutlined />}
+                          align="baseline"
                         >
-                          Add field
-                        </Button>
-                      </Form.Item>
-                    ) : null}
-                  </>
-                )}
-              </Form.List>
-            </div>
-          </Col>
-          {/* Number phone */}
-          <Col span={22}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">
-                Mobile Phone<span style={{ color: "red" }}>*</span>:
-              </div>
-              <Form.List name="phones">
-                {(phones, { add, remove }) => (
-                  <>
-                    {phones.map((phone, index) => (
-                      <div
-                        key={phone.key}
-                        style={{
-                          display: "flex",
-                          width: "65%",
-                          marginBottom: 8,
-                        }}
-                        align="baseline"
-                      >
-                        <Input.Group style={{ display: "flex" }} compact>
-                          <Form.Item name={[index, "countryCode"]}>
-                            <Select 
-                              style={{ width: 100 }}
-                              showSearch  
-                              rules={[  
-                                {
-                                  required: true,
-                                  message: "Please choose you country code!",
-                                },
-                              ]}
-                            >
-                              {listCountries?.data.map((e, i) => {
-                                return (
-                                  <Select.Option  
-                                    key={i}
-                                    value={e?.extra?.dial_code}
-                                    maxTagTextLength={10}
-                                  >
-                                    {e?.extra?.dial_code || "+84"}
-                                  </Select.Option>
-                                );
-                              })}
-                            </Select>
-                          </Form.Item>
                           <Form.Item
-                            name={[index, "phone"]}
-                            rules={[ 
+                            style={{ flex: 1 }}
+                            name={[index, "email"]}
+                            rules={[
                               {
-                                pattern: /^(?:\d*)$/,
-                                message: "Please input numbers only",
+                                type: "email",
+                                message: "The input is not valid Email!",
                               },
                               {
                                 required: true,
-                                message: "Please input your number phone!",
+                                message: "Please input Email!",
                               },
                             ]}
-                            style={{
-                              flex: 1,
-                              width: "100%",
-                            }}
                           >
-                            <Input maxLength={11} placeholder="ex: 371234567" />
+                            <Input
+                              style={{ width: "100%" }}
+                              placeholder={"ex: email@email.com"}
+                            />
                           </Form.Item>
-                        </Input.Group>
-                        {phones.length > 1 ? (
-                          <MinusCircleOutlined
+                          {emails.length > 1 ? (
+                            <MinusCircleOutlined
+                              style={{
+                                marginLeft: 10,
+                                paddingTop: 10,
+                                color: "red",
+                              }}
+                              onClick={() => remove(email.name)}
+                            />
+                          ) : null}
+                        </div>
+                      ))}
+  
+                      {emails.length < 5 ? (
+                        <Form.Item style={{ width: "60%", textAlign: "end" }}>
+                          <Button
                             style={{
-                              marginLeft: 10,
-                              paddingTop: 10,
-                              color: "red",
+                              width: "70%",
+                              color: "#40a9ff",
+                              borderColor: "#40a9ff",
                             }}
-                            onClick={() => remove(phone.name)}
-                          />
-                        ) : null}
-                      </div>
-                    ))}
-
-                    {phones.length < 5 ? (
-                      <Form.Item style={{ width: "60%", textAlign: "end" }}>
-                        <Button
+                            type="double"
+                            onClick={() => add()}
+                            block
+                            icon={<PlusOutlined />}
+                          >
+                            Add field
+                          </Button>
+                        </Form.Item>
+                      ) : null}
+                    </>
+                  )}
+                </Form.List>
+              </div>
+            </Col>
+            {/* Number phone */}
+            <Col span={22}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">
+                  Mobile Phone<span style={{ color: "red" }}>*</span>:
+                </div>
+                <Form.List name="phones">
+                  {(phones, { add, remove }) => (
+                    <>
+                      {phones.map((phone, index) => (
+                        <div
+                          key={phone.key}
                           style={{
-                            width: "70%",
-                            color: "#40a9ff",
-                            borderColor: "#40a9ff",
+                            display: "flex",
+                            width: "65%",
+                            marginBottom: 8,
                           }}
-                          type="double"
-                          onClick={() => add()}
-                          block
-                          icon={<PlusOutlined />}
+                          align="baseline"
                         >
-                          Add field
-                        </Button>
-                      </Form.Item>
-                    ) : null}
-                  </>
-                )}
-              </Form.List>
-            </div>
-          </Col>
-          {/* Addresses */}
-          <Col span={24}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Address:</div>
-              <Form.List name={"addresses"}>
-                {(addresses, { add, remove }) => (
-                  <>
-                    {addresses.map((address, index) => (
-                      <div
-                        key={address.key}
-                        style={{
-                          display: "flex",
-                          marginBottom: 8,
-                        }}
-                        align="baseline"
-                      >
-                        <Row style={{ flex: 1 }}>
-                          <Col span={8} style={{ paddingRight: 5 }}>
-                            <Form.Item name={[index, "country"]}>
-                              <Select
-                                optionFilterProp="children"
-                                placeholder="Country"
-                                showSearch
-                                onChange={(e) => onChangeCountryAddress(e)}
+                          <Input.Group style={{ display: "flex" }} compact>
+                            <Form.Item name={[index, "countryCode"]}>
+                              <Select 
+                                style={{ width: 100 }}
+                                defaultValue="+84"
+                                showSearch  
+                                rules={[  
+                                  {
+                                    required: true,
+                                    message: "Please choose you country code!",
+                                  },
+                                ]}
                               >
                                 {listCountries?.data.map((e, i) => {
                                   return (
-                                    <Select.Option
+                                    <Select.Option  
                                       key={i}
-                                      children={e?.label}
-                                      value={e?.key}
-                                      placeholder="Country"
+                                      value={e?.extra?.dial_code}
                                       maxTagTextLength={10}
                                     >
-                                      {e?.label}
-                                    </Select.Option>
-                                  ); 
-                                })} 
-                              </Select>
-                            </Form.Item>
-                          </Col>
-                          <Col span={8} style={{ paddingInline: 10 }}>
-                            <Form.Item name={[index, "city"]}>
-                              <Select
-                                optionFilterProp="children"
-                                disabled={
-                                  (!dataFromCountry?.data.length > 0 &&
-                                    !params?.id) 
-                                }
-                                placeholder="City"
-                                showSearch
-                                onChange={(e) => onChangeCityAddress(e)}
-                              >
-                                {dataFromCountry?.data?.map((e, i) => {
-                                  return (
-                                    <Select.Option
-                                      key={i}
-                                      children={e?.label}
-                                      value={e?.key}
-                                      maxTagTextLength={10}
-                                    >
-                                      {e?.label}
+                                      {e?.extra?.dial_code}
                                     </Select.Option>
                                   );
                                 })}
                               </Select>
                             </Form.Item>
-                          </Col>
-                          <Col span={8} style={{ paddingLeft: 5 }}>
-                            <Form.Item name={[index, "district"]}>
-                              <Select
-                                disabled={
-                                  (!dataFromCity?.data.length > 0 &&
-                                    !params?.id) 
-                                }
-                                showSearch
-                                placeholder="District"
-                              >
-                                {dataFromCity?.data.map((e, i) => {
-                                  return (
-                                    <Select.Option
-                                      key={i}
-                                      value={e?.key}
-                                      maxTagTextLength={10}
-                                    >
-                                      {e?.label}
-                                    </Select.Option>
-                                  );
-                                })}
-                              </Select>
-                            </Form.Item>
-                          </Col>
-                          <Form.Item
-                            style={{ width: "100%" }}
-                            name={[index, "address"]}
-                          >
-                            <Input
+                            <Form.Item
+                              name={[index, "phone"]}
+                              rules={[ 
+                                {
+                                  pattern: /^(?:\d*)$/,
+                                  message: "Please input numbers only",
+                                },
+                                {
+                                  required: true,
+                                  message: "Please input your number phone!",
+                                },
+                              ]}
                               style={{
+                                flex: 1,
                                 width: "100%",
-                                marginTop: 20,
                               }}
-                              placeholder="ex: Street Le Van Si"
+                            >
+                              <Input maxLength={11} placeholder="ex: 371234567" />
+                            </Form.Item>
+                          </Input.Group>
+                          {phones.length > 1 ? (
+                            <MinusCircleOutlined
+                              style={{
+                                marginLeft: 10,
+                                paddingTop: 10,
+                                color: "red",
+                              }}
+                              onClick={() => remove(phone.name)}
                             />
-                          </Form.Item>
-                        </Row>
-                        {addresses.length > 1 ? (
-                          <MinusCircleOutlined
-                            twoToneColor={"red"}
-                            style={{
-                              marginLeft: 10,
-                              paddingTop: 10,
-                              color: "red",
-                            }}
-                            onClick={() =>
-                              remove(address.name) 
-                            }
-                          />
-                        ) : null}
-                      </div>
-                    ))}
-
-                    {addresses.length < 5 ? (
-                      <Form.Item style={{ textAlign: "center" }}>
-                        <Button
-                          style={{
-                            width: "50%",
-                            color: "#40a9ff",
-                            borderColor: "#40a9ff",
-                          }}
-                          type="double"
-                          onClick={() => add()}
-                          block
-                          icon={<PlusOutlined />}
-                        >
-                          Add field
-                        </Button>
-                      </Form.Item>
-                    ) : <></>}
-                  </>
-                )}
-              </Form.List>
-            </div>
-          </Col>
-          {/* Nationality */}
-          <Col span={24}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Nationality :</div>
-              <Form.Item name="nationality">
-                <Select
-                  mode="multiple"
-                  optionFilterProp="children"
-                  placeholder="Please choose or add a nationality"
-                  showSearch   
-                  onKeyUp={(e)=>{ setTimeout(() =>{return setNationality(e.target.value)},600)}} 
-                  onBlur={()=>{setNationality()}}
-                  // filterOption={(input, option) => setTimeout(() =>{return setNationality(input)},600)}
-                  filterSort={(optionA, optionB) =>
-                    optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
-                  }
-                  dropdownRender={menu => (
-                    <div>
-                      {menu}
-                      {(listNationality?.data?.length > 0)?<></>: <>
-                        <Divider style={{ margin: '4px 0' }} />
-                        <div
-                          style={{ padding: '4px 8px', cursor: 'pointer' }}
-                          // onMouseDown={e => console.log(e)}
-                          // onClick={()=> console.log(1)}
-                        >
-                          <PlusOutlined /> Add item
+                          ) : null}
                         </div>
-                      </>}
-                      
-                    </div>
+                      ))}
+  
+                      {phones.length < 5 ? (
+                        <Form.Item style={{ width: "60%", textAlign: "end" }}>
+                          <Button
+                            style={{
+                              width: "70%",
+                              color: "#40a9ff",
+                              borderColor: "#40a9ff",
+                            }}
+                            type="double"
+                            onClick={() => add()}
+                            block
+                            icon={<PlusOutlined />}
+                          >
+                            Add field
+                          </Button>
+                        </Form.Item>
+                      ) : null}
+                    </>
                   )}
-                >
-                  {listNationality?.data?.map((e, i) => {
-                    return ( 
-                      <Select.Option
-                        key={i}
-                        children={e?.label}
-                        value={e?.key}
-                        maxTagTextLength={10}
-                      >
-                        {e?.label}
-                      </Select.Option> 
-                    );
-                  })}
-
-                </Select> 
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Position Applied  */}
-          <Col span={24}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Position Applied :</div>
-              <Form.Item required name="positionApplied">
-                <Select
-                  mode="multiple"
-                  optionFilterProp="children"
-                  placeholder="Select or add your position applied"
-                  showSearch
-                >
-                  {listPosition?.data?.map((e, i) => {
-                    return (
-                      <Select.Option
-                        key={i}
-                        children={e?.label}
-                        value={e?.key}
-                        maxTagTextLength={10}
-                      >
-                        {e?.label}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Highest Education  */}
-          <Col span={24}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Highest Education :</div>
-              <Form.Item name="highest_education">
-                <Select
-                  optionFilterProp="children"
-                  placeholder="Select your highest education"
-                  showSearch
-                  filterSort={(optionA, optionB) =>
-                    optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
-                  }
-                >
-                  {listDegree?.data?.map((e, i) => {
-                    return (
-                      <Select.Option
-                        key={i} 
-                        children={e?.label}
-                        value={e?.key}
-                        maxTagTextLength={10}
-                      >
-                        {e?.label}
-                      </Select.Option>
-                    );
-                  })} 
-                </Select>
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Industry Year of Services */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">
-                Industry Year of Services:
+                </Form.List>
               </div>
-              <Form.Item name="yearOfServices" rules={ [{
-                pattern: /^(?:\d*)$/,
-                message: "Please input integers numbers only",
-              }]}>
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={0}
-                  placeholder="0"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* Year of Management */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">Year of Management:</div>
-              <Form.Item name="yearOfManagement"
-              rules={ [{
-                pattern: /^(?:\d*)$/,
-                message: "Please input integers numbers only",
-              }]}>
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={0}
-                  placeholder="0"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-          {/* No. of Direct Reports */}
-          <Col span={12}>
-            <div style={{ paddingInline: 10 }}>
-              <div className="label-add-candidate">No. of Direct Reports:</div>
-              <Form.Item name="directReports"rules={[ {
-                pattern: /^(?:\d*)$/,
-                message: "Please input integers numbers only",
-              }]}>
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={0}
-                  placeholder="0"
-                />
-              </Form.Item>
-            </div>
-          </Col>
-        </Row>
-        {!value? (
-          ""
-        ) : (
-          <>
-              <Button 
-                style={styleButton}
-                type="primary"
-                htmlType="submit"
-                loading={loadings[0]}
-                onClick={() => enterLoading(0)}
-              >
-                {edit ? "Update" : " Create and Next"}
-              </Button>
-              {edit ? (
-                <></>
-              ) : (
-                <Button
-                  style={{ float: "right", marginRight: 20 }}
-                  loading={loadings[1]}
-                  onClick={() => enterLoading(1)}
+            </Col>
+            {/* Addresses */}
+            <Col span={24}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Address:</div>
+                <Form.List name={"addresses"}>
+                  {(addresses, { add, remove }) => (
+                    <>
+                      {addresses.map((address, index) => (
+                        <div
+                          key={address.key}
+                          style={{
+                            display: "flex",
+                            marginBottom: 8,
+                          }}
+                          align="baseline"
+                        >
+                          <Row style={{ flex: 1 }}>
+                            <Col span={8} style={{ paddingRight: 5 }}>
+                              <Form.Item name={[index, "country"]}>
+                                <Select
+                                  optionFilterProp="children"
+                                  placeholder="Country"
+                                  showSearch
+                                  onChange={(e) => onChangeCountryAddress(e)}
+                                >
+                                  {listCountries?.data.map((e, i) => {
+                                    return (
+                                      <Select.Option
+                                        key={i}
+                                        children={e?.label}
+                                        value={e?.key}
+                                        placeholder="Country"
+                                        maxTagTextLength={10}
+                                      >
+                                        {e?.label}
+                                      </Select.Option>
+                                    ); 
+                                  })} 
+                                </Select>
+                              </Form.Item>
+                            </Col>
+                            <Col span={8} style={{ paddingInline: 10 }}>
+                              <Form.Item name={[index, "city"]}>
+                                <Select
+                                  optionFilterProp="children"
+                                  disabled={
+                                    (!dataFromCountry?.data.length > 0 &&
+                                      !params?.id) 
+                                  }
+                                  placeholder="City"
+                                  showSearch
+                                  onChange={(e) => onChangeCityAddress(e)}
+                                >
+                                  {dataFromCountry?.data?.map((e, i) => {
+                                    return (
+                                      <Select.Option
+                                        key={i}
+                                        children={e?.label}
+                                        value={e?.key}
+                                        maxTagTextLength={10}
+                                      >
+                                        {e?.label}
+                                      </Select.Option>
+                                    );
+                                  })}
+                                </Select>
+                              </Form.Item>
+                            </Col>
+                            <Col span={8} style={{ paddingLeft: 5 }}>
+                              <Form.Item name={[index, "district"]}>
+                                <Select
+                                  disabled={
+                                    (!dataFromCity?.data.length > 0 &&
+                                      !params?.id) 
+                                  }
+                                  showSearch
+                                  placeholder="District"
+                                >
+                                  {dataFromCity?.data.map((e, i) => {
+                                    return (
+                                      <Select.Option
+                                        key={i}
+                                        value={e?.key}
+                                        maxTagTextLength={10}
+                                      >
+                                        {e?.label}
+                                      </Select.Option>
+                                    );
+                                  })}
+                                </Select>
+                              </Form.Item>
+                            </Col>
+                            <Form.Item
+                              style={{ width: "100%" }}
+                              name={[index, "address"]}
+                            >
+                              <Input
+                                style={{
+                                  width: "100%",
+                                  marginTop: 20,
+                                }}
+                                placeholder="ex: Street Le Van Si"
+                              />
+                            </Form.Item>
+                          </Row>
+                          {addresses.length > 1 ? (
+                            <MinusCircleOutlined
+                              twoToneColor={"red"}
+                              style={{
+                                marginLeft: 10,
+                                paddingTop: 10,
+                                color: "red",
+                              }}
+                              onClick={() =>
+                                remove(address.name) 
+                              }
+                            />
+                          ) : null}
+                        </div>
+                      ))}
+  
+                      {addresses.length < 5 ? (
+                        <Form.Item style={{ textAlign: "center" }}>
+                          <Button
+                            style={{
+                              width: "50%",
+                              color: "#40a9ff",
+                              borderColor: "#40a9ff",
+                            }}
+                            type="double"
+                            onClick={() => add()}
+                            block
+                            icon={<PlusOutlined />}
+                          >
+                            Add field
+                          </Button>
+                        </Form.Item>
+                      ) : <></>}
+                    </>
+                  )}
+                </Form.List>
+              </div>
+            </Col>
+            {/* Nationality */}
+            <Col span={24}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Nationality :</div>
+                <Form.Item name="nationality">
+                  <Select
+                    mode="multiple"
+                    optionFilterProp="children"
+                    placeholder="Please choose or add a nationality"
+                    showSearch   
+                    onKeyUp={(e)=>{ setTimeout(() =>{return setNationality(e.target.value)},600)}} 
+                    onBlur={()=>{setNationality()}}
+                    // filterOption={(input, option) => setTimeout(() =>{return setNationality(input)},600)}
+                    filterSort={(optionA, optionB) =>
+                      optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                    }
+                    dropdownRender={menu => (
+                      <div>
+                        {menu}
+                        {(listNationality?.data?.length > 0)?<></>: <>
+                          <Divider style={{ margin: '4px 0' }} />
+                          <div
+                            style={{ padding: '4px 8px', cursor: 'pointer' }}
+                            // onMouseDown={e => console.log(e)}
+                            // onClick={()=> console.log(1)}
+                          >
+                            <PlusOutlined /> Add item
+                          </div>
+                        </>}
+                        
+                      </div>
+                    )}
+                  >
+                    {listNationality?.data?.map((e, i) => {
+                      return ( 
+                        <Select.Option
+                          key={i}
+                          children={e?.label}
+                          value={e?.key}
+                          maxTagTextLength={10}
+                        >
+                          {e?.label}
+                        </Select.Option> 
+                      );
+                    })}
+  
+                  </Select> 
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Position Applied  */}
+            <Col span={24}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Position Applied :</div>
+                <Form.Item required name="positionApplied">
+                  <Select
+                    mode="multiple"
+                    optionFilterProp="children"
+                    placeholder="Select or add your position applied"
+                    showSearch
+                  >
+                    {listPosition?.data?.map((e, i) => {
+                      return (
+                        <Select.Option
+                          key={i}
+                          children={e?.label}
+                          value={e?.key}
+                          maxTagTextLength={10}
+                        >
+                          {e?.label}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Highest Education  */}
+            <Col span={24}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Highest Education :</div>
+                <Form.Item name="highest_education">
+                  <Select
+                    optionFilterProp="children"
+                    placeholder="Select your highest education"
+                    showSearch
+                    filterSort={(optionA, optionB) =>
+                      optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                    }
+                  >
+                    {listDegree?.data?.map((e, i) => {
+                      return (
+                        <Select.Option
+                          key={i} 
+                          children={e?.label}
+                          value={e?.key}
+                          maxTagTextLength={10}
+                        >
+                          {e?.label}
+                        </Select.Option>
+                      );
+                    })} 
+                  </Select>
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Industry Year of Services */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">
+                  Industry Year of Services:
+                </div>
+                <Form.Item name="yearOfServices" rules={ [{
+                  pattern: /^(?:\d*)$/,
+                  message: "Please input integers numbers only",
+                }]}>
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="0"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+            {/* Year of Management */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">Year of Management:</div>
+                <Form.Item name="yearOfManagement"
+                rules={ [{
+                  pattern: /^(?:\d*)$/,
+                  message: "Please input integers numbers only",
+                }]}>
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="0"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+            {/* No. of Direct Reports */}
+            <Col span={12}>
+              <div style={{ paddingInline: 10 }}>
+                <div className="label-add-candidate">No. of Direct Reports:</div>
+                <Form.Item name="directReports"rules={[ {
+                  pattern: /^(?:\d*)$/,
+                  message: "Please input integers numbers only",
+                }]}>
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="0"
+                  />
+                </Form.Item>
+              </div>
+            </Col>
+          </Row>
+          {!value? (
+            ""
+          ) : (
+            <>
+                <Button 
+                  style={styleButton}
+                  type="primary"
+                  htmlType="submit"
+                  loading={loadings[0]}
+                  onClick={() => enterLoading(0)}
                 >
-                  Reset
+                  {edit ? "Update" : " Create and Next"}
                 </Button>
-              )}
-          </>
-        )}
-      </Form>
-    </Content>
-  );
+                {edit ? (
+                  <></>
+                ) : (
+                  <Button
+                    style={{ float: "right", marginRight: 20 }}
+                    loading={loadings[1]}
+                    onClick={() => enterLoading(1)}
+                  >
+                    Reset
+                  </Button>
+                )}
+            </>
+          )}
+        </Form>
+      </Content>
+    );
+  
+ 
 }

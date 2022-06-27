@@ -215,8 +215,8 @@ export default function Candidate() {
     ["listCandidate", page, filters],
      async () => await getListCandidate(page, filters),
     { keepPreviousData: true, staleTime: 5000 }
-  );
- 
+  );  
+
   // useEffect(()=>{ 
   //   if(true) dispatch(addListCandidate({1:1}));
   // },[totalData,dispatch])  
@@ -231,6 +231,11 @@ export default function Candidate() {
   );
 
   useEffect(() => {  
+    if(totalData?.status === 401){
+      localStorage.removeItem('auth');
+      logout(); 
+     }
+     
     if (!isFetching && totalData) {
       setListData(totalData.data);
       setCount(totalData.count);
@@ -350,7 +355,7 @@ export default function Candidate() {
           >
             {listData?.map((e, i) => {
               return (
-                <Select.Option key={i}  value={e.key}>
+                <Select.Option key={i} children={e.label} value={e}>
                   {e.label}
                 </Select.Option>
               );
@@ -441,10 +446,10 @@ export default function Candidate() {
     window.location.pathname = "/";
   } 
   if (isFetching){
-    setTimeout(()=>{
-      localStorage.removeItem('auth');
-      logout();
-    },1000)
+    // setTimeout(()=>{
+    //   localStorage.removeItem('auth');
+    //   logout();
+    // },10000)
     return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
   }
     return (
