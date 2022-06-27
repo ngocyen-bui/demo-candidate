@@ -4,13 +4,24 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import store from "./redux/store";
-import { Provider } from "react-redux"; 
+import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { AuthProvider } from "./hooks/useAuth";
+import { BrowserRouter } from "react-router-dom";
 
+const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+
+    <BrowserRouter>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </AuthProvider>
+      </BrowserRouter>
     </Provider>
   </React.StrictMode>
 );

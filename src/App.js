@@ -2,19 +2,17 @@ import {
   SolutionOutlined, 
 } from "@ant-design/icons";
 import { Avatar, BackTop, Dropdown, Image, Layout, Menu } from "antd";
-import React, { useState } from "react";
+import React from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
-import Candidate from "./containers/Candidate/Candidate";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { BrowserRouter, Link, Route, Routes, Navigate } from "react-router-dom";
+import Candidate from "./containers/Candidate/Candidate"; 
+import {  Link, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./containers/Login/Login";
 import AddCandidate from "./containers/AddCandidate/AddCandidate";
-import EditCandidate from "./containers/EditCandidate/EditCandidate";
-import { logout } from "./features/candidate";
+import EditCandidate from "./containers/EditCandidate/EditCandidate";  
+import { useAuth } from "./hooks/useAuth"; 
 const { Header } = Layout;
 // Create a client
-const queryClient = new QueryClient();
 
 const listTitleNavBar = [
   // {
@@ -54,30 +52,30 @@ const formatList = listTitleNavBar.map((e, index) => ({
   label: e.title,
 }));
 
-const App = () => { 
-  const authSettings = (localStorage.getItem("auth") && localStorage.getItem("auth").length > 0);
-  const [auth] = useState(authSettings);
+const App = () => {   
+  const { user: auth,logout } = useAuth();  
+ 
+
   const menu = (
     <Menu
       items={[ 
         {
           label: (
-            <a 
-              href="/"
-              onClick={() => {logout();localStorage.removeItem("auth")}} >
+            <div  
+              onClick={logout} >
                 Logout
-            </a>
+            </div>
           ), 
         }, 
       ]}
     />
   );
-  
+    
+
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <Layout>
-          {auth ? (
+       <>
+       <Layout>
+          {!!auth ? (
             <>
               <Header className="header app-header">
                 <Link to="/">
@@ -121,7 +119,7 @@ const App = () => {
               exact
               path="/login"
               element={
-                Boolean(auth) ? <Navigate to="/candidates" /> : <Login />
+                !!auth ? <Navigate to="/candidates" /> : <Login />
               }
             />
             <Route exact path="/candidates" element={<Candidate />} />
@@ -130,14 +128,13 @@ const App = () => {
               element={<EditCandidate />}
             />
             <Route exact path="/add-candidate" element={<AddCandidate />} />
-            <Route path="*" element={<Navigate to="/login" />}/>
+            <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>
           </Routes>
         </Layout>
         <>
           <BackTop />
-        </>
-      </QueryClientProvider>
-    </BrowserRouter>
+        </> 
+       </> 
   );
 };
 

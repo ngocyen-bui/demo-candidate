@@ -21,8 +21,7 @@ import { useQuery } from "react-query";
 import { 
   getDefaultProp,
   getKeyPageCDD,
-  getListCandidate,
-  logout,
+  getListCandidate, 
 } from "../../features/candidate";
 import { 
   findFlowStatus,
@@ -30,8 +29,9 @@ import {
   getlistStatus,
 } from "../../utils/interface";
 import { Link, useLocation, useNavigate } from "react-router-dom";   
+import { useAuth } from "../../hooks/useAuth";
 
-const formatColumn = (funcSearch, key, listProps) => {
+const formatColumn = (funcSearch, key, listProps,navigate) => {
   let language;
   let degree; 
   if (listProps) {
@@ -44,14 +44,18 @@ const formatColumn = (funcSearch, key, listProps) => {
    language = a?.values;
    degree = b?.values
   }  
+  const handlerClickRow = (data) => {
+    navigate("/candidate-detail/" + data);
+  }; 
   if (key)
     return [
       {
         title: "ID",
         dataIndex: key[0],
         key: key[0],
-        render: (name) => (
+        render: (name,record) => (
           <p
+            onClick={() => handlerClickRow(record.candidate_id)}
             style={{
               cursor: "pointer",
               color: "rgb(24, 144, 255)",
@@ -68,8 +72,9 @@ const formatColumn = (funcSearch, key, listProps) => {
         title: "Name",
         dataIndex: key[1],
         key: key[1],
-        render: (name) => (
+        render: (name,record) => (
           <span
+            onClick={() => handlerClickRow(record.candidate_id)}
             style={{
               cursor: "pointer",
               color: "rgb(24, 144, 255)",
@@ -185,9 +190,12 @@ const formatColumn = (funcSearch, key, listProps) => {
       },
       {
         title: "Action",
-        dataIndex: key[13],
+        dataIndex: 'candidate_id',
         key: key[13],
-        render: () => <EyeOutlined style={{ cursor: "pointer" }} />,
+        render: (record) => {
+
+         return <EyeOutlined onClick={() => handlerClickRow(record)} style={{ cursor: "pointer" }} />
+        }
       },
     ];
 };
@@ -198,36 +206,35 @@ export default function Candidate() {
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
  
-  // const dispatch = useDispatch(); 
-  const [auth] = useState(localStorage.getItem("auth")); 
+  // const dispatch = useDispatch();  
   const [page, setPage] = useState(JSON.parse(pageUrl||localStorage.getItem("pagination")||1));
   const [count, setCount] = useState(0);
-  const [listData, setListData] = useState(); 
+  const [listData, setListData] = useState([]); 
   const [filters, setFilters] = useState(() => {
     return (JSON.parse(localStorage.getItem("filtersCDD")) || {});
   }); 
+  const { logout } = useAuth();  
   //search  
   // const todoIds = useSelector(selectFilteredCandidateIds);
   // const loadingStatus = useSelector((state) => state.candidates)
   // console.log(todoIds);
 
-  const { data: totalData, isFetching } = useQuery(
-    ["listCandidate", page, filters],
-     async () => await getListCandidate(page, filters),
-    { keepPreviousData: true, staleTime: 5000 }
-  );  
+  const { user: auth } = useAuth();   
+  const token = auth?.token;
 
-  // useEffect(()=>{ 
-  //   if(true) dispatch(addListCandidate({1:1}));
-  // },[totalData,dispatch])  
- 
+
+  const { data: totalData, isFetching } = useQuery(
+    ["listCandidate", page, filters, token],
+     async () => await getListCandidate(page, filters,token),
+    { keepPreviousData: true, staleTime: 5000 }
+  );   
   //Get data default key page
-  const { data: listDefaultKeyPage } = useQuery("keyPage", () =>
-    getKeyPageCDD()
+  const { data: listDefaultKeyPage } = useQuery(["keyPage",token], async() =>
+   await getKeyPageCDD(token)
   );
 
-  const { data: listDefaultProp } = useQuery("defaultProps", () =>
-    getDefaultProp()
+  const { data: listDefaultProp } = useQuery(["defaultProps",token],async () =>
+   await getDefaultProp(token)
   );
 
   useEffect(() => {  
@@ -240,30 +247,24 @@ export default function Candidate() {
       setListData(totalData.data);
       setCount(totalData.count);
     } 
-  }, [totalData,isFetching]);
+  }, [totalData,isFetching,logout]);
 
 
   const clearAllFilter = () => {
     setFilters({});  
-  };
-  const handlerClickRow = (data) => {
-    navigate("/candidate-detail/" + data.candidate_id);
-  };
-
+  }; 
+ 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {   
     if (selectedKeys === []) {
-      const temp = filters;
-      delete temp[dataIndex];    
-      return setFilters(temp);
-    }
+      let temp = {...filters};
+      delete temp[dataIndex];
+      setFilters(temp);
+    } 
     
     setFilters((data) => ({
       ...data,
       [dataIndex]: selectedKeys[0],
-    }));  
-    
-   
-    
+    }));   
     setPage(1)
     navigate("?page="+1);
     localStorage.setItem('pagination',1)
@@ -274,8 +275,8 @@ export default function Candidate() {
   }, [filters]);
 
   const handleReset = (clearFilters, confirm, dataIndex) => {  
-    const temp = filters;
-    delete temp[dataIndex];    
+    let temp = {...filters};
+    delete temp[dataIndex];
     setFilters(temp);
   };
   const getColumnSearchProps = (dataIndex,type, listData) => ({ 
@@ -355,7 +356,7 @@ export default function Candidate() {
           >
             {listData?.map((e, i) => {
               return (
-                <Select.Option key={i} children={e.label} value={e}>
+                <Select.Option key={i} value={e.key}>
                   {e.label}
                 </Select.Option>
               );
@@ -364,7 +365,7 @@ export default function Candidate() {
         ) : (
           ""
         )}
-        {type === 'multiselect'?
+        {type === 'multiselect'?(  
           <>
             <Select
               style={{
@@ -381,7 +382,7 @@ export default function Candidate() {
                  return <Select.Option key={i} value={e.key}>{e.label}</Select.Option>
                })}
             </Select> 
-          </>
+          </>)
        :('')}
        {type === "range"? 
        <Input.Group compact style={{marginTop: 10}}> 
@@ -422,36 +423,25 @@ export default function Candidate() {
     ),
   });
   const handleTag = (key)=>{  
-    // setFilters((filters) => {
-    //   return  delete filters[key] || {}; 
-    // }); 
-    const temp = filters;
-    delete temp[key];    
+    let temp = {...filters};
+    delete temp[key];
     setFilters(temp);
-
-    localStorage.removeItem("filtersCDD");
-    localStorage.setItem("filtersCDD", JSON.stringify(temp));
+ 
   }
   const columns = formatColumn(
     getColumnSearchProps,
     listDefaultKeyPage?.data,
-    listDefaultProp
+    listDefaultProp,
+    navigate
   );
   const handlerClickPagination = (e)=>{ 
     localStorage.setItem('pagination',e)
     navigate("?page="+e);
     setPage(e);
-  }
-  if (!auth) {
-    window.location.pathname = "/";
-  } 
-  if (isFetching){
-    // setTimeout(()=>{
-    //   localStorage.removeItem('auth');
-    //   logout();
-    // },10000)
-    return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
-  }
+  }  
+  // if (isFetching){ 
+  //   return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
+  // }
     return (
       <Layout>
         <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
@@ -501,18 +491,19 @@ export default function Candidate() {
             :<></>}
             <Table
               rowKey={'id'}
+              loading={isFetching}
               style={{marginTop: 20}}
               columns={columns}
               dataSource={listData}
               scroll={{ x: true }}
-              onRow={(record, rowIndex) => {
-                return {
-                  onClick: () => {
-                    handlerClickRow(record);
-                  }, // click row
-                };
-              }}
-              pagination={{ 
+              // onRow={(record, rowIndex) => {
+              //   return {
+              //     onClick: () => {
+              //       handlerClickRow(record);
+              //     }, // click row
+              //   };
+              // }}
+              pagination={{  
                 current: page,
                 showSizeChanger: false,
                 showQuickJumper: true,

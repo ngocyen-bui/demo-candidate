@@ -30,6 +30,7 @@ import {
   getPosition,
   getValueFlag, 
 } from "../features/candidate";
+import { useAuth } from "../hooks/useAuth";
 import {  fetchCreateCandidate, fetchUpdateCandidate } from "../redux/reducer";
 const day = () => {
   let arr = [];
@@ -80,10 +81,7 @@ const result = (obj) => {
         key: Number(key.slice(1)),
       },
     };
-  });
-  let listEmail = obj?.emails?.map((e) => {
-    return e.email;
-  });    
+  }); 
   let nation = [];
   if(obj?.nationality){
     nation = obj?.nationality?.map((n) => {
@@ -107,7 +105,7 @@ const result = (obj) => {
       if(typeof(n.country) === 'object') {
         return n
       }
-      return {country: {key:n.country}}
+      return {country: {key:n.country}, city: {key:n.city},district: {key:n.district}}
     })
   }
 
@@ -128,7 +126,7 @@ const result = (obj) => {
     first_name: obj?.firstName,
     last_name: obj?.lastName,
     phones: listPhone,
-    emails: listEmail,
+    emails: obj?.emails,
     current_emails: [],
     addresses: addressModify || [],
     gender: obj?.gender,
@@ -160,6 +158,10 @@ export function DetailCandidate(prop) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const { user: auth } = useAuth();   
+  const token = auth?.token;
+
+
   let styleButton = {};
   if(edit){
     styleButton = {float: "right", marginRight: 10, position: 'fixed', bottom: 20, right: 20}
@@ -168,31 +170,31 @@ export function DetailCandidate(prop) {
     
   }
 
-  const { data: listCountries } = useQuery("repoData", () => getValueFlag());
+  const { data: listCountries } = useQuery(["repoData",token], () => getValueFlag(token));
 
-  const { data: listPosition } = useQuery("position", () => getPosition());
+  const { data: listPosition } = useQuery(["position",token], () => getPosition(token));
   const { data: dataFromCountry } = useQuery(
-    ["locationFromCountry", country],
-    () => getLocationFromCountry(country),
+    ["locationFromCountry", country,token],
+    () => getLocationFromCountry(country,token),
     { enabled: Boolean(country) }
   );
   const { data: dataFromCity } = useQuery(
-    ["locationFromCity", city],
-    () => getLocationFromCity(city),
+    ["locationFromCity", city,token],
+    () => getLocationFromCity(city,token),
     { enabled: Boolean(city) }
   ); 
-  const { data: listDegree } = useQuery("listDegree", () =>
-    getDegree()
+  const { data: listDegree } = useQuery(["listDegree",token], () =>
+    getDegree(token)
   ); 
   const { data: listNationality } = useQuery(
-    ["getNationalityByValue", nationality],
-    () => getNationality(nationality), 
+    ["getNationalityByValue", nationality,token],
+    () => getNationality(nationality,token), 
   );  
 
   const onFinish = (values) => { 
     if (values && !edit) { 
       let data = result(values);
-      dispatch(fetchCreateCandidate( {data}))
+      dispatch(fetchCreateCandidate( {data,token}))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
         countDown();
@@ -218,12 +220,13 @@ export function DetailCandidate(prop) {
     } else if (values && edit) {
       let data = {
         id: prevData?.id,
-        data:result(values)
+        data:result(values),
+        token
       };
        dispatch(fetchUpdateCandidate(data))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
-        console.log(originalPromiseResult);
+        // console.log(originalPromiseResult);
         countDown();  
       })
       .catch((rejectedValueOrSerializedError) => { 
@@ -337,6 +340,7 @@ export function DetailCandidate(prop) {
         <Form
           name="basic"
           layout="vertical"
+          scrollToFirstError={true}
           initialValues={{
             ...prevData,  
             emails: [...(prevData?.emails || [""])],
@@ -572,35 +576,40 @@ export function DetailCandidate(prop) {
                 <div className="label-add-candidate">
                   Email<span style={{ color: "red" }}>*</span>:
                 </div>
-                <Form.List name="emails">
-                  {(emails, { add, remove }) => (
-                    <>
+                <Form.List name="emails"  
+                > 
+                  {(emails, { add, remove }, { errors }) => (
+                    <>  
                       {emails.map((email, index) => (
-                        <div
+                        <Form.Item
                           key={email.key}
+                          required={false}
                           style={{
                             width: "65%",
                             display: "flex",
                             marginBottom: 8,
                           }}
                           align="baseline"
-                        >
-                          <Form.Item
-                            style={{ flex: 1 }}
-                            name={[index, "email"]}
-                            rules={[
+                        > 
+                          <Form.Item 
+                            {...email}
+                            style={{ flex: 1 }} 
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[ 
+                              {
+                                required: true,
+                                whitespace: true,
+                                message: "Please input Email!",
+                              }, 
                               {
                                 type: "email",
                                 message: "The input is not valid Email!",
                               },
-                              {
-                                required: true,
-                                message: "Please input Email!",
-                              },
                             ]}
+                            noStyle
                           >
                             <Input
-                              style={{ width: "100%" }}
+                              style={{ width: "95%" }}
                               placeholder={"ex: email@email.com"}
                             />
                           </Form.Item>
@@ -614,7 +623,7 @@ export function DetailCandidate(prop) {
                               onClick={() => remove(email.name)}
                             />
                           ) : null}
-                        </div>
+                        </Form.Item>
                       ))}
   
                       {emails.length < 5 ? (
@@ -632,6 +641,8 @@ export function DetailCandidate(prop) {
                           >
                             Add field
                           </Button>
+
+                          <Form.ErrorList errors={errors} />
                         </Form.Item>
                       ) : null}
                     </>
@@ -1053,7 +1064,7 @@ export function DetailCandidate(prop) {
                 >
                   {edit ? "Update" : " Create and Next"}
                 </Button>
-                {edit ? (
+                {!edit ? (
                   <></>
                 ) : (
                   <Button

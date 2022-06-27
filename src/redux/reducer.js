@@ -12,16 +12,16 @@ const namespace = 'candidates'
 
 export const fetchCreateCandidate = createAsyncThunk(
   `${namespace}/fetchUpdateCandidate`,
-  async ({data}) => {  
-    const { results } = await createCandidate(data); 
+  async ({data,token}) => {  
+    const { results } = await createCandidate(data,token); 
     return results
   }
     
 )
 export const fetchUpdateCandidate = createAsyncThunk(
   `${namespace}/fetchUpdateCandidate`,
-  async ({id,data}) => {  
-    const { results } = await updateCandidate(id,data); 
+  async ({id,data,token}) => {  
+    const { results } = await updateCandidate(id,data,token); 
     return results
   }
     

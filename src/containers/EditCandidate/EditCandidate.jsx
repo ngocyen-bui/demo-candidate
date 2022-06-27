@@ -10,28 +10,31 @@ import {
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
 import { LoadingOutlined } from "@ant-design/icons";
+import { useAuth } from "../../hooks/useAuth";
   
   
   export default function AddCandidate(props) { 
-  
+    const { user: auth } = useAuth();   
+  const token = auth?.token;
+
     const params = useParams();
     // const [current, setCurrent] = useState(0);
     const [checkInfo, setCheckInfo]= useState(false); 
-    const [notFound,setNotFound] = useState(false);
-    const [disabled, setDisabled] = useState(() => {
-      return (Boolean(localStorage.getItem('personal-infomation')))  
-    }); 
+    // const [notFound,setNotFound] = useState(false);
+    // const [disabled, setDisabled] = useState(() => {
+    //   return (Boolean(localStorage.getItem('personal-infomation')))  
+    // }); 
     const [prevData, setPrevData] = useState([])  
    
   useEffect(()=>{
     if(params.id){ 
-       getCandidate(params.id).then(dataCandidate =>{  
+       getCandidate(params.id,token).then(dataCandidate =>{  
         const dob = dataCandidate?.dob?.split("-") || []; 
         const x =({
           id: dataCandidate?.id,
           addresses:  dataCandidate.addresses|| [""],
           date: dob[2] || null, 
-          emails: dataCandidate.emails.map((e,i) =>({key: i,email: e})) || [""],
+          emails: dataCandidate.emails,
           firstName: dataCandidate.first_name|| null,
           gender: dataCandidate.gender,
           lastName: dataCandidate.last_name|| null,
@@ -60,16 +63,11 @@ import { LoadingOutlined } from "@ant-design/icons";
     }
   },[params.id]) 
  
-if(notFound){
-  return <div style={{height: '900px', textAlign: 'center', lineHeight: '400px', fontSize: '32px', fontWeight: 600, opacity: 0.5}}>Not found this candidate.</div>
-}
+// if(notFound){
+//   return <div style={{height: '900px', textAlign: 'center', lineHeight: '400px', fontSize: '32px', fontWeight: 600, opacity: 0.5}}>Not found this candidate.</div>
+// }
    
-if(!checkInfo){
-  // setTimeout(()=>{
-  //   if(checkInfo){ 
-  //     setNotFound(true)
-  //   }
-  // },3000)
+if(!checkInfo){ 
   return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
 }else {
     return (
@@ -89,7 +87,7 @@ if(!checkInfo){
             <TextArea placeholder="Overview" rows={4} />
           </Layout>:
           <></>}
-          <DetailCandidate disabled={disabled} prevData={prevData} params={params} edit={true} />
+          <DetailCandidate disabled={false} prevData={prevData} params={params} edit={true} />
         </Layout>
       </Layout>
     ); 
