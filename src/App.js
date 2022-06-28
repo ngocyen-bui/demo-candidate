@@ -88,11 +88,14 @@ const App = () => {
                 </Link> 
                   <Dropdown overlay={menu}>
                     <div onClick={e => e.preventDefault()} style={{ float: "right", cursor: 'pointer' }}>
-                        <Avatar
-                        src={
-                          "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
-                        }
-                      />
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <div style={{marginRight: '10px', color: 'white', textTransform: 'uppercase', fontWeight: 'bold'}}>{auth?.user_sent?.full_name}</div>
+                            <Avatar
+                            src={
+                              "https://lubrytics.com:8443/nadh-mediafile/file/f4882323-30e2-4b48-b093-84e543a5f5f9"
+                            }
+                          />
+                        </div>
                     </div>
                 </Dropdown> 
               </Header>

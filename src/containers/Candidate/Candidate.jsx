@@ -133,7 +133,7 @@ const formatColumn = (funcSearch, key, listProps, navigate,listLanguage) => {
             </div>
           ));
         },
-        ...funcSearch("addresses"),
+        ...funcSearch("addresses",'select',[]),
       },
       {
         title: "Industry",
@@ -143,7 +143,7 @@ const formatColumn = (funcSearch, key, listProps, navigate,listLanguage) => {
           text?.map((e, i) => (
             <p key={i}>* {e?.sector?.label || e?.industry?.label}</p>
           )),
-        ...funcSearch("business_line"),
+        ...funcSearch("business_line",'select',[]),
       },
       {
         title: "YOB",
@@ -348,8 +348,8 @@ export default function Candidate() {
   ); 
   useEffect(() => {
     if (totalData?.status === 401) {
-      localStorage.removeItem("auth");
       logout();
+      localStorage.removeItem("auth");
     }
 
     if (!isFetching && totalData) {
