@@ -10,8 +10,7 @@ import {
   Divider,
   Form,
   Input,
-  InputNumber,
-  Layout,
+  InputNumber, 
   Modal,
   Radio,
   Row,
@@ -171,9 +170,10 @@ export function DetailCandidate(prop) {
   const [loadings, setLoadings] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const [form] = Form.useForm();
   const { user: auth } = useAuth();   
   const token = auth?.token;
+
 
 
   let styleButton = {};
@@ -274,14 +274,12 @@ export function DetailCandidate(prop) {
     setValue(values);
   };
   const onChangeCountryAddress = (e) => { 
-    setCountry(e);
-    setCity();   
-
+    setCountry(e);  
+    setCity();    
   };
   const onChangeCityAddress = (e) => {
     setCity(e);   
-  };
-  
+  }; 
   const enterLoading = (index) => {
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
@@ -328,6 +326,7 @@ export function DetailCandidate(prop) {
       navigate("/candidates"); 
     }, secondsToGo * 1000);
   };
+  
   if (!prevData && edit) {
     setTimeout(() => {
       return <div>123</div>
@@ -353,6 +352,7 @@ export function DetailCandidate(prop) {
           name="basic"
           layout="vertical"
           scrollToFirstError={true}
+          form={form}
           initialValues={{
             ...prevData,  
             emails: [...(prevData?.emails || [""])],
