@@ -11,6 +11,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Layout,
   Modal,
   Radio,
   Row,
@@ -177,7 +178,7 @@ export function DetailCandidate(prop) {
 
   let styleButton = {};
   if(edit){
-    styleButton = {float: "right", marginRight: 10, position: 'fixed', bottom: 20, right: 20};
+    styleButton = {float: "right", position: 'fixed', bottom: 0, right: 0, backgroundColor: '#f0f2f5', width: '100%', textAlign: 'end',paddingBlock: '20px'};
   }else{
     styleButton = {float: "right", marginRight: 10} ;
   }
@@ -1065,9 +1066,9 @@ export function DetailCandidate(prop) {
           {!value? (
             ""
           ) : (
-            <>
+            <div style={styleButton}>
                 <Button 
-                  style={styleButton}
+                  style={{minWidth: '100px'}}
                   type="primary"
                   htmlType="submit"
                   loading={loadings[0]}
@@ -1077,16 +1078,16 @@ export function DetailCandidate(prop) {
                 </Button>
                 {!edit ? (
                   <></>
-                ) : (
-                  <Button
-                    style={{ float: "right", marginRight: 20 }}
+                ) : ( 
+                    <Button
+                    style={{ marginRight: '20px',width: '100px', marginLeft: '10px'}}
                     loading={loadings[1]}
                     onClick={() => enterLoading(1)}
                   >
                     Reset
-                  </Button>
+                  </Button> 
                 )}
-            </>
+            </div>
           )}
         </Form>
       </Content>

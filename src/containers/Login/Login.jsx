@@ -43,13 +43,13 @@ export default function Login() {
     console.log("Failed:", errorInfo);
   };
   return (
-    <Layout style={{ marginTop: "100px", minHeight: "900px" }}>
-      <Layout>
-        {/* <h2>Login </h2>
-        <div>Login your account</div> */}
+    <Layout style={{ padding: "100px", backgroundColor: 'white' }}>
+      <Layout style={{width: '600px',padding: '40px 40px 60px 40px', height: '320px', margin: '100px auto 0', backgroundColor: 'white',border: '1px solid #c8ced3'}}>
+        <h2 style={{fontSize: '32px',marginBottom: 0}}>Login </h2>
+        <div style={{marginBottom: '20px', color: '#73818f',fontWeight: 'bold'}}>Sign in to your account</div>
         <Form
           name="basic"
-          style={{textAlign: "center"}} 
+          style={{}} 
           initialValues={{ remember: acc.remember, username: acc.user_name}}
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
@@ -63,7 +63,7 @@ export default function Login() {
           </Form.Item>
 
           <Form.Item
-            style={{ marginTop: 20 }} 
+            style={{ marginTop: 10 }} 
             name="password"
             rules={[{ required: true, message: "Please input your password!" }]}
           > 
@@ -76,6 +76,7 @@ export default function Login() {
           </Form.Item>
 
           <Form.Item
+            style={{ marginTop: '10px', float: "right" }} 
             name="remember"
             valuePropName="checked" 
           >
@@ -83,8 +84,10 @@ export default function Login() {
           </Form.Item>
 
           <Form.Item >
-            <Button type="primary" htmlType="submit">
-              Submit
+            <Button
+            style={{ borderRadius: '6px', paddingInline: '20px',marginTop: '20px' }} 
+             type="primary" htmlType="submit">
+              Login
             </Button>
           </Form.Item>
         </Form>

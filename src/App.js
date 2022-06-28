@@ -21,6 +21,7 @@ const listTitleNavBar = [
   //   key: '1',
   // },
   {
+    
     icon: <SolutionOutlined />,
     title: <Link to="candidates">Candidates</Link>,
     key: "2",
@@ -47,7 +48,7 @@ const listTitleNavBar = [
   // },
 ];
 const formatList = listTitleNavBar.map((e, index) => ({
-  index,
+  key: e.key,
   icon: e.icon,
   label: e.title,
 }));
@@ -96,10 +97,11 @@ const App = () => {
                 </Dropdown> 
               </Header>
               <Menu
+ 
                 theme="light"
                 mode="horizontal"
                 style={{ paddingLeft: 10 }}
-                defaultSelectedKeys={[1]}
+                defaultSelectedKeys={['2']}
                 items={formatList}
               ></Menu>
             </>

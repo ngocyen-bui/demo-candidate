@@ -7,7 +7,14 @@ const DOMAIN = 'https://lubrytics.com:8443';
 export const getListCandidate = (number,listFilter,header) => { 
     let ft = ''; 
     for (const filter in listFilter) {
-        if(listFilter[filter]) ft+=('&'+filter+"="+listFilter[filter])
+        let f = filter;
+        if(f === 'yob' || f === 'industry' || f === 'management'){
+          f = ''
+        }else{
+          f+="="
+        }
+        
+        if(listFilter[filter]) ft+=('&'+f+listFilter[filter])
     }  
     return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
  {
@@ -53,11 +60,22 @@ export const getListCandidate = (number,listFilter,header) => {
      headers:  HeaderFetch(header), 
  }).then((res) => res.data)} 
 
-//get degree 
+//get property  
 
 export const getDegree = (header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=degree`, 
 {    headers:  HeaderFetch(header), 
 }).then((res) => res.data)} 
+export const getLanguage = (value,header) => {
+  if(value)  {
+    return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=language&value=${value}`, 
+    {    headers:  HeaderFetch(header), 
+    }).then((res) => res.data)
+  }else{
+    return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=language`, 
+    {    headers:  HeaderFetch(header), 
+    }).then((res) => res.data)
+  }
+} 
 
 
  //post request 
