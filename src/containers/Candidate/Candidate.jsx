@@ -226,8 +226,8 @@ export default function Candidate() {
   const [dob, setDob] = useState([]);
   const [dobto, setDobTo] = useState([]);
   const [checkChangeDob,setCheckChangeDob]= useState(false);
-  const [convertFilter, setConvertFilter] = useState([]); 
- 
+  const [convertFilter, setConvertFilter] = useState([]);  
+
    useEffect(() => {
     let temp = Object.entries(filters);  
     let arr = temp.map((e)=>{
@@ -303,6 +303,23 @@ export default function Candidate() {
           prevValue: e[1]
         }
       } 
+      if(e[0] === "current_position_text"){
+        return {
+          filter: 'current_position_text',
+          name: 'Recent positions',
+          value: e[1],
+          prevValue: e[1]
+        }
+      } 
+      if(e[0] === "current_company_text"){
+        return {
+          filter: 'current_company_text',
+          name: 'Recent companies',
+          value: e[1],
+          prevValue: e[1]
+        }
+      } 
+
       return {};
     }) 
     setConvertFilter(arr)
@@ -660,7 +677,7 @@ export default function Candidate() {
             style={{ marginTop: 20 }}
             columns={columns}
             dataSource={listData}
-            scroll={{ x: true }}
+            scroll={{ x: true }}  
             // onRow={(record, rowIndex) => {
             //   return {
             //     onClick: () => {
