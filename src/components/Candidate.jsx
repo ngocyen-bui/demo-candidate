@@ -72,6 +72,7 @@ const cv = (x) => {
   return x;
 };
 const result = (obj) => {
+  console.log(obj?.positionApplied);
   let listPhone = obj?.phones?.map((e) => {
     let key = e?.countryCode || "+84";
     return {
@@ -82,6 +83,16 @@ const result = (obj) => {
       },
     };
   }); 
+
+  let positionApplied = [];
+  if(obj?.nationality){
+    positionApplied = obj?.positionApplied?.map((n) => {
+      if(typeof(n) === 'object') {
+        return n
+      }
+      return {key: n}
+    })
+  } 
   let nation = [];
   if(obj?.nationality){
     nation = obj?.nationality?.map((n) => {
@@ -92,8 +103,7 @@ const result = (obj) => {
     })
   }
  
-  let highest_education = {key: obj?.highest_education}
-
+  let highest_education = {key: obj?.highest_education} 
   if(typeof(obj?.highest_education) === 'object'){
     highest_education = obj?.highest_education
   } 
@@ -135,6 +145,9 @@ const result = (obj) => {
     priority_status: obj?.primaryStatus,
     management_years: obj?.yearOfManagement,
     industry_years: obj?.yearOfServices,
+    prefer_position: {
+      positions: positionApplied
+    },
     type: 3,
   };
   if(result.dob === ""){
@@ -164,10 +177,9 @@ export function DetailCandidate(prop) {
 
   let styleButton = {};
   if(edit){
-    styleButton = {float: "right", marginRight: 10, position: 'fixed', bottom: 20, right: 20}
+    styleButton = {float: "right", marginRight: 10, position: 'fixed', bottom: 20, right: 20};
   }else{
-    styleButton = {float: "right", marginRight: 10}
-    
+    styleButton = {float: "right", marginRight: 10} ;
   }
 
   const { data: listCountries } = useQuery(["repoData",token], () => getValueFlag(token));
@@ -312,8 +324,7 @@ export function DetailCandidate(prop) {
     setTimeout(() => {
       clearInterval(timer);
       modal.destroy();
-      navigate("/candidates");
-      // localStorage.removeItem('personal-infomation')
+      navigate("/candidates"); 
     }, secondsToGo * 1000);
   };
   if (!prevData && edit) {
@@ -772,7 +783,7 @@ export function DetailCandidate(prop) {
                                 <Select
                                   optionFilterProp="children"
                                   placeholder="Country"
-                                  showSearch
+                                  showSearch 
                                   onChange={(e) => onChangeCountryAddress(e)}
                                 >
                                   {listCountries?.data.map((e, i) => {
@@ -781,7 +792,6 @@ export function DetailCandidate(prop) {
                                         key={i}
                                         children={e?.label}
                                         value={e?.key}
-                                        placeholder="Country"
                                         maxTagTextLength={10}
                                       >
                                         {e?.label}
@@ -832,6 +842,7 @@ export function DetailCandidate(prop) {
                                     return (
                                       <Select.Option
                                         key={i}
+                                        children={e?.label}
                                         value={e?.key}
                                         maxTagTextLength={10}
                                       >

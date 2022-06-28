@@ -255,6 +255,7 @@ export default function Candidate() {
   }; 
  
   const handleSearch = (selectedKeys, confirm, dataIndex) => {   
+    console.log(selectedKeys);
     if (selectedKeys === []) {
       let temp = {...filters};
       delete temp[dataIndex];
@@ -307,9 +308,9 @@ export default function Candidate() {
           <Button
             type="primary"
             onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
+            icon={<SearchOutlined/>}
             size="small"
-            style={{
+            style={{ 
               width: 90,
             }}
           >
@@ -392,8 +393,8 @@ export default function Candidate() {
             textAlign: 'center',
             marginRight: '10px',
           }} 
-          onChange={(e) =>
-            setSelectedKeys(e? [e] : [])
+          onBlur={(e) =>
+            setSelectedKeys(e? [e.target.value] : [])
           }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           placeholder="From"
@@ -404,8 +405,9 @@ export default function Candidate() {
             width: 100,
             textAlign: 'center',
           }} 
-          onChange={(e) =>
-            setSelectedKeys(e ? [...selectedKeys,e] : [])
+          // onChange={(e) => selectedKeys[0]}
+          onBlur={(e) =>
+            setSelectedKeys(e ? [...selectedKeys,e.target.value] : [])
           }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           placeholder="To"
