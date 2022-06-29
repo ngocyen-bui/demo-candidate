@@ -31,18 +31,18 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
-const formatColumn = (funcSearch, key, listProps, navigate,listLanguage) => { 
-  let language = listLanguage?.data;  
+const formatColumn = (funcSearch, key, listProps, navigate) => { 
+  let language ;  
   let degree;
   if (listProps) { 
-    // let a = Object.values(listProps).find((obj) => {
-    //   return obj.name === "language";
-    // });
+    let a = Object.values(listProps).find((obj) => {
+      return obj.name === "language";
+    });
     let b = Object.values(listProps).find((obj) => {
       return obj.name === "degree";
     }); 
 
-  //  language = a?.values;
+   language = a?.values;
     degree = b?.values;
   }
   const handlerClickRow = (data) => {
@@ -224,8 +224,7 @@ export default function Candidate() {
   const navigate = useNavigate();
   const search = useLocation().search;
   const pageUrl = new URLSearchParams(search).get("page");
-
-  // const dispatch = useDispatch();
+ 
   const [page, setPage] = useState(
     JSON.parse(pageUrl || localStorage.getItem("pagination") || 1)
   );
@@ -242,9 +241,10 @@ export default function Candidate() {
   const [dobto, setDobTo] = useState([]);
   const [checkChangeDob,setCheckChangeDob]= useState(false);
   const [convertFilter, setConvertFilter] = useState([]);  
-
+  // console.log(convertFilter);
    useEffect(() => {
     let temp = Object.entries(filters);  
+    console.log(temp);
     let arr = temp.map((e)=>{
       if(e[0] === 'full_name'){
         return {
@@ -258,7 +258,7 @@ export default function Candidate() {
         return {
           filter: 'priority_status',
           name: 'Primary Status',
-          value: findPriorityStatus(e[1])?.key,
+          value: e[1]?.data?.label,
           prevValue: e[1]
         }
       }
@@ -271,10 +271,18 @@ export default function Candidate() {
         }
       }
       if(e[0] === 'language'){
+        let temp = ''
+        if(e[1].length > 1){
+         temp = e[1]?.map((e)=> e.children)?.reduce((previousValue, currentValue) =>  
+          previousValue + ' ' + currentValue
+        )
+        }else{
+          temp = e[1][0]?.data?.label;
+        }
         return {
           filter: 'language',
           name: 'Languages',
-          value: e[1],
+          value: temp,
           prevValue: e[1]
         }
       }
@@ -282,7 +290,7 @@ export default function Candidate() {
         return {
           filter: 'highest_education',
           name: 'Highest degree',
-          value: e[1],
+          value: e[1].children,
           prevValue: e[1]
         }
       }
@@ -290,31 +298,31 @@ export default function Candidate() {
         return {
           filter: 'flow_status',
           name: 'Activity',
-          value: findFlowStatus(e[1])?.label,
+          value: e[1]?.data?.label,
           prevValue: e[1]
         }
       }
       if(e[0] === "yob"){
         return {
           filter: 'yob',
-          name: e[1],
-          value: '',
+          name: "YOB",
+          value: 'from '+ e[1].from+ ' to ' + e[1].to,
           prevValue: e[1]
         }
       }
       if(e[0] === "industry"){
         return {
           filter: 'industry',
-          name: e[1],
-          value: '',
+          name: 'Industry',
+          value: 'from '+ e[1].from+ ' to ' + e[1].to,
           prevValue: e[1]
         }
       }
       if(e[0] === "management"){
         return {
           filter: 'management',
-          name: e[1],
-          value: '',
+          name: 'Management',
+          value: 'from '+ e[1].from+ ' to ' + e[1].to,
           prevValue: e[1]
         }
       } 
@@ -338,8 +346,7 @@ export default function Candidate() {
       return {};
     }) 
     setConvertFilter(arr)
-   },[filters])
-
+   },[filters]) 
   const { user: auth } = useAuth();
   const token = auth?.token;
 
@@ -357,6 +364,7 @@ export default function Candidate() {
     ["getLanguageByValue", valueLanguage,token],
     async() => await getLanguage(valueLanguage,token)
   );  
+  // console.log(listLanguage);
   const { data: listDefaultProp } = useQuery(
     ["defaultProps", token],
     async () => await getDefaultProp(token)
@@ -378,25 +386,13 @@ export default function Candidate() {
   };
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
-<<<<<<< HEAD
-    let temp = { ...filters };   
-=======
     let temp = { ...filters };  
     console.log(filters);
->>>>>>> d8d54a3006735b2cd7a2cdb2df6fc474ec5c9488
     confirm(); 
     setPage(1);
     navigate("?page=" + 1);
     localStorage.setItem("pagination", 1);
-<<<<<<< HEAD
-    if (selectedKeys === []) {
-      let temp = { ...filters };
-      delete temp[dataIndex];
-      return setFilters(temp);
-    }
-=======
     
->>>>>>> d8d54a3006735b2cd7a2cdb2df6fc474ec5c9488
     if (selectedKeys.length === 2) {
       if(dataIndex === 'dob'){
         temp = {
@@ -428,7 +424,8 @@ export default function Candidate() {
     localStorage.setItem("filtersCDD", JSON.stringify(filters));
   }, [filters]);
 
-  const handleReset = (clearFilters, confirm, dataIndex) => {
+
+    const handleReset = (clearFilters, confirm, dataIndex) => {
     let temp = { ...filters };
     // delete temp[dataIndex];
     if(dataIndex === 'dob'){ 
@@ -597,19 +594,11 @@ export default function Candidate() {
         ) : (
           <></>
         )}
+        {type === 'manyfields'?(<>
+         
+        </>):<></>}
       </div>
     ),
-<<<<<<< HEAD
-    filterIcon: (filtered) => (
-      <>
-      <SearchOutlined
-        style={{
-          color: filtered ? "#1890ff" : undefined,
-        }}
-      />  
-      </>
-    ),
-=======
     filterIcon: (filtered) => {
       let isActive = Object.keys(filters).filter((e)=> e === dataIndex).length > 0; 
       return (
@@ -620,7 +609,6 @@ export default function Candidate() {
         />
       )
     },
->>>>>>> d8d54a3006735b2cd7a2cdb2df6fc474ec5c9488
   });
   const handleTag = (key) => {
     let temp = { ...filters };
@@ -688,18 +676,20 @@ export default function Candidate() {
                     <DownOutlined />handleTag
               </Dropdown>
             </Space> */}
-          {/* {convertFilter ? (
+          <div className="wrapper-tag-filter" style={{width: '100%', overflowX: "scroll", display: "flex"}}>
+          {convertFilter ? (
             convertFilter.map( (e,i)=> {  
-              console.log(e)
+              // console.log(e)
               return (
                 <Tag closable key={i} id={i} value={e?.filter} onClose={() => handleTag(e.filter)}>
-                  {e?.name} {e?.value?'=':''} {e?.value}
+                  {e?.name} {e?.value?':':''} {e?.value}
                 </Tag>
               );
             })
           ) : (
             <></>
-          )} */}
+          )}
+          </div>
           <Table
             rowKey={"id"}
             loading={isFetching}

@@ -5,18 +5,24 @@ const DOMAIN = 'https://lubrytics.com:8443';
  
 
 export const getListCandidate = (number,listFilter,header) => { 
-    let ft = ''; 
-    // for (const filter in listFilter) {
-    //     let f = filter;
-    //     if(f === 'yob' || f === 'industry' || f === 'management'){
-    //       f = ''
-    //     }else{
-    //       f+="="
-    //     }
-        
-    //     if(listFilter[filter]) ft+=('&'+f+listFilter[filter])
-    // }  
-    return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
+    let str = ''; 
+    console.log(listFilter);
+    for (const f in listFilter) {   
+        if(f === 'yob' || f === 'industry' || f === 'management'){
+          str+= ''
+        } 
+        if(typeof(listFilter[f]) === 'object'){
+          if(listFilter[f].key){ 
+            str+= '&'+f+'='+listFilter[f].key;
+          }else{
+            // str += '&'+f
+          }
+        }
+        if(typeof(listFilter[f]) === 'string')  str+= '&'+f+'='+listFilter[f];
+
+    }  
+    console.log(str);
+    return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10', 
  {
      headers: HeaderFetch(header), 
  }).then((res) => res.data).catch((err) => err.response)}
