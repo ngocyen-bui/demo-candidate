@@ -363,12 +363,16 @@ export default function Candidate() {
   };
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
-    let temp = { ...filters };  
-    console.log(selectedKeys);
+    let temp = { ...filters };   
     confirm(); 
     setPage(1);
     navigate("?page=" + 1);
     localStorage.setItem("pagination", 1);
+    if (selectedKeys === []) {
+      let temp = { ...filters };
+      delete temp[dataIndex];
+      return setFilters(temp);
+    }
     if (selectedKeys.length === 2) {
       if(dataIndex === 'dob'){
         temp = {
@@ -389,13 +393,7 @@ export default function Candidate() {
         };
       }
       return setFilters(temp);
-    }
-
-    if (selectedKeys === []) {
-      let temp = { ...filters };
-      delete temp[dataIndex];
-      return setFilters(temp);
-    }
+    } 
     return setFilters((data) => ({
       ...data,
       [dataIndex]: selectedKeys[0],
@@ -585,11 +583,13 @@ export default function Candidate() {
       </div>
     ),
     filterIcon: (filtered) => (
+      <>
       <SearchOutlined
         style={{
           color: filtered ? "#1890ff" : undefined,
         }}
-      />
+      />  
+      </>
     ),
   });
   const handleTag = (key) => {
