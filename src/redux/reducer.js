@@ -11,7 +11,7 @@ export const HTTP_STATUS = Object.freeze({
 const namespace = 'candidates'
 
 export const fetchCreateCandidate = createAsyncThunk(
-  `${namespace}/fetchUpdateCandidate`,
+  `${namespace}/fetchCreateCandidate`,
   async ({data,token}) => {  
     const { results } = await createCandidate(data,token); 
     return results
@@ -21,8 +21,8 @@ export const fetchCreateCandidate = createAsyncThunk(
 export const fetchUpdateCandidate = createAsyncThunk(
   `${namespace}/fetchUpdateCandidate`,
   async ({id,data,token}) => {  
-    const { results } = await updateCandidate(id,data,token); 
-    return results
+    let {status} = await updateCandidate(id,data,token).then(x => x);  
+    return status
   }
     
 )
@@ -35,27 +35,27 @@ const candidatesSlice = createSlice({
   },
   reducers: {},
   extraReducers: {
-    [fetchUpdateCandidate.pending](state) {
-      state.loading = HTTP_STATUS.PENDING
+    [fetchUpdateCandidate.pending](state) { 
+      state.loading = HTTP_STATUS.PENDING;
     },
-    [fetchUpdateCandidate.fulfilled](state, { payload }) {
-      state.loading = HTTP_STATUS.FULFILLED
-      state.data = payload
+    [fetchUpdateCandidate.fulfilled](state, { payload }) { 
+      state.loading = HTTP_STATUS.FULFILLED;
+      state.data = payload;
     },
     [fetchUpdateCandidate.rejected](state, { error }) {
-      state.loading = HTTP_STATUS.REJECTED
-      state.errorMessage = error.message
+      state.loading = HTTP_STATUS.REJECTED;
+      state.errorMessage = error.message;
     },
     [fetchCreateCandidate.pending](state) {
-      state.loading = HTTP_STATUS.PENDING
+      state.loading = HTTP_STATUS.PENDING;
     },
     [fetchCreateCandidate.fulfilled](state, { payload }) {
-      state.loading = HTTP_STATUS.FULFILLED
-      state.data = payload
+      state.loading = HTTP_STATUS.FULFILLED;
+      state.data = payload;
     },
     [fetchCreateCandidate.rejected](state, { error }) {
-      state.loading = HTTP_STATUS.REJECTED
-      state.errorMessage = error.message
+      state.loading = HTTP_STATUS.REJECTED;
+      state.errorMessage = error.message;
     },
   },
 })
