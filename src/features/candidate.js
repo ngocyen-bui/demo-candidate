@@ -6,16 +6,16 @@ const DOMAIN = 'https://lubrytics.com:8443';
 
 export const getListCandidate = (number,listFilter,header) => { 
     let ft = ''; 
-    for (const filter in listFilter) {
-        let f = filter;
-        if(f === 'yob' || f === 'industry' || f === 'management'){
-          f = ''
-        }else{
-          f+="="
-        }
+    // for (const filter in listFilter) {
+    //     let f = filter;
+    //     if(f === 'yob' || f === 'industry' || f === 'management'){
+    //       f = ''
+    //     }else{
+    //       f+="="
+    //     }
         
-        if(listFilter[filter]) ft+=('&'+f+listFilter[filter])
-    }  
+    //     if(listFilter[filter]) ft+=('&'+f+listFilter[filter])
+    // }  
     return axios.get(DOMAIN+'/nadh-api-crm/api/candidates?page='+number+'&perPage=10'+ft, 
  {
      headers: HeaderFetch(header), 
@@ -88,7 +88,7 @@ export const getLanguage = (value,header) => {
 export const updateCandidate =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
     headers:  HeaderFetch(header), 
 })
-.then((res) => res).catch((err) => err)
+.then((res) => res).catch((err) => err.response)
 
 
 

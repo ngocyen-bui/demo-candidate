@@ -20,7 +20,7 @@ import {
 import { Content } from "antd/lib/layout/layout";
 import { useState } from "react";
 import { useQuery } from "react-query";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {    
   getDegree,
@@ -71,8 +71,7 @@ const cv = (x) => {
   }
   return x;
 };
-const result = (obj) => {
-  console.log(obj?.positionApplied);
+const result = (obj) => { 
   let listPhone = obj?.phones?.map((e) => {
     let key = e?.countryCode || "+84";
     return {
@@ -158,24 +157,26 @@ const result = (obj) => {
 
 
 
-export function DetailCandidate(prop) {
-  const prevData = prop.prevData;
+export function DetailCandidate(prop) { 
   const params = prop.params;
   const onChange = prop.onChange;
   const edit = prop.edit || false;
+  const [prevData,setPrevData] = useState(prop.prevData);
   const [country, setCountry] = useState();
   const [nationality, setNationality] = useState('');
   const [value, setValue] = useState();
   const [city, setCity] = useState();  
   const [loadings, setLoadings] = useState([]);
+  const [form] = Form.useForm();
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [form] = Form.useForm();
+
   const { user: auth } = useAuth();   
   const token = auth?.token;
+  
 
-
-
+  const dataStatus = useSelector((state) => state.candidate.data) 
   let styleButton = {};
   if(edit){
     styleButton = {float: "right", position: 'fixed', bottom: 0, right: 0, backgroundColor: '#f0f2f5', width: '100%', textAlign: 'end',paddingBlock: '20px'};
@@ -202,15 +203,18 @@ export function DetailCandidate(prop) {
   const { data: listNationality } = useQuery(
     ["getNationalityByValue", nationality,token],
     () => getNationality(nationality,token), 
-  );  
-
-  const onFinish = (values) => { 
-    if (values && !edit) { 
+  );    
+  console.log(prevData);
+  const onFinish = (values) => {  
+  console.log(values);
+  if (values && !edit) { 
       let data = result(values);
       dispatch(fetchCreateCandidate( {data,token}))
       .then(unwrapResult)
       .then((originalPromiseResult) => {
-        countDown();
+        //TODO:
+        // countDown(); 
+        setPrevData(values);
         console.log(originalPromiseResult);
       })
       .catch((rejectedValueOrSerializedError) => {
@@ -238,9 +242,10 @@ export function DetailCandidate(prop) {
       };
        dispatch(fetchUpdateCandidate(data))
       .then(unwrapResult)
-      .then((originalPromiseResult) => {
-        // console.log(originalPromiseResult);
-        countDown();  
+      .then(() => {
+        if(dataStatus === 200){
+          // countDown();   
+        }
       })
       .catch((rejectedValueOrSerializedError) => { 
         console.log(rejectedValueOrSerializedError);
@@ -273,12 +278,33 @@ export function DetailCandidate(prop) {
   const onValuesChange = (values) => {
     setValue(values);
   };
-  const onChangeCountryAddress = (e) => { 
-    setCountry(e);  
-    setCity();    
+  const onChangeCountryAddress = (e,o) => { 
+    let list = form.getFieldValue()?.addresses;  
+    let cur = list[o.position]; 
+    list[o.position] = {
+      country: cur?.country, 
+    }
+    form.setFieldsValue({
+      addresses:[
+        ...list 
+      ]
+    }); 
+    setCountry(o.data.key);  
+    setCity();
   };
-  const onChangeCityAddress = (e) => {
-    setCity(e);   
+  const onChangeCityAddress = (e,o) => { 
+    let list = form.getFieldValue()?.addresses;   
+    let cur = list[o.position]; 
+    list[o.position] = {
+      country: cur?.country, 
+      city: cur?.city, 
+    }
+    form.setFieldsValue({
+      addresses:[
+        ...list
+      ]
+    }); 
+    setCity(o.data.key);   
   }; 
   const enterLoading = (index) => {
     setLoadings((prevLoadings) => {
@@ -326,15 +352,7 @@ export function DetailCandidate(prop) {
       navigate("/candidates"); 
     }, secondsToGo * 1000);
   };
-  
-  if (!prevData && edit) {
-    setTimeout(() => {
-      return <div>123</div>
-    },3000);
-    return (
-      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-    );
-  }
+    // console.log(form.getFieldValue()); 
     return (
       <Content
         className="site-layout-background"
@@ -780,20 +798,23 @@ export function DetailCandidate(prop) {
                         >
                           <Row style={{ flex: 1 }}>
                             <Col span={8} style={{ paddingRight: 5 }}>
-                              <Form.Item name={[index, "country"]}>
+                              <Form.Item name={[index, "country"]} 
+                                  >
                                 <Select
                                   optionFilterProp="children"
-                                  placeholder="Country"
+                                  placeholder="Country" 
                                   showSearch 
-                                  onChange={(e) => onChangeCountryAddress(e)}
+                                  onChange={(e,o) => onChangeCountryAddress(e,o)}
                                 >
                                   {listCountries?.data.map((e, i) => {
                                     return (
                                       <Select.Option
                                         key={i}
                                         children={e?.label}
-                                        value={e?.key}
+                                        value={e.key}
                                         maxTagTextLength={10}
+                                        data={e} 
+                                        position={index}
                                       >
                                         {e?.label}
                                       </Select.Option>
@@ -803,16 +824,17 @@ export function DetailCandidate(prop) {
                               </Form.Item>
                             </Col>
                             <Col span={8} style={{ paddingInline: 10 }}>
-                              <Form.Item name={[index, "city"]}>
+                              <Form.Item name={[index, "city"]}   
+                                  >
                                 <Select
                                   optionFilterProp="children"
                                   disabled={
                                     (!dataFromCountry?.data.length > 0 &&
                                       !params?.id) 
                                   }
-                                  placeholder="City"
+                                  placeholder="City" 
                                   showSearch
-                                  onChange={(e) => onChangeCityAddress(e)}
+                                  onChange={(e,o) => onChangeCityAddress(e,o)} 
                                 >
                                   {dataFromCountry?.data?.map((e, i) => {
                                     return (
@@ -821,6 +843,8 @@ export function DetailCandidate(prop) {
                                         children={e?.label}
                                         value={e?.key}
                                         maxTagTextLength={10}
+                                        data={e}
+                                        position={index}
                                       >
                                         {e?.label}
                                       </Select.Option>
@@ -845,6 +869,7 @@ export function DetailCandidate(prop) {
                                         key={i}
                                         children={e?.label}
                                         value={e?.key}
+                                        position={index}
                                         maxTagTextLength={10}
                                       >
                                         {e?.label}
@@ -1067,26 +1092,26 @@ export function DetailCandidate(prop) {
             ""
           ) : (
             <div style={styleButton}>
-                <Button 
-                  style={{minWidth: '100px'}}
-                  type="primary"
-                  htmlType="submit"
-                  loading={loadings[0]}
-                  onClick={() => enterLoading(0)}
-                >
-                  {edit ? "Update" : " Create and Next"}
-                </Button>
-                {!edit ? (
+               {!edit ? (
                   <></>
                 ) : ( 
                     <Button
-                    style={{ marginRight: '20px',width: '100px', marginLeft: '10px'}}
+                    style={{width: '100px', marginRight: '20px'}}
                     loading={loadings[1]}
                     onClick={() => enterLoading(1)}
                   >
                     Reset
                   </Button> 
                 )}
+                <Button 
+                  style={{ marginRight: '20px',minWidth: '100px'}}
+                  type="primary"
+                  htmlType="submit"
+                  loading={loadings[0]}
+                  onClick={() => enterLoading(0)}
+                >
+                  {edit ? "Update" : " Create and Next"}
+                </Button> 
             </div>
           )}
         </Form>

@@ -11,10 +11,11 @@ import {
   import { DetailCandidate } from "../../components/Candidate";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useAuth } from "../../hooks/useAuth";
+import { useSelector } from "react-redux";
   
   
   export default function AddCandidate(props) { 
-    const { user: auth } = useAuth();   
+  const { user: auth } = useAuth();   
   const token = auth?.token;
 
     const params = useParams();
@@ -25,51 +26,53 @@ import { useAuth } from "../../hooks/useAuth";
     //   return (Boolean(localStorage.getItem('personal-infomation')))  
     // }); 
     const [prevData, setPrevData] = useState([])  
-   
-  useEffect(()=>{
-    if(params.id){ 
-       getCandidate(params.id,token).then(dataCandidate =>{  
-        const dob = dataCandidate?.dob?.split("-") || []; 
-        const x =({
-          id: dataCandidate?.id,
-          addresses:  dataCandidate.addresses|| [""],
-          date: dob[2] || null, 
-          emails: dataCandidate.emails,
-          firstName: dataCandidate.first_name|| null,
-          gender: dataCandidate.gender,
-          lastName: dataCandidate.last_name|| null,
-          maritalStatus: dataCandidate.extra.martial_status,
-          middleName: dataCandidate.middle_name || null,
-          month: dob[1]|| null,
-          highest_education: dataCandidate.highest_education,
-          readyToMove: dataCandidate.readyToMove || 1,
-          nationality: dataCandidate.nationality,
-          phones: dataCandidate.phones.map((e) =>({ countryCode: "+"+e.phone_code.key, phone: e.number}))|| [""],
-          positionApplied: dataCandidate.prefer_position.positions,
-          primaryStatus: dataCandidate.priority_status || 1,
-          source: dataCandidate.source,
-          year: dob[0]|| null,
-          yearOfManagement: dataCandidate.management_years,
-          yearOfServices: dataCandidate.industry_years,
-          directReports: dataCandidate.direct_reports
-        }); 
-        setCheckInfo(true)
-        setPrevData(x)
-      }).catch(err => { 
-        setCheckInfo(false) 
-      });
-    }else{
-      setPrevData(JSON.parse(localStorage.getItem('personal-infomation')))
-    }
-  },[params.id]) 
- 
+    const { loading} = useSelector((state) => state.candidate) 
+    useEffect(()=>{
+      if(params.id){ 
+        getCandidate(params.id,token).then(dataCandidate =>{  
+          const dob = dataCandidate?.dob?.split("-") || []; 
+          const x =({
+            id: dataCandidate?.id,
+            addresses:  dataCandidate.addresses|| [""],
+            date: dob[2] || null, 
+            emails: dataCandidate.emails,
+            firstName: dataCandidate.first_name|| null,
+            gender: dataCandidate.gender,
+            lastName: dataCandidate.last_name|| null,
+            maritalStatus: dataCandidate.extra.martial_status,
+            middleName: dataCandidate.middle_name || null,
+            month: dob[1]|| null,
+            highest_education: dataCandidate.highest_education,
+            readyToMove: dataCandidate.readyToMove || 1,
+            nationality: dataCandidate.nationality,
+            phones: dataCandidate.phones.map((e) =>({ countryCode: "+"+e.phone_code.key, phone: e.number}))|| [""],
+            positionApplied: dataCandidate.prefer_position.positions,
+            primaryStatus: dataCandidate.priority_status || 1,
+            source: dataCandidate.source,
+            year: dob[0]|| null,
+            yearOfManagement: dataCandidate.management_years,
+            yearOfServices: dataCandidate.industry_years,
+            directReports: dataCandidate.direct_reports
+          }); 
+          setCheckInfo(true)
+          setPrevData(x)
+        }).catch(err => { 
+          setCheckInfo(false) 
+        });
+      }else{
+        setPrevData(JSON.parse(localStorage.getItem('personal-infomation')))
+      }
+    },[params.id,token]) 
+  
 // if(notFound){
 //   return <div style={{height: '900px', textAlign: 'center', lineHeight: '400px', fontSize: '32px', fontWeight: 600, opacity: 0.5}}>Not found this candidate.</div>
 // }
    
-if(!checkInfo){ 
-  return <Spin style={{marginBlock: 200}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
-}else {
+if (!checkInfo || loading === 'PENDING') { 
+  return (
+    <Spin style={{marginTop: '200px', minHeight: "1000px"}} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+  );
+} else {
     return (
       <Layout>
         <Layout
