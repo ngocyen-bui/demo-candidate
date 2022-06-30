@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
 const countDown = () => {
-  let secondsToGo = 2;
+  // let secondsToGo = 2;
 
   const modal = Modal.error({
     title: "Please check username or password again!",
@@ -19,10 +19,10 @@ const countDown = () => {
   //   });
   // }, 1000);
 
-  setTimeout(() => {
+  // setTimeout(() => {
     // clearInterval(timer);
-    modal.destroy();
-  }, secondsToGo * 1000);
+  //   modal.destroy();
+  // }, secondsToGo * 1000);
 };
 
 export default function Login() { 

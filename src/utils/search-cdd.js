@@ -16,3 +16,4 @@ const searchYearOfManegement = DOMAIN +'/nadh-api-crm/api/candidates?page=1&perP
 
 
 
+'https://lubrytics.com:8443/nadh-api-crm/api/candidates?page=1&perPage=10&location={"country":{"key":"1280","label":"Viet+Nam"},"city":{"key":"2","label":"Ba+Ria+-+Vung+Tau"}}&country=1280&city=2'
