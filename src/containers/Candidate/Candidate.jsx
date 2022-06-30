@@ -8,8 +8,7 @@ import {
   getDefaultProp,
   getKeyPageCDD,
   getLanguage,
-  getListCandidate,
-  getLocationFromCity,
+  getListCandidate, 
   getLocationFromCountry,
   getValueFlag,
 } from "../../features/candidate";
@@ -280,50 +279,51 @@ export default function Candidate() {
  
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
     let temp = { ...filters };  
-    confirm();
+      confirm();
     setPage(1);
     navigate("?page=" + 1);
     localStorage.setItem("pagination", 1); 
-    if (selectedKeys.length === 0) return;
-
+    if (selectedKeys.length === 0 ) return; 
     if(dataIndex === 'addresses'){
       temp = {
         ...temp,
         addresses: { country: {key:selectedKeys[0].data.key, label: selectedKeys[0].data.label}, city: {key: selectedKeys[1]?.data?.key, label: selectedKeys[1]?.data?.label}},
-      };
-      console.log(temp);
+      }; 
       return setFilters(temp);
-    }
-    if (selectedKeys.length === 2) {
+    } 
+    if (selectedKeys?.from && selectedKeys?.to) {
       if (dataIndex === "yob") {
         temp = {
           ...temp,
-          yob: { yob_from: selectedKeys[0]||0, yob_to: selectedKeys[1]||null },
+          yob: { yob_from: selectedKeys?.from, yob_to: selectedKeys?.to },
         };
       }
       if (dataIndex === "industry_years") {
         temp = {
           ...temp,
-          industry_years: { industry_years_from: selectedKeys[0], industry_years_to: selectedKeys[1] },
+          industry_years: { industry_years_from: selectedKeys?.from, industry_years_to: selectedKeys?.to },
         };
       }
       if (dataIndex === "management_years") {
         temp = {
           ...temp,
-          management_years: { management_years_from: selectedKeys[0], management_years_to: selectedKeys[1] },
+          management_years: { management_years_from: selectedKeys?.from, management_years_to: selectedKeys?.to },
         };
       } 
       return setFilters(temp);
+    } 
+    if(typeof(selectedKeys[0]) === 'string' || Array.isArray(selectedKeys)) {
+
+      return setFilters((data) => ({
+        ...data,
+        [dataIndex]: selectedKeys[0],
+      }));
     }
-    return setFilters((data) => ({
-      ...data,
-      [dataIndex]: selectedKeys[0],
-    }));
+    
   };
   useEffect(() => { 
     localStorage.setItem("filtersCDD", JSON.stringify(filters));
-
-    let temp = Object.entries(filters); 
+    let temp = Object.entries(filters);  
     let arr = temp.map((e) => {
       // console.log(e);
       if (e[0] === "full_name") {
@@ -447,8 +447,7 @@ export default function Candidate() {
   const handleSearchCountry = (e,o)=>{ 
     setCountry(o.data.key)
   }
-  const handleCloseTag = (e) => {
-    console.log(e)
+  const handleCloseTag = (e) => { 
     let key = e.filter; 
     let temp = { ...filters }; 
     delete temp[key]; 
@@ -583,7 +582,7 @@ export default function Candidate() {
                   }}
                   max={dobto[0]}
                   min={0}
-                  onBlur={(e) => setSelectedKeys(e ? [e.target.value] : [])}
+                  onBlur={(e) => setSelectedKeys(e ? {...selectedKeys,from: e.target.value} : {})}
                   // onPressEnter={() =>
                   //   handleSearch(selectedKeys, confirm, dataIndex)
                   // }
@@ -610,7 +609,7 @@ export default function Candidate() {
                   }}
                   min={dob[0]} 
                   onBlur={(e) =>
-                    setSelectedKeys(e ? [...selectedKeys, e.target.value] : [])
+                    setSelectedKeys(e ? {...selectedKeys,to: e.target.value} : {})
                   }
                   onChange={(e) => {
                     setDobTo([e]);
