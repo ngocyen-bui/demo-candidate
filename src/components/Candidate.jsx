@@ -19,7 +19,7 @@ import {
 import { Content } from "antd/lib/layout/layout";
 import { memo, useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {    
   getCandidate,
@@ -181,7 +181,7 @@ export const DetailCandidate = memo((prop) => {
   const token = auth?.token;
   
 
-  const dataStatus = useSelector((state) => state.candidate.data) 
+  // const dataStatus = useSelector((state) => state.candidate.data) 
   let styleButton = {};
   if(edit){
     styleButton = {float: "right", position: 'fixed', bottom: 0, right: 0, backgroundColor: '#f0f2f5', width: '100%', textAlign: 'end',paddingBlock: '20px'};
@@ -279,10 +279,10 @@ export const DetailCandidate = memo((prop) => {
       };
        dispatch(fetchUpdateCandidate(data))
       .then(unwrapResult)
-      .then(() => {
-        if(dataStatus === 200){ 
-          countDown()
-        }
+      .then(() => { 
+        countDown()
+        // if(dataStatus === 200){ 
+        // }
       })
       .catch((rejectedValueOrSerializedError) => {  
         // console.log(rejectedValueOrSerializedError);
@@ -385,17 +385,16 @@ export const DetailCandidate = memo((prop) => {
     }, secondsToGo * 1000);
   }; 
   const confirm = () => {
-    Modal.success({
+    Modal.confirm({
       title: 'Created Candidate',
       icon: <CheckCircleTwoTone twoToneColor="#52c41a" />,
-      content: 'Bla bla ...',
+      content: 'Success! You have successfully!',
       okText: 'List Candidate',
       cancelText: 'Create new',
       onOk: () => navigate("/candidates"),
       onCancel: () => navigate("/add-candidate")
     });
-  };
-    // console.log();
+  }; 
   if(Object.keys(prevData).length > 0 || !edit) {
     return (
       <Content

@@ -64,6 +64,7 @@ const formatColumn = (funcSearch, key, listProps, navigate, listLanguage) => {
         title: "Name",
         dataIndex: key[1],
         key: key[1],
+        fixed: "left",
         width: "150px",
         render: (name, record) => (
           <span
@@ -228,10 +229,10 @@ export default function Candidate() {
 
   const [country, setCountry] = useState(); 
   //search results
-  const [dob, setDob] = useState([]);
-  const [dobto, setDobTo] = useState([]);
+  const [dob, setDob] = useState({});
+  const [dobto, setDobTo] = useState({});
   const [checkChangeDob, setCheckChangeDob] = useState(false);
-  const [convertFilter, setConvertFilter] = useState([]);
+  const [convertFilter, setConvertFilter] = useState([]); 
   const { user: auth } = useAuth();
   const token = auth?.token;
 
@@ -279,9 +280,9 @@ export default function Candidate() {
  
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
     let temp = { ...filters };  
-      confirm();
     setPage(1);
     navigate("?page=" + 1);
+    confirm();
     localStorage.setItem("pagination", 1); 
     if (selectedKeys.length === 0 ) return; 
     if(dataIndex === 'addresses'){
@@ -291,7 +292,8 @@ export default function Candidate() {
       }; 
       return setFilters(temp);
     } 
-    if (selectedKeys?.from && selectedKeys?.to) {
+    if (selectedKeys?.from && selectedKeys?.to) { 
+      if(selectedKeys?.from >= selectedKeys?.to) return;
       if (dataIndex === "yob") {
         temp = {
           ...temp,
@@ -320,7 +322,7 @@ export default function Candidate() {
       }));
     }
     
-  };
+  }; 
   useEffect(() => { 
     localStorage.setItem("filtersCDD", JSON.stringify(filters));
     let temp = Object.entries(filters);  
@@ -434,15 +436,17 @@ export default function Candidate() {
     setConvertFilter(arr);
   }, [filters]);
 
-  const handleReset = (clearFilters, confirm, dataIndex) => {
+  const handleReset = (clearFilters, confirm, dataIndex) => { 
+    clearFilters();
+    confirm();
     let temp = { ...filters };
     delete temp[dataIndex];
     if (dataIndex === "dob") {
       delete temp["yob"];
-    } 
+      setDob([]);
+      setDobTo([]);
+    }
     setFilters(temp);
-    clearFilters();
-    confirm();
   };
   const handleSearchCountry = (e,o)=>{ 
     setCountry(o.data.key)
@@ -452,22 +456,55 @@ export default function Candidate() {
     let temp = { ...filters }; 
     delete temp[key]; 
     setFilters(temp);
-  };
- 
+  }; 
   const getColumnSearchProps = (dataIndex, type, listData) => ({
+    onFilterDropdownVisibleChange: (e)=>{
+      // console.log({[dataIndex]: e}); 
+    },
     filterDropdown: ({
       setSelectedKeys,
       selectedKeys,
-      confirm,
+      confirm, 
       clearFilters,
     }) => {
       const getLisValue = (e)=>{
         if(e === 'language'){
-        return  filters[e]?.map(e =>
+          return  filters[e]?.map(e =>
           e?.data?.label
-         )
-           
+         ) 
         }
+      }
+      let data = {}
+      if(type === 'input'){ 
+        data = { value: 
+          filters?.[dataIndex]
+         };   
+      }
+      if(type === 'select'){
+        data = { value: 
+          filters[dataIndex]?.data?.label
+        };  
+      }
+      if(type === 'multiselect'){
+        data = { value: 
+          getLisValue(dataIndex)
+        };  
+      }
+      if(type === 'range'){
+        data.from = { value: 
+          filters[dataIndex]?.[dataIndex+'_from']
+        };  
+        data.to = { value: 
+          filters[dataIndex]?.[dataIndex+'_to']
+        };  
+      }
+      if(type === 'manyfieldsCity'){
+        data.country = { value: 
+          filters[dataIndex]?.country?.label
+        };  
+        data.city = { value: 
+          filters[dataIndex]?.city?.label
+        };  
       }
       return (
         <div
@@ -477,7 +514,7 @@ export default function Candidate() {
         >
           <Space>
             <Button
-              onClick={() =>
+              onClick={() =>  
                 clearFilters && handleReset(clearFilters, confirm, dataIndex)
               }
               size="small"
@@ -489,6 +526,7 @@ export default function Candidate() {
               Reset
             </Button>
             <Button
+              disabled={type === 'range' && dob?.[dataIndex] >= dobto?.[dataIndex]}
               type="primary"
               onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
               icon={<SearchOutlined />}
@@ -503,7 +541,7 @@ export default function Candidate() {
           {type === "input" ? ( 
             <Input
               placeholder={`Search ${dataIndex}`}
-              defaultValue={filters[dataIndex]}
+             {...data}
               onChange={(e) =>
                 setSelectedKeys(e.target.value ? [e.target.value] : [])
               }
@@ -528,7 +566,8 @@ export default function Candidate() {
                 display: "block",
                 marginTop: 10,
               }}
-              defaultValue={filters[dataIndex]?.data?.label}
+              {...data}
+              // defaultValue={filters[dataIndex]?.data?.label|| null}
               onSelect={(e, option) => setSelectedKeys(option ? [option] : [])}
               placeholder={dataIndex}
             >  
@@ -550,13 +589,13 @@ export default function Candidate() {
                   width: "100%",
                   display: "block",
                   marginTop: 10,
-                }}
-                // value={ }
+                }} 
                 mode="multiple"
                 onSearch={(e) => setValueLanguage(e)}
                 onChange={(e, o) => setSelectedKeys(o ? [o] : [])}
                 allowClear
-                defaultValue={getLisValue(dataIndex)}
+                {...data}
+                // defaultValue={getLisValue(dataIndex)}
                 placeholder="Please select"
               >
                 {listData?.map((e, i) => { 
@@ -582,19 +621,21 @@ export default function Candidate() {
                   }}
                   max={dobto[0]}
                   min={0}
-                  onBlur={(e) => setSelectedKeys(e ? {...selectedKeys,from: e.target.value} : {})}
+                  // onBlur={(e) => setSelectedKeys(e ? {...selectedKeys,from: e.target.value} : {})}
                   // onPressEnter={() =>
                   //   handleSearch(selectedKeys, confirm, dataIndex)
                   // }
-                  defaultValue={filters[dataIndex]?.[dataIndex+'_from']}
+                  // defaultValue={filters[dataIndex]?.[dataIndex+'_from']}
+                  {...data.from}
                   onChange={(e) => {
-                    setDob([e]);
+                    setDob({[dataIndex]: e});
                     setCheckChangeDob(false);
+                    setSelectedKeys(e ? {...selectedKeys,from: e} : {})
                   }}
                   placeholder="From"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {dob[0] >= dobto[0] && !checkChangeDob
+                  {dob?.[dataIndex] >= dobto?.[dataIndex] && !checkChangeDob
                     ? "Must be lower than to's value"
                     : null}
                 </div>
@@ -607,22 +648,24 @@ export default function Candidate() {
                     width: 150,
                     textAlign: "center",
                   }}
-                  min={dob[0]} 
-                  onBlur={(e) =>
-                    setSelectedKeys(e ? {...selectedKeys,to: e.target.value} : {})
-                  }
+                  min={dob?.[dataIndex]} 
+                  // onBlur={(e) =>
+                  //   setSelectedKeys(e ? {...selectedKeys,to: e.target.value} : {})
+                  // }
                   onChange={(e) => {
-                    setDobTo([e]);
+                    setSelectedKeys(e ? {...selectedKeys,to: e} : {}) 
+                    setDobTo({[dataIndex]: e});
                     setCheckChangeDob(true);
                   }}
-                  defaultValue={filters[dataIndex]?.[dataIndex+'_to']}
+                  // defaultValue={filters[dataIndex]?.[dataIndex+'_to']}
+                  {...data.to} 
                   onPressEnter={() =>
                     handleSearch(selectedKeys, confirm, dataIndex)
                   }
                   placeholder="To"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {dob[0] >= dobto[0] && checkChangeDob
+                  {dob?.[dataIndex] >= dobto?.[dataIndex] && checkChangeDob
                     ? "Must be higher than from's value"
                     : null}
                 </div>
@@ -644,7 +687,8 @@ export default function Candidate() {
                 handleSearchCountry(e,option)
                 setSelectedKeys(option ? [option] : [])
               }} 
-              defaultValue={filters[dataIndex]?.country?.label}
+              {...data.country}
+              // defaultValue={filters[dataIndex]?.country?.label}
               placeholder="Country"
             >
               {listCountries?.data?.map((e, i) => {
@@ -667,7 +711,8 @@ export default function Candidate() {
                 setSelectedKeys(option ? [...selectedKeys,option] : [])
               }} 
               placeholder="City"
-              defaultValue={filters[dataIndex]?.city?.label}
+              {...data.city}
+              // defaultValue={filters[dataIndex]?.city?.label}
             >
               {dataFromCountry?.data?.map((e) => {
                 return (
@@ -703,14 +748,12 @@ export default function Candidate() {
     listDefaultProp,
     navigate,
     listLanguage
-  );
-
+  ); 
   const handlerClickPagination = (e) => {
     localStorage.setItem("pagination", e);
     navigate("?page=" + e);
     setPage(e);
-  };
-
+  }; 
   const forMap = (tag) => {  
     const tagElem = (
       <Tag
@@ -765,15 +808,7 @@ export default function Candidate() {
                 </Button>
               </Link>
             </div>
-          </div>
-          {/* <Space style={{ marginBlock: "10px 16px", float: "right" }}>
-              <Dropdown overlay={menu} autoFocus onVisibleChange={false}>
-                <Button style={{ width: 160 }}>
-                  <Space>
-                    Custom Columns
-                    <DownOutlined />handleTag
-              </Dropdown>
-            </Space> */}
+          </div> 
           <div
             className="wrapper-tag-filter"
             style={{ width: "100%", overflowX: "scroll", display: "flex" }}
@@ -786,14 +821,7 @@ export default function Candidate() {
             style={{ marginTop: 20 }}
             columns={columns}
             dataSource={listData}
-            scroll={{ x: "1800px" }}
-            // onRow={(record, rowIndex) => {
-            //   return {
-            //     onClick: () => {
-            //       handlerClickRow(record);
-            //     }, // click row
-            //   };
-            // }}
+            scroll={{ x: "1800px" }}  
             pagination={{
               current: page,
               showSizeChanger: false,
