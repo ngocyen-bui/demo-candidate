@@ -1,8 +1,9 @@
 import { 
+  ScheduleOutlined,
   SolutionOutlined, 
 } from "@ant-design/icons";
 import { Avatar, BackTop, Dropdown, Image, Layout, Menu } from "antd";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
 import Candidate from "./containers/Candidate/Candidate"; 
@@ -11,6 +12,7 @@ import Login from "./containers/Login/Login";
 import AddCandidate from "./containers/AddCandidate/AddCandidate";
 import EditCandidate from "./containers/EditCandidate/EditCandidate";  
 import { useAuth } from "./hooks/useAuth"; 
+import Jobs from "./containers/Jobs/Jobs";
 const { Header } = Layout;
 // Create a client
 
@@ -23,14 +25,14 @@ const listTitleNavBar = [
   {
     
     icon: <SolutionOutlined />,
-    title: <Link to="candidates">Candidates</Link>,
-    key: "2",
+    title: <Link to="/candidates">Candidates</Link>,
+    key: "2", 
   },
-  // {
-  //   icon: <ScheduleOutlined />,
-  //   title: "Jobs",
-  //   key: '3'
-  // },
+  {
+    icon: <ScheduleOutlined />,
+    title:<Link to="/jobs"> Jobs</Link>,
+    key: '3'
+  },
   // {
   //   icon: <UserOutlined />,
   //   title: "Systems Users",
@@ -55,7 +57,13 @@ const formatList = listTitleNavBar.map((e, index) => ({
 
 const App = () => {   
   const { user: auth,logout } = useAuth();  
- 
+  
+  const [current, setCurrent] = useState(()=>{
+    if(window.location.pathname === '/jobs'){
+      return '3'
+    }
+    return '2'
+  });
 
   const menu = (
     <Menu
@@ -71,8 +79,13 @@ const App = () => {
       ]}
     />
   );
-    
+     
+  const onClick = (e) => {
+    // console.log('click ', e);
+    setCurrent(e.key);
 
+  };
+  localStorage.setItem("filtersJob",JSON.stringify({page: 1, perPage: 10}));
   return (
        <>
        <Layout>
@@ -100,11 +113,11 @@ const App = () => {
                 </Dropdown> 
               </Header>
               <Menu
- 
+                onClick={onClick}
                 theme="light"
                 mode="horizontal"
                 style={{ paddingLeft: 10 }}
-                defaultSelectedKeys={['2']}
+                defaultSelectedKeys={current}
                 items={formatList}
               ></Menu>
             </>
@@ -128,6 +141,7 @@ const App = () => {
               }
             />
             <Route exact path="/candidates" element={<Candidate />} />
+            <Route exact path="/jobs" element={<Jobs />} />
             <Route 
               path="/candidate-detail/:id"
               element={<EditCandidate />}

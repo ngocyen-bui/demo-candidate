@@ -776,8 +776,7 @@ export default function Candidate() {
         {tagElem}
       </span>
     );
-  };
-
+  }; 
   const tagChild = convertFilter?.map(forMap);
   return (
     <Layout>
