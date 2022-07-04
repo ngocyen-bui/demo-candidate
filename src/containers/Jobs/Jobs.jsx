@@ -3,7 +3,7 @@ import { Button, Input, Layout, Space, Table, Tag } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect, useRef, useState } from "react"; 
 import { useQuery } from "react-query";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getValueFlag } from "../../features/candidate";
 import { getListClients } from "../../features/client";
 import { getExchangeCurrencies, getKeyJobs, getListJob } from "../../features/job";
@@ -11,32 +11,7 @@ import { getListUser } from "../../features/user";
 import { useAuth } from "../../hooks/useAuth";
 import { getMoneyStatus, getStatusJob } from "../../utils/job";
 
-const dataSource =  [
-    {
-      key: '1',
-      name: 'John Brown',
-      age: 32,
-      address: 'New York No. 1 Lake Park',
-    },
-    {
-      key: '2',
-      name: 'Joe Black',
-      age: 42,
-      address: 'London No. 1 Lake Park',
-    },
-    {
-      key: '3',
-      name: 'Jim Green',
-      age: 32,
-      address: 'Sidney No. 1 Lake Park',
-    },
-    {
-      key: '4',
-      name: 'Jim Red',
-      age: 32,
-      address: 'London No. 2 Lake Park',
-    },
-  ];
+ 
 
 
 
@@ -44,17 +19,28 @@ export default function Jobs() {
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
-
+    
+    const navigate = useNavigate();
+    const search = useLocation().search;
+    const pageUrl = new URLSearchParams(search).get("page");
+    const [page, setPage] = useState(
+      JSON.parse(pageUrl || JSON.parse(localStorage.getItem("filtersJob"))?.page || 1)
+    );
     const [filters, setFilters] = useState(() => {
         return JSON.parse(localStorage.getItem("filtersJob")) || {};
       }); 
     const { user: auth } = useAuth();
+    const { logout } = useAuth();
     const token = auth?.token;
     
     const { data: totalData, isFetching } = useQuery(
         ["listCandidate", filters, token],
         async () => await getListJob(filters, token), 
     );
+    if (totalData?.status === 401) { 
+      logout();
+      localStorage.removeItem("auth");
+    }  
     const { data: listKeyJob } = useQuery(
     ["getListKeyJob", token],
     async () => await getKeyJobs(token)
@@ -77,7 +63,7 @@ export default function Jobs() {
     ); 
 
     useEffect(() => {
-        localStorage.setItem("filtersJob", filters);
+        localStorage.setItem("filtersJob", JSON.stringify(filters));
     },[filters]); 
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
       confirm();
@@ -88,6 +74,12 @@ export default function Jobs() {
       clearFilters();
       setSearchText('');
     };
+    const handlerClickPagination = (e) => { 
+      filters.page = e;
+      localStorage.setItem("filtersJob", JSON.stringify(filters));
+      navigate("?page=" + e);
+      setPage(e);
+    }; 
     const getColumnSearchProps = (dataIndex) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
           <div
@@ -243,7 +235,7 @@ export default function Jobs() {
                             borderRadius: '4px',
                             textTransform: 'capitalize', 
                           }}
-                        >{text[0].label}</Tag>
+                        >{text[0]?.label}</Tag>
                     },
                     ...getColumnSearchProps(listKeyJob.data[4]),
                 },
@@ -270,16 +262,17 @@ export default function Jobs() {
                     title: 'Salary Range',
                     width: '180px',
                     key: listKeyJob.data[6],
-                    render: (text) => { 
-                        
+                    render: (text) => {   
                         if(!text.salary.from && !text.salary.to){
                             return <Tag color={'orange'} style={{textTransform: 'capitalize', fontWeight: 'bold'}}>Negotiation</Tag>
                         }
                         else{
+                            let from = (new Intl.NumberFormat('de-DE', { style: 'currency', currency: text.currency.name }).format(text.salary.from));
+                            let to = (new Intl.NumberFormat('de-DE', { style: 'currency', currency: text.currency.name }).format(text.salary.to));
                             const color = getMoneyStatus(text.currency.id); 
                             return <div style={{display: "flex",height: '22px'}}>
                                     <Tag color={color[0].color} style={{fontWeight: 'bold'}}>{text.currency.name}</Tag>
-                                    <p>{(Math.round(text.salary.from))+" - "+(Math.round(text.salary.to))}</p>
+                                    <p>{(from)+" - "+(to)}</p>
                             </div>
                         }
                     },
@@ -349,11 +342,11 @@ export default function Jobs() {
             loading={isFetching}
             scroll={{ x: "1340px" }}  
             pagination={{
-                current: filters.page,
+                current: page,
                 showSizeChanger: false,
                 showQuickJumper: true,
                 total: totalData?.count,
-                // onChange: (e) => handlerClickPagination(e),
+                onChange: (e) => handlerClickPagination(e),
             }}
         />;
         {/* <Table

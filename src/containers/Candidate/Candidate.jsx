@@ -262,11 +262,12 @@ export default function Candidate() {
     ["defaultProps", token],
     async () => await getDefaultProp(token)
   );
-  useEffect(() => {
-    if (totalData?.status === 401) {
+  if (totalData?.status === 401) {
       logout();
       localStorage.removeItem("auth");
-    }
+  }
+  useEffect(() => {
+    
 
     if (!isFetching && totalData) {
       setListData(totalData.data);
