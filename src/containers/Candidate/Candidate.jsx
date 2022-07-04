@@ -267,8 +267,6 @@ export default function Candidate() {
       localStorage.removeItem("auth");
   }
   useEffect(() => {
-    
-
     if (!isFetching && totalData) {
       setListData(totalData.data);
       setCount(totalData.count);

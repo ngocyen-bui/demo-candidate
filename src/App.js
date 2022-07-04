@@ -85,7 +85,6 @@ const App = () => {
     setCurrent(e.key);
 
   };
-  localStorage.setItem("filtersJob",JSON.stringify({page: 1, perPage: 10}));
   return (
        <>
        <Layout>

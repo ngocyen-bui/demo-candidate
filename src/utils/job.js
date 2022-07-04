@@ -35,7 +35,7 @@ const listMoney = [
     USD, VND, EUR, JPY
 ]
 
-const listStatus = [
+export const listStatus = [
     OPENING,DONE,PROCESS,PENDING,REPLACEMENT,CLOSED,CANCEL,LOST,EXPIRED,REOPENING
 ]
 
