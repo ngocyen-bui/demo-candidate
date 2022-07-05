@@ -279,6 +279,7 @@ export default function Candidate() {
  
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
     let temp = { ...filters };  
+    console.log(selectedKeys);
     setPage(1);
     navigate("?page=" + 1);
     confirm();
@@ -475,12 +476,12 @@ export default function Candidate() {
       }
       let data = {}
       if(type === 'input'){ 
-        data = { value: 
+        data = { defaultValue: 
           filters?.[dataIndex]
          };   
       }
       if(type === 'select'){
-        data = { value: 
+        data = { defaultValue: 
           filters[dataIndex]?.data?.label
         };  
       }
@@ -490,23 +491,24 @@ export default function Candidate() {
         };  
       }
       if(type === 'range'){
-        data.from = { value: 
+        data.from = { defaultValue: 
           filters[dataIndex]?.[dataIndex+'_from']
         };  
-        data.to = { value: 
+        data.to = { defaultValue: 
           filters[dataIndex]?.[dataIndex+'_to']
         };  
       }
       if(type === 'manyfieldsCity'){
-        data.country = { value: 
+        data.country = { defaultValue: 
           filters[dataIndex]?.country?.label
         };  
-        data.city = { value: 
+        data.city = { defaultValue: 
           filters[dataIndex]?.city?.label
         };  
       }
       return (
         <div
+          key ={filters}
           style={{
             padding: 8,
           }}
@@ -565,8 +567,7 @@ export default function Candidate() {
                 display: "block",
                 marginTop: 10,
               }}
-              {...data}
-              // defaultValue={filters[dataIndex]?.data?.label|| null}
+              {...data} 
               onSelect={(e, option) => setSelectedKeys(option ? [option] : [])}
               placeholder={dataIndex}
             >  
@@ -591,7 +592,7 @@ export default function Candidate() {
                 }} 
                 mode="multiple"
                 onSearch={(e) => setValueLanguage(e)}
-                onChange={(e, o) => setSelectedKeys(o ? [o] : [])}
+                onChange={(e, o) => setSelectedKeys(o ? [...selectedKeys, o] : [])}
                 allowClear
                 {...data}
                 // defaultValue={getLisValue(dataIndex)}
