@@ -3,7 +3,7 @@ import {
   SolutionOutlined, 
 } from "@ant-design/icons";
 import { Avatar, BackTop, Dropdown, Image, Layout, Menu } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "antd/dist/antd.min.css";
 import "./App.css";
 import Candidate from "./containers/Candidate/Candidate"; 
@@ -13,6 +13,8 @@ import AddCandidate from "./containers/AddCandidate/AddCandidate";
 import EditCandidate from "./containers/EditCandidate/EditCandidate";  
 import { useAuth } from "./hooks/useAuth"; 
 import Jobs from "./containers/Jobs/Jobs";
+import DetailJob from "./containers/EditJob/Job";
+import EditJob from "./containers/EditJob/Job";
 const { Header } = Layout;
 // Create a client
 
@@ -144,6 +146,10 @@ const App = () => {
             <Route 
               path="/candidate-detail/:id"
               element={<EditCandidate />}
+            />
+            <Route 
+              path="/job-detail/:id"
+              element={<EditJob />}
             />
             <Route exact path="/add-candidate" element={<AddCandidate />} />
             <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>

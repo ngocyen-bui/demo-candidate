@@ -8,14 +8,18 @@
 .ant-table-filter-column { 
   min-width: 120px; 
 }
+.header-detail-job__title,
 .label-add-candidate{
   padding-bottom: 20px;
-  margin-top: 30px;
-}
-.title-add-candidate{
+  margin-top: 30px; 
   color: #465f7b;
   font-weight: 600;
   font-size: 16px;
+}
+.header-detail-job__title{
+  margin-top: 10px; 
+  padding-inline: 24px;
+  padding-bottom: 0;
 }
 .ant-form-item {
   margin: 0;
@@ -23,3 +27,33 @@
 .wrapper-tag-filter::-webkit-scrollbar {
   display: none;
 } 
+.ant-card-bordered{
+  border: 1px solid #e8e8e8;
+}
+.ant-card{
+  -webkit-box-shadow: 1px 1px 5px #d9d9d9;
+  box-shadow: 1px 1px 5px #d9d9d9;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: rgba(0,0,0,.65);
+  font-size: 14px;
+  font-variant: tabular-nums;
+  line-height: 1.5;
+  list-style: none;
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+  position: relative;
+  background: #fff;
+  border-radius: 2px;
+  -webkit-transition: all .3s;
+  -o-transition: all .3s;
+  transition: all .3s;
+}
+
+.job-infomation__title-item{
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+}
+.job-infomation__content-item{ 
+}

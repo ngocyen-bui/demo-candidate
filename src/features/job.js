@@ -3,29 +3,8 @@ import { HeaderFetch } from "../utils/header";
 
 const DOMAIN = 'https://lubrytics.com:8443';
  
-export const getListJob = (listFilter,header) => { 
-    let str = '';   
-    // console.log(listFilter); 
-    for (const f in listFilter) {  
-        if(f === 'location'){
-          let city = ''; 
-          if(Boolean(listFilter[f].city.key)) {
-            city = '&city='+listFilter[f]?.city?.key
-          }
-          str +=`&location=${JSON.stringify(listFilter[f])}&country=${listFilter[f].country.key}${city}`
-        }
-        else if(f === 'page'|| f=== 'perPage'){
-            continue;
-        }
-        else if(Array.isArray(listFilter[f])){
-            let arr = listFilter[f]?.map(e => e?.id);
-            str +='&'+f+'='+arr.toString();
-        } else{
-            str +='&'+f+'='+listFilter[f];
-
-        }
-    }
-    return axios.get(DOMAIN+'/nadh-api-crm/api/jobs?page='+(listFilter['page']|| 1)+'&perPage=10'+str, 
+export const getListJob = (stringFilter,header) => {   
+    return axios.get(DOMAIN+'/nadh-api-crm/api/jobs'+stringFilter, 
  {
      headers: HeaderFetch(header), 
 }).then((res) => res.data).catch((err) => err.response)} 
@@ -42,3 +21,18 @@ export const getListJob = (listFilter,header) => {
  {
      headers: HeaderFetch(header), 
  }).then((res) => res.data).catch((err) => err.response)}  
+
+
+
+ //get jobbyid  
+ export const getJobById = (id,header) => {   
+    return axios.get(DOMAIN+'/nadh-api-crm/api/jobs/'+id, 
+ {
+     headers: HeaderFetch(header), 
+ }).then((res) => res.data).catch((err) => err.response)}  
+
+ //update job 
+ export const updateJob =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
+    headers:  HeaderFetch(header), 
+})
+.then((res) => res).catch((err) => err.response)

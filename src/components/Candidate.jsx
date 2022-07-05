@@ -1160,7 +1160,7 @@ export const DetailCandidate = memo((prop) => {
         </Form>
       </Content>
     );
-  } 
+  } else return; 
   
  
 })

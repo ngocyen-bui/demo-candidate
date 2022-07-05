@@ -10,11 +10,7 @@ import { getExchangeCurrencies, getKeyJobs, getListJob } from "../../features/jo
 import { getListUser } from "../../features/user";
 import { useAuth } from "../../hooks/useAuth";
 import { getMoneyStatus, getStatusJob, listStatus } from "../../utils/job";
-
- 
-
-
-
+  
 export default function Jobs() { 
     const searchInput = useRef(null);
     
@@ -24,12 +20,12 @@ export default function Jobs() {
     const [page, setPage] = useState(
       JSON.parse(pageUrl || JSON.parse(localStorage.getItem("filtersJob"))?.page || 1)
     );
+    const [stringFilter, setStringFilter] = useState('')
     const [country, setCountry] = useState(); 
     const [rangeDefaults, setRangeDefaults] = useState({
       from: null,
       to: null
-    }) 
-    const [convertFilter, setConvertFilter] = useState([]); 
+    })   
     const [checkErr,setCheckErr] = useState()
     const [filters, setFilters] = useState(JSON.parse(localStorage.getItem("filtersJob")) || {}); 
 
@@ -37,12 +33,39 @@ export default function Jobs() {
     const { logout } = useAuth();
     const token = auth?.token; 
 
-    const { data: totalData, isFetching } = useQuery(
-        ["listCandidate", filters, token],
-        async () => await getListJob(filters, token), 
+    const { data: totalDataJobs, isFetching } = useQuery(
+        ["listJobs", stringFilter, token],
+        async () => await getListJob(stringFilter, token), 
     );
-
-    if (totalData?.status === 401) { 
+    const convertStringFilter = (filters)=>{
+      const listFilter = filters;
+      let str = '?page='+(listFilter['page']|| 1)+'&perPage='+(listFilter['perPage']|| 10);
+      for (const f in listFilter) {  
+        if(f === 'location'){
+          let city = ''; 
+          if(Boolean(listFilter[f].city.key)) {
+            city = '&city='+listFilter[f]?.city?.key
+          }
+          str +=`&country=${listFilter[f].country.key}${city}`
+        } 
+        else if(f === 'page'|| f=== 'perPage'){
+          continue;
+        } 
+        else if (f === 'salary'){
+            console.log(listFilter[f]);
+            str+= `&currency=${listFilter[f]?.rule?.key}&salary_from=${listFilter[f]?.from}&salary_to=${listFilter[f]?.to}`
+        } 
+        else if(Array.isArray(listFilter[f])){
+            let arr = listFilter[f]?.map(e => e?.id);
+            str +='&'+f+'='+arr.toString();
+        } else{
+            str +='&'+f+'='+listFilter[f];
+  
+        }
+      }
+      return str;
+    }
+    if (totalDataJobs?.status === 401) { 
       logout();
       localStorage.removeItem("auth");
     }   
@@ -55,7 +78,7 @@ export default function Jobs() {
         async () => await getExchangeCurrencies(token), 
     );
     const { data: getValueDefault } = useQuery(
-        ["listValueDefault", token],
+        ["listVlDefault", token],
         async () => await getValueFlag(token), 
     );
     const { data: listUser } = useQuery(
@@ -72,15 +95,16 @@ export default function Jobs() {
       { enabled: Boolean(country) }
     );   
     useEffect(() => { 
-        localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));  
-    },[filters,page]);  
+        localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));   
+        setStringFilter(convertStringFilter(filters));
+        navigate(convertStringFilter(filters));
+    },[filters,page,navigate]);  
 
     const handleSearchCountry = (e,o)=>{ 
       setCountry(o.data.key)
     }
     const handleSearch = (selectedKeys, confirm, dataIndex) => {    
-      let temp = [];  
-      console.log(selectedKeys);
+      let temp = [];   
       if(dataIndex === 'location'){
         let city ={}
         if(selectedKeys?.city?.data){
@@ -98,7 +122,9 @@ export default function Jobs() {
         }
       } 
       else if(dataIndex === 'salary' ){
-        temp = [{...selectedKeys, rule: (selectedKeys.rule || {key: 2, label: 'VND'})}]
+        temp = {  from: selectedKeys.from || filters[dataIndex]?.from, 
+                  to: selectedKeys.to || filters[dataIndex]?.to,
+                  rule: (selectedKeys.rule || {key: 2, label: 'VND'})}
       }
       else if(!selectedKeys[0] || selectedKeys[0]?.length === 0) {
         let fake = { ...filters};
@@ -106,10 +132,9 @@ export default function Jobs() {
         confirm();
         return setFilters(fake) 
       }
-      else if(Array.isArray(selectedKeys[0])){ 
-        console.log(selectedKeys[0]);
+      else if(Array.isArray(selectedKeys[0])){  
           temp = selectedKeys[0].map((e)=>{
-            return {id:e?.data?.id, name: e?.data?.name || e?.data?.full_name || e?.data?.label , }
+            return {id:e?.data?.id, key: e?.data?.key||e?.data?.id, name: e?.data?.name || e?.data?.full_name || e?.data?.label , }
           }) 
         }
       else{
@@ -118,11 +143,17 @@ export default function Jobs() {
       setFilters({
         ...filters,
         [dataIndex]: temp
-      }) 
+      })  
+
+      setStringFilter(convertStringFilter(filters)); 
       confirm();   
-    }; 
-    const handleReset = (clearFilters) => {
+    };   
+    const handleReset = (clearFilters,confirm,dataIndex) => {
+      let temp = { ...filters }; 
+      delete temp[dataIndex]; 
+      setFilters(temp);
       clearFilters(); 
+      confirm()
     };
     const handlerClickPagination = (e) => { 
       filters.page = e;
@@ -146,9 +177,16 @@ export default function Jobs() {
             dataMultiSelect = listUser?.data;
           } 
           const getLisValue = (e)=>{  
-              return filters[e]?.map(e =>
-                  e?.name
-             )  
+              if(e === 'status'){
+                return filters[e]?.map(e =>
+                  e?.id)  
+              }else  if(e === 'client'){
+                return filters[e]?.map(e =>
+                  e?.id)  
+              }else  if(e === 'search_consultants'){
+                return filters[e]?.map(e =>
+                  e?.id)  
+              }
           }
           
           let data = {}
@@ -168,21 +206,21 @@ export default function Jobs() {
             };  
           }
           else if(type === 'multiselect'){  
-            data = { value: 
+            data = { defaultValue: 
               getLisValue(dataIndex), 
               key: getLisValue(dataIndex)
             };  
           }  
-          else if(type === 'range'){ 
+          else if(type === 'range'){  
            if(filters[dataIndex]){
-            data.from = { defaultValue: 
-              filters[dataIndex][0]?.from
+            data.from = { value: 
+              filters[dataIndex]?.from
             };  
-            data.to = { defaultValue: 
-              filters[dataIndex][0]?.to
+            data.to = { value: 
+              filters[dataIndex]?.to
             }; 
             data.rule = { defaultValue: 
-              filters[dataIndex][0]?.rule?.label.toString()
+              filters[dataIndex]?.rule?.key
             };   
            } 
           }  
@@ -193,6 +231,15 @@ export default function Jobs() {
               }}
             > 
               <Space>
+              <Button
+                  onClick={() => clearFilters && handleReset(clearFilters, confirm,dataIndex)}
+                  size="small"
+                  style={{
+                    width: '95px',
+                  }}
+                >
+                  Reset
+                </Button> 
                 <Button
                   type="primary"
                   onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -204,15 +251,7 @@ export default function Jobs() {
                 >
                   Search
                 </Button>
-                <Button
-                  onClick={() => clearFilters && handleReset(clearFilters)}
-                  size="small"
-                  style={{
-                    width: '95px',
-                  }}
-                >
-                  Reset
-                </Button> 
+               
               </Space>
               {type === 'multiselect'?
               <>
@@ -224,13 +263,15 @@ export default function Jobs() {
                   }} 
                   {...data}
                   mode="multiple" 
-                  onChange={(e, o) => setSelectedKeys(o ? [o] : [])}
+                  onSearch={e => console.log(e)}
+                  onChange={(e, o) =>{ setSelectedKeys(o ? [o] : [])}}
                   allowClear  
+                  filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
                   placeholder={`Please select ${dataIndex}`}
                 >
                   {dataMultiSelect?.map((e, i) => { 
                     return (
-                      <Select.Option key={i} value={e.key} data={e} style={{textTransform: 'capitalize'}}>
+                      <Select.Option key={i} value={e.id} data={e} style={{textTransform: 'capitalize'}}>
                         {e.label || e.name || e.full_name}
                       </Select.Option>
                     );
@@ -264,9 +305,7 @@ export default function Jobs() {
               onSelect={(e, option) => {
                 handleSearchCountry(e,option)
                 setSelectedKeys(option ? {...selectedKeys,country: option} : {})
-              }} 
-              // {...data.country}
-              // defaultValue={filters[dataIndex]?.country?.label}
+              }}  
               placeholder="Country"
             >
               {getValueDefault?.data?.map((e, i) => {
@@ -311,11 +350,7 @@ export default function Jobs() {
                     marginRight: "10px",
                   }}
                   max={rangeDefaults.to}
-                  min={0}
-                  // onBlur={(e) => setSelectedKeys(e ? {...selectedKeys,from: e.target.value} : {})}
-                  onPressEnter={() =>
-                    handleSearch(selectedKeys, confirm, dataIndex)
-                  } 
+                  min={0} 
                   {...data.from}
                   onChange={(e) => {
                      setRangeDefaults({...rangeDefaults, from: e});
@@ -338,23 +373,21 @@ export default function Jobs() {
                     width: 150,
                     textAlign: "center",
                   }}
-                  min={rangeDefaults.from} 
-                  // onBlur={(e) =>
-                  //   setSelectedKeys(e ? {...selectedKeys,to: e.target.value} : {})
-                  // }
+                  min={rangeDefaults.from}  
                   onChange={(e) => {
                     setSelectedKeys(e ? {...selectedKeys,to: e} : selectedKeys) 
                     setRangeDefaults({...rangeDefaults, to: e});
                     setCheckErr(true);
                   }} 
                   {...data.to} 
-                  onPressEnter={() =>
-                    handleSearch(selectedKeys, confirm, dataIndex)
+                  onPressEnter={(e) =>
+                  {  
+                    handleSearch(selectedKeys, confirm, dataIndex)}
                   }
                   placeholder="To"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {rangeDefaults.from > rangeDefaults.to && checkErr
+                  {rangeDefaults.from >= rangeDefaults.to && checkErr
                     ? "Must be higher than from's value"
                     : null}
                 </div>
@@ -392,6 +425,9 @@ export default function Jobs() {
         // },
          
     });
+    const handlerClickRow = (data) => {
+      navigate("/job-detail/" + data);
+    };
     const formatColumn = (listKeyJob) => {
       const type = {
         input: 'input',
@@ -409,7 +445,7 @@ export default function Jobs() {
                     width: '150px',
                     render: (id, record) => (
                         <p
-                        //   onClick={() => handlerClickRow(record.candidate_id)}
+                          onClick={() => handlerClickRow(record.job_id)}
                           style={{
                             cursor: "pointer",
                             color: "rgb(24, 144, 255)",
@@ -429,7 +465,7 @@ export default function Jobs() {
                     width: '160px',
                     render: (name, record) => (
                         <p
-                        //   onClick={() => handlerClickRow(record.candidate_id)}
+                        onClick={() => handlerClickRow(record.job_id)}
                           style={{
                             cursor: "pointer",
                             color: "rgb(24, 144, 255)",
@@ -526,14 +562,14 @@ export default function Jobs() {
                 },  
                 {
                     title: "Action",
-                    dataIndex: listKeyJob.data[7],
+                    dataIndex: listKeyJob.data[0],
                     key: listKeyJob.data[7],
                     fixed: "right",
                     width: "150px",
                     render: (record) => {
                       return (
                         <EyeOutlined
-                        //   onClick={() => handlerClickRow(record)}
+                          onClick={() => handlerClickRow(record)}
                           style={{ cursor: "pointer" }}
                         />
                       );
@@ -567,23 +603,21 @@ export default function Jobs() {
       }
       else if(tag[0] === 'search_consultants'){
         name =  'Search Consultants:'
-      } 
+      }   
 
-
+      
       if(tag[0] === 'page' || tag[0] === 'perPage'){
         return ;
       }
       else if (tag[0]=== 'salary'){
         name = 'Salary:'
-        label = `from ${tag[1][0]?.from} to ${tag[1][0]?.to} ${tag[1][0]?.rule?.label}`
+        label = `from ${tag[1]?.from} to ${tag[1]?.to} ${tag[1]?.rule?.label}`
       }
       else if(Array.isArray(tag[1])){  
         label =` ${(tag[1]?.map(e => e.name)).toString()}`;
       } 
-      else if(tag[0]=== 'location'){
-        if(tag[0] === 'location'){
-          name =  'City:'
-        }
+      else if(tag[0]=== 'location'){ 
+        name =  'City:' 
         label = `${tag[1]?.country?.label}  ${tag[1]?.city?.label|| ''}`;
       } 
       else { 
@@ -631,18 +665,18 @@ export default function Jobs() {
           <div
             style={{ color: "#465f7b", fontWeight: 600, fontSize: "16px" }}
           >
-            Jobs List ({totalData?.count||0})
+            Jobs List ({totalDataJobs?.count||0})
           </div>
           <div style={{ textAlign: "end" }}>
             <Button style={{ marginRight: 10 }} onClick={clearAllFilter} >
               Clear all filters
             </Button>
-            {/* <Link to="/add-job">
+            <Link to="/add-job">
               <Button type="primary">
                 <PlusOutlined />
                 Create Job
               </Button>
-            </Link> */}
+            </Link>
           </div>
         </div> 
         <div
@@ -655,14 +689,14 @@ export default function Jobs() {
             rowKey={"id"}
             style={{ marginTop: 20 }}
             columns={formatColumn(listKeyJob)} 
-            dataSource={totalData?.data} 
+            dataSource={totalDataJobs?.data} 
             loading={isFetching}
             scroll={{ x: "1370px" }}  
             pagination={{
                 current: page,
                 showSizeChanger: false,
                 showQuickJumper: true,
-                total: totalData?.count,
+                total: totalDataJobs?.count,
                 onChange: (e) => handlerClickPagination(e),
             }}
         />; 

@@ -24,15 +24,10 @@ import { useAuth } from "../../hooks/useAuth";
 const formatColumn = (funcSearch, key, listProps, navigate, listLanguage) => {
   let language = listLanguage?.data;
   let degree;
-  if (listProps) {
-    // let a = Object.values(listProps).find((obj) => {
-    //   return obj.name === "language";
-    // });
+  if (listProps) { 
     let b = Object.values(listProps).find((obj) => {
       return obj.name === "degree";
-    });
-
-    //  language = a?.values;
+    }); 
     degree = b?.values;
   }
   const handlerClickRow = (data) => {
@@ -115,7 +110,7 @@ const formatColumn = (funcSearch, key, listProps, navigate, listLanguage) => {
         dataIndex: key[4],
         key: key[4],
         width: "150px",
-        render: (text) => <p>{text.label}</p>,
+        render: (text) => <p>{text?.label}</p>,
         ...funcSearch(key[4], "select", degree),
       },
       {
@@ -217,10 +212,8 @@ export default function Candidate() {
   const pageUrl = new URLSearchParams(search).get("page");
 
   const [page, setPage] = useState(
-    JSON.parse(pageUrl || localStorage.getItem("pagination") || 1)
-  );
-  const [count, setCount] = useState(0);
-  const [listData, setListData] = useState([]);
+    JSON.parse(pageUrl || JSON.parse(localStorage.getItem("filtersJob"))?.page || 1)
+  ); 
   const [valueLanguage, setValueLanguage] = useState(null);
   const [filters, setFilters] = useState(() => {
     return JSON.parse(localStorage.getItem("filtersCDD")) || {};
@@ -230,15 +223,15 @@ export default function Candidate() {
   const [country, setCountry] = useState(); 
   //search results
   const [dob, setDob] = useState({});
+  const [stringFilter, setStringFilter] = useState('')
   const [dobto, setDobTo] = useState({});
-  const [checkChangeDob, setCheckChangeDob] = useState(false);
-  const [convertFilter, setConvertFilter] = useState([]); 
+  const [checkChangeDob, setCheckChangeDob] = useState(false); 
   const { user: auth } = useAuth();
   const token = auth?.token;
 
   const { data: totalData, isFetching } = useQuery(
-    ["listCandidate", page, filters, token],
-    async () => await getListCandidate(page, filters, token),
+    ["listCandidate", stringFilter, token],
+    async () => await getListCandidate(stringFilter, token),
     { keepPreviousData: true, staleTime: 5000 }
   );
   //Get data default key page
@@ -250,7 +243,42 @@ export default function Candidate() {
     ["getLanguageByValue", valueLanguage, token],
     async () => await getLanguage(valueLanguage, token)
   );
-
+  const convertStringFilter = (filters)=>{ 
+    const listFilter = filters;
+    let str = '?page='+(listFilter['page']|| 1)+'&perPage='+(listFilter['perPage']|| 10);
+    for (const f in listFilter) {    
+      if(f === 'yob' || f === 'industry_years' || f === 'management_years'){ 
+        let arr = Object.entries(listFilter[f]);  
+        str+='&'+arr[0][0]+'='+arr[0][1]+'&'+arr[1][0]+'='+arr[1][1]
+      }  
+      else if(f === 'addresses'){
+        let city = ''; 
+        if(Boolean(listFilter[f].city.key)) {
+          city = '&city='+listFilter[f]?.city?.key
+        }
+        str +=`&country=${listFilter[f].country.key}${city}`
+      }
+      else if(Array.isArray(listFilter[f])){
+        let t = ''
+        let arr = listFilter[f].map((e)=>{
+          return e.data.key
+        })  
+        t+= f + '='+ arr.toString()
+        str += '&'+ t
+      }
+      else if(typeof(listFilter[f]) === 'object'){
+        if(listFilter[f].key){ 
+          str+= '&'+f+'='+(listFilter[f].data.key);
+        }else{
+          // str += '&'+f
+        }
+      }
+     
+      else if(typeof(listFilter[f]) === 'string')  str+= '&'+f+'='+listFilter[f]; 
+    }  
+    return str;
+  }
+ 
   const { data: listCountries } = useQuery(["repoData",token], () => getValueFlag(token));
 
   const { data: dataFromCountry } = useQuery(
@@ -266,11 +294,7 @@ export default function Candidate() {
       logout();
       localStorage.removeItem("auth");
   }
-  useEffect(() => {
-    if (!isFetching && totalData) {
-      setListData(totalData.data);
-      setCount(totalData.count);
-    }
+  useEffect(() => { 
   }, [totalData, isFetching, logout]);
 
   const clearAllFilter = () => {
@@ -278,8 +302,7 @@ export default function Candidate() {
   };
  
   const handleSearch = (selectedKeys, confirm, dataIndex) => { 
-    let temp = { ...filters };  
-    console.log(selectedKeys);
+    let temp = { ...filters };   
     setPage(1);
     navigate("?page=" + 1);
     confirm();
@@ -324,117 +347,10 @@ export default function Candidate() {
     
   }; 
   useEffect(() => { 
-    localStorage.setItem("filtersCDD", JSON.stringify(filters));
-    let temp = Object.entries(filters);  
-    let arr = temp.map((e) => {
-      // console.log(e);
-      if (e[0] === "full_name") {
-        return {
-          filter: "full_name",
-          name: "Name",
-          value: e[1],
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "priority_status") {
-        return {
-          filter: "priority_status",
-          name: "Primary Status",
-          value: e[1]?.data?.label,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "candidate_id") {
-        return {
-          filter: "candidate_id",
-          name: "ID",
-          value: e[1],
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "language") {
-        let temp = "";
-        if (e[1].length > 1) {
-          temp = e[1]?.map((e) => e.children)?.toString();
-        } else {
-          temp = e[1][0]?.data?.label;
-        }
-        return {
-          filter: "language",
-          name: "Languages",
-          value: temp,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "highest_education") {
-        return {
-          filter: "highest_education",
-          name: "Highest degree",
-          value: e[1].children,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "flow_status") {
-        return {
-          filter: "flow_status",
-          name: "Activity",
-          value: e[1]?.data?.label,
-          prevValue: e[1],
-        };
-      } 
-      if (e[0] === "addresses") {
-        return {
-          filter: "addresses",
-          name: "Location",
-          value: e[1].country.label + ( e[1].city.label?" - "+e[1].city.label:''),
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "yob") {
-        return {
-          filter: "yob",
-          name: "YOB",
-          value: "from " + e[1].yob_from + " to " + e[1].yob_to,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "industry_years") {
-        return {
-          filter: "industry_years",
-          name: "Year of services",
-          value: "from " + e[1].industry_years_from + " to " + e[1].industry_years_to,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "management_years") {
-        return {
-          filter: "management_years",
-          name: "Management",
-          value: "from " + e[1].management_years_from + " to " + e[1].management_years_to,
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "current_position_text") {
-        return {
-          filter: "current_position_text",
-          name: "Recent positions",
-          value: e[1],
-          prevValue: e[1],
-        };
-      }
-      if (e[0] === "current_company_text") {
-        return {
-          filter: "current_company_text",
-          name: "Recent companies",
-          value: e[1],
-          prevValue: e[1],
-        };
-      }
-
-      return {};
-    }); 
-    setConvertFilter(arr);
-  }, [filters]);
+    localStorage.setItem("filtersCDD", JSON.stringify({...filters,page:page,perPage:10})); 
+    setStringFilter(convertStringFilter(filters));
+    navigate(convertStringFilter(filters));
+  }, [filters,page,navigate]);
 
   const handleReset = (clearFilters, confirm, dataIndex) => { 
     clearFilters();
@@ -452,7 +368,8 @@ export default function Candidate() {
     setCountry(o.data.key)
   }
   const handleCloseTag = (e) => { 
-    let key = e.filter; 
+
+    let key = e; 
     let temp = { ...filters }; 
     delete temp[key]; 
     setFilters(temp);
@@ -467,10 +384,11 @@ export default function Candidate() {
       confirm, 
       clearFilters,
     }) => {
-      const getLisValue = (e)=>{
+ 
+      const getLisValue = (e)=>{ 
         if(e === 'language'){
           return  filters[e]?.map(e =>
-          e?.data?.label
+            e?.data?.key
          ) 
         }
       }
@@ -486,7 +404,7 @@ export default function Candidate() {
         };  
       }
       if(type === 'multiselect'){
-        data = { value: 
+        data = { defaultValue: 
           getLisValue(dataIndex)
         };  
       }
@@ -591,11 +509,12 @@ export default function Candidate() {
                   marginTop: 10,
                 }} 
                 mode="multiple"
-                onSearch={(e) => setValueLanguage(e)}
-                onChange={(e, o) => setSelectedKeys(o ? [...selectedKeys, o] : [])}
+                onSearch={(e) => setValueLanguage(e)} 
+                onChange={(e, o) => {setSelectedKeys(o ? [o] : [])}}
+                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                // onDeselect={(e, o) => {setSelectedKeys(selectedKeys)}}
                 allowClear
-                {...data}
-                // defaultValue={getLisValue(dataIndex)}
+                {...data} 
                 placeholder="Please select"
               >
                 {listData?.map((e, i) => { 
@@ -751,24 +670,70 @@ export default function Candidate() {
   ); 
   const handlerClickPagination = (e) => {
     localStorage.setItem("pagination", e);
-    navigate("?page=" + e);
+    setFilters({...filters, page: e})
     setPage(e);
-  }; 
-  const forMap = (tag) => {  
+  };  
+  const forMap = (tag) => {    
+    let label = '';
+    let name = '';
+    if(tag[0] === 'page' || tag[0] === 'perPage') {
+      return;
+    }else if( tag[0] === 'priority_status'){
+      name='Priority status:';
+      label = tag[1]?.data?.name
+    }else if( tag[0] === 'flow_status'){ 
+      name='Activity:';
+      label = tag[1]?.data?.label
+    }else if( tag[0] === 'highest_education'){ 
+      name='Highest degree:';
+      label = tag[1]?.data?.label
+    }else if( tag[0] === 'industry_years'){ 
+      name='Industry:';
+      label = `from ${tag[1].industry_years_from} to ${tag[1].industry_years_to}`
+    }else if( tag[0] === 'full_name'){
+      name = 'Name:';
+      label = tag[1]
+    }else if( tag[0] === 'candidate_id'){
+      name = 'ID:';
+      label = tag[1]
+    }else if( tag[0] === 'language'){
+      name = 'Language:';
+      label =` ${(tag[1]?.map(e => e.data.label)).toString()}`;
+    }else if( tag[0] === 'current_company_text'){
+      name = 'Recent companies:';
+      label = tag[1];
+    }else if( tag[0] === 'current_position_text'){
+      name = 'Recent positions:';
+      label = tag[1];
+    }else if( tag[0] === 'addresses'){
+      name = 'City:';
+      let city = ''
+      if(tag[1]?.city.label){
+        city = ` / ${tag[1]?.city?.label}`
+      }
+      label = `${tag[1]?.country?.label} ${city}`;
+    }else if( tag[0] === 'yob'){
+      name = 'YOB:';
+      label = `from ${tag[1].yob_from} to ${tag[1].yob_to}`
+    }else if( tag[0] === 'management_years'){
+      name = 'Management:';
+      label = `from ${tag[1].management_years_from} to ${tag[1].management_years_to}`
+    }
+
     const tagElem = (
       <Tag
         closable
         onClose={(e) => {
-          e.preventDefault();
-          handleCloseTag(tag);
+          // e.preventDefault();
+          handleCloseTag(tag[0]);
         }}
       >
-        {tag.name}{':'} {tag.value}
+        {name} {label}
       </Tag>
     );
     return (
       <span
-        key={tag.filter}
+      key={name}
         style={{
           display: 'inline-block',
         }}
@@ -777,7 +742,9 @@ export default function Candidate() {
       </span>
     );
   }; 
-  const tagChild = convertFilter?.map(forMap);
+  let temp = Object.entries(filters);  
+ 
+  const tagChild = temp?.map(forMap);
   return (
     <Layout>
       <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
@@ -794,7 +761,7 @@ export default function Candidate() {
             <div
               style={{ color: "#465f7b", fontWeight: 600, fontSize: "16px" }}
             >
-              Candidates List ({count})
+              Candidates List ({totalData?.count || 0})
             </div>
             <div style={{ textAlign: "end" }}>
               <Button style={{ marginRight: 10 }} onClick={clearAllFilter}>
@@ -819,13 +786,13 @@ export default function Candidate() {
             loading={isFetching}
             style={{ marginTop: 20 }}
             columns={columns}
-            dataSource={listData}
+            dataSource={totalData?.data}
             scroll={{ x: "1800px" }}  
             pagination={{
               current: page,
               showSizeChanger: false,
               showQuickJumper: true,
-              total: count,
+              total: totalData?.count,
               onChange: (e) => handlerClickPagination(e),
             }}
           />
