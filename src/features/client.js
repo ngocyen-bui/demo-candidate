@@ -7,3 +7,15 @@ export const getListClients = (header) => {
  {
      headers: HeaderFetch(header), 
  }).then((res) => res.data).catch((err) => err.response)}  
+
+
+
+ //get all clients 
+ //https://lubrytics.com:8443/nadh-api-crm/api/clients?page=1&getAll=true
+
+  
+export const getAllClients = (header) => {   
+    return axios.get(DOMAIN+'/nadh-api-crm/api/clients?page=1&getAll=true', 
+ {
+     headers: HeaderFetch(header), 
+ }).then((res) => res.data)}  

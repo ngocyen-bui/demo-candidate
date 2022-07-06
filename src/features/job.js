@@ -32,7 +32,28 @@ export const getListJob = (stringFilter,header) => {
  }).then((res) => res.data).catch((err) => err.response)}  
 
  //update job 
- export const updateJob =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidates/'+ id, obj,{
+ export const updateJob =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/jobs/'+ id, obj,{
     headers:  HeaderFetch(header), 
 })
 .then((res) => res).catch((err) => err.response)
+ 
+//get department 
+export const getDepartment = (key,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=department&value=${key}`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+
+//update job  
+
+export const updateJobs = (id,obj,header) => {return axios.put( DOMAIN+`/nadh-api-crm/api/jobs/${id}`,obj,
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+
+//get contact persion  
+export const getContactPerson = (id,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/contact_persons?client=${id}`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 

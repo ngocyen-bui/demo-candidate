@@ -12,8 +12,7 @@ import Login from "./containers/Login/Login";
 import AddCandidate from "./containers/AddCandidate/AddCandidate";
 import EditCandidate from "./containers/EditCandidate/EditCandidate";  
 import { useAuth } from "./hooks/useAuth"; 
-import Jobs from "./containers/Jobs/Jobs";
-import DetailJob from "./containers/EditJob/Job";
+import Jobs from "./containers/Jobs/Jobs"; 
 import EditJob from "./containers/EditJob/Job";
 const { Header } = Layout;
 // Create a client
@@ -61,7 +60,7 @@ const App = () => {
   const { user: auth,logout } = useAuth();  
   
   const [current, setCurrent] = useState(()=>{
-    if(window.location.pathname === '/jobs'){
+    if(window.location.pathname.includes('jobs')||window.location.pathname.includes('job-detail')){
       return '3'
     }
     return '2'

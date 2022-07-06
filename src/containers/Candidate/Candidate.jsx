@@ -511,7 +511,7 @@ export default function Candidate() {
                 mode="multiple"
                 onSearch={(e) => setValueLanguage(e)} 
                 onChange={(e, o) => {setSelectedKeys(o ? [o] : [])}}
-                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                filterOption={false}
                 // onDeselect={(e, o) => {setSelectedKeys(selectedKeys)}}
                 allowClear
                 {...data} 

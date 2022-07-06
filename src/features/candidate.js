@@ -26,7 +26,7 @@ export const getListCandidate = (stringFilter,header) => {
  {
      headers:  HeaderFetch(header), 
  }).then((res) => res.data)} 
- export const getPosition = (header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=position`, 
+ export const getPosition = (key,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/property_values?property_name=position&value=${key}`, 
  {
      headers:  HeaderFetch(header), 
  }).then((res) => res.data)} 

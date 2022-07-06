@@ -2,8 +2,7 @@ import { Breadcrumb, Spin } from "antd";
 import Layout from "antd/lib/layout/layout";
 import { Link, useParams } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
-import { useSelector } from "react-redux"; 
-import { useAuth } from "../../hooks/useAuth";
+import { useSelector } from "react-redux";  
 import DetailJob from "../../components/Job";
 
 export default function EditJob(props) {

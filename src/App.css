@@ -56,4 +56,11 @@
   color: rgba(0, 0, 0, 0.8);
 }
 .job-infomation__content-item{ 
+  color: rgba(33, 33, 33, 0.8);
+  font-weight: 600;
+}
+.job-infomation__content-item--disabled{
+  cursor: not-allowed;
+  color: rgba(0, 0, 0, 0.4);
+
 }
