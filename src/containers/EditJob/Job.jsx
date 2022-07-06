@@ -2,22 +2,15 @@ import { Breadcrumb, Spin } from "antd";
 import Layout from "antd/lib/layout/layout";
 import { Link, useParams } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
-import { useSelector } from "react-redux";
-import { useQuery } from "react-query";
-import { getJobById } from "../../features/job";
+import { useSelector } from "react-redux"; 
 import { useAuth } from "../../hooks/useAuth";
 import DetailJob from "../../components/Job";
 
 export default function EditJob(props) {
-  const params = useParams();
-  const { user: auth } = useAuth();
-  const token = auth?.token;
+  const params = useParams(); 
 
   const { loading } = useSelector((state) => state.candidate);
-  const { data: listCountries } = useQuery(
-    ["jobdetail", params?.id, token],
-    () => getJobById(params?.id, token)
-  );
+
   if (loading === "PENDING") {
     return (
       <Spin
@@ -37,7 +30,7 @@ export default function EditJob(props) {
             </Breadcrumb.Item>
             <Breadcrumb.Item href="">Detail Job</Breadcrumb.Item>
           </Breadcrumb>
-          <DetailJob></DetailJob>
+          <DetailJob params={params}></DetailJob>
         </Layout>
       </Layout>
     );

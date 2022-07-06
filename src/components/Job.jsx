@@ -1,8 +1,20 @@
 import { Button, Checkbox, Col, Form, Input, Layout, Row } from "antd";
 import { Content } from "antd/lib/layout/layout";
+import { useQuery } from "react-query";
+import { getJobById } from "../features/job";
+import { useAuth } from "../hooks/useAuth";
 
 
-export default function DetailJob (){
+export default function DetailJob (props){
+    const params = props.params;
+    const { user: auth } = useAuth();
+    const token = auth?.token;
+    const { data: listInfoJob, isFetching } = useQuery(
+        ["jobdetail", params?.id, token],
+        () => getJobById(params?.id, token)
+      ); 
+    if(isFetching) return ;
+
     return <Content
     className="site-layout-background"
     style={{
@@ -32,18 +44,20 @@ export default function DetailJob (){
                         <Col className="job-infomation__title-item" span={8}>
                            Job ID
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.job_id}</div> 
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
                            Job Title
                         </Col>
                         <Col className="job-infomation__content-item" span={16}>
-                            <div style={{lineHeight: '35px'}}> Master Chef</div>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div> 
 
                             {/* <Form.Item name=''>
                                 <Input/>
@@ -54,90 +68,106 @@ export default function DetailJob (){
                         <Col className="job-infomation__title-item" span={8}>
                         Department
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.department?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Quantity
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.quantity}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Job Type
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Experience Level
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.experience_level}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Created By
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.creator?.full_name}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Created On
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{Date(listInfoJob?.createdAt)}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Last Updated
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.updatedAt}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                 </Col>
-                <Col span={12}>
+                <Col span={12} style={{paddingLeft: '24px'}}>
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                           Job ID
+                        Job Status
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.status}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                           Job Title
+                        Open Date
                         </Col>
                         <Col className="job-infomation__content-item" span={16}>
-                            <div style={{lineHeight: '35px'}}> Master Chef</div>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.target_date}</div>
 
                             {/* <Form.Item name=''>
                                 <Input/>
@@ -146,73 +176,87 @@ export default function DetailJob (){
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Expire Date
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.end_date}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Extend Date
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.extend_date || '-'}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Location
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{(listInfoJob?.location?.city?listInfoJob?.location?.city?.label+", ":'')+ listInfoJob?.location?.country?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Client's Name
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.client?.name}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Client's Contact Person
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                        Search Consultant
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                     <Row>
                         <Col className="job-infomation__title-item" span={8}>
-                        Department
+                                Mapping by
                         </Col>
-                        <Col className="job-infomation__content-item" span={16}>
-                            <Form.Item name=''>
+                       <Col className="job-infomation__content-item" span={16}>
+                            <div style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div>
+
+                            {/* <Form.Item name=''>
                                 <Input/>
-                            </Form.Item> 
-                        </Col> 
+                            </Form.Item>  */}
+                        </Col>  
                     </Row> 
                 </Col>
             </Row>
