@@ -47,3 +47,17 @@ export const getLevelJob = (key)=> listLevel.filter(status => Number(status.key)
 export const getTypeJob = (key)=> listType.filter(status => Number(status.key) === key);
 export const getStatusJob = (key)=> listStatus.filter(status => Number(status.key) === key);
 export const getMoneyStatus = (id)=> listMoney.filter(status => Number(status.id) === id);
+
+
+
+// business_line: [{industry_id: 54, sector_id: 92, category_id: 94}]
+// client_id: "f6d98895-0b30-4d07-bfa4-2c6280615fec"
+// department: {key: "2117", label: "Department"}
+// experience_level: 2
+// location: {country: {key: "1280", label: "Viet Nam"}, city: {key: "2", label: "Ba Ria - Vung Tau"}}
+// quantity: 1
+// recruiters: ["5fba98d9-2f74-418d-9a3d-f6d287a82ab7"]
+// related_users: ["e570c105-a96a-4694-8db3-65f2ba0e9847", "0203666a-11fe-4639-bb51-4d03126906c8"]
+// target_date: "1963-02-03"
+// title: {key: "1071", label: "Accounting Assistant"}
+// type: 4

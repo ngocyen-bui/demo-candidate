@@ -1,18 +1,19 @@
-import { Button, Checkbox, Col, DatePicker, Form, InputNumber, message, Row, Select, Table, Tag } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, InputNumber, message, Row, Select, Table, Tag, Upload } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect } from "react";
 import { useState } from "react";import moment from 'moment';
 import { useQuery } from "react-query";
 import { getDefaultProp, getLocationFromCountry, getPosition, getValueFlag } from "../features/candidate";
 import { getAllClients } from "../features/client";
-import { getAllCategory, getCategoryType, getContactPerson, getDepartment, getJobById } from "../features/job";
+import { deteteImage, deteteImageToData, getAllCategory, getCategoryType, getContactPerson, getDepartment, getImage, getJobById, updateJobs } from "../features/job";
 import { getAllUsers } from "../features/user";
 import { useAuth } from "../hooks/useAuth";
 import { getLevelJob, getStatusJob, getTypeJob, listLevel, listStatus, listType } from "../utils/job";
 import { fetchUpdateJob } from "../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { useDispatch } from "react-redux";
-import { DeleteOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { DeleteOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 
 
@@ -54,7 +55,9 @@ export default function DetailJob (props){
     const token = auth?.token;
     const [editOnly, setEditOnly] = useState(false); 
     const [key,setKey]= useState('');
+    const [data,setData]= useState();
 
+ 
     const { data: listInfoJob, isFetching } = useQuery(
         ["jobdetail", params?.id, token],
         () => getJobById(params?.id, token)
@@ -80,6 +83,9 @@ export default function DetailJob (props){
         ["lisAllCategory", token],
         async () => await getAllCategory(token), 
     );  
+
+    const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(listInfoJob.id,'job',token),
+            {enabled: Boolean(listInfoJob)}); 
     const handlerClickRow = (e) => {
         if(editOnly === false) {
             setKey(e.target.getAttribute("value"));
@@ -90,17 +96,17 @@ export default function DetailJob (props){
         setKey('');
         setEditOnly(false);
     }
-    if(isFetching) return ; 
-    
-    return <Content
+    useEffect(()=>{
+        setData(listInfoJob);
+    },[listInfoJob])
+
+    if(listPicture && data) return <Content
     className="site-layout-background"
-    style={{
-    //   padding: 24,
+    style={{ 
       paddingTop: 12,
       margin: 0,
       marginTop: 20,
-      minHeight: 280,
-    //   backgroundColor: "white",
+      minHeight: 280, 
     }}
   >
     <div className="job-infomation ant-card ant-card-bordered" style={{ backgroundColor: "white"}}>
@@ -316,7 +322,13 @@ export default function DetailJob (props){
         <header className="header-detail-job">
             <h3 className="header-detail-job__title">Industry</h3>
         </header>
-        <IndustryComponent infoJob={listInfoJob} listByType={listCategoryByType} allData={listAllCategory}></IndustryComponent>
+        <IndustryComponent id={params?.id} infoJob={data} listByType={listCategoryByType} allData={listAllCategory}></IndustryComponent>
+    </div>
+    <div className="job-attachment ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px" }}>
+        <header className="header-detail-job">
+            <h3 className="header-detail-job__title">Attachment</h3>
+        </header>
+         <AttachmentComponent listPicture={listPicture?.data} infoJob={data}></AttachmentComponent>
     </div>
   </Content>
 }
@@ -366,8 +378,7 @@ function SelectComponent(props) {
             setFilter({
                 filterOption:(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
             })
-        }else if(type === 'client'){
-            // setData(listAllClients?.data);
+        }else if(type === 'client'){ 
             setFilter({
                 filterOption:(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
             })
@@ -777,22 +788,51 @@ function LocationSelectComponent(props){
 function IndustryComponent (props){
     const listByType = props.listByType;
     const allCategory = props.allData; 
-    const infoJob = props.infoJob;
+    const id = props.id;
+    const infoJob = props?.infoJob;
     const [form] = Form.useForm();
     
+    const [dataJob,setData]= useState(infoJob.business_line)
     const [sector, setSector]= useState();
-    const [category,setCategory]= useState();
-    const [selectionType, setSelectionType] = useState('checkbox');
-
+    const [category,setCategory]= useState();  
 
     const [checked, setChecked] = useState(false)
+    
     
     
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
     const token = auth?.token;  
  
-    const onChangeIndustry = (e)=>{ 
+
+    const updateData= async(arr)=>{
+        const key = 'updatable';
+        let data = {
+            id: infoJob.id,
+            data:{business_line: [
+                ...arr 
+        ]},
+            token
+        }; 
+
+        await dispatch(fetchUpdateJob(data))
+        .then(unwrapResult)
+        .then((e) => {    
+            if(e.status === 403){
+                message.error('This consultant does not have permission to change client');
+            }else if(e.status === 400){
+                message.error('Something wrong !'); 
+            }
+            else {  
+                setData(()=> e.business_line);
+                message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+    } 
+    const onChangeIndustry = (e)=>{  
         const arr = listByType?.data?.filter(res => res.key === e)
         setSector(arr[0]?.sub_categories)
         setChecked(true)
@@ -811,16 +851,18 @@ function IndustryComponent (props){
         delete listData['category'];
         form.setFieldsValue({...listData}) 
     }
-    const onFinish =(e)=>{
-        console.log(infoJob.business_line);
-        let arr = infoJob.business_line.map(e => {
+    const onFinish =(e)=>{ 
+        if(!e.industry) return;
+        let check = dataJob.find(res=>res.industry.id === e.industry.id && res?.category?.id === e?.category?.id && res?.sector?.id === e?.sector?.id)
+        console.log(check);
+        let arr = dataJob.map(e => {
             return {
                 industry_id: e?.industry?.id,
                 sector_id: e?.sector?.id,
                 category_id: e?.category?.id,
-                primary: e.primary            }
+                primary: e.primary            
+            }
         })
-        if(!e.industry) return;
         const key = 'updatable';
         let data = {
             id: infoJob.id,
@@ -834,17 +876,24 @@ function IndustryComponent (props){
                 }
         ]},
             token
-          };
+          }; 
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
+            if(e.status === 403){
                 message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
-                    message.loading({ content: 'Loading...', key });
+                message.loading({ content: 'Loading...', key }); 
+                setData(e.business_line)
+                form.setFieldsValue({
+                    industry: null,
+                    sector: null,
+                    category: null
+                })   
+                setChecked(false);
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
                 }, 500); 
@@ -852,35 +901,69 @@ function IndustryComponent (props){
         })  
 
     } 
-    const deleteIndustry = (e)=>{
-        const key = 'updatable';
-        let data = {
-            id: infoJob.id,
-            data: {},
-            token
-          };
-        dispatch(fetchUpdateJob(data))
-        .then(unwrapResult)
-        .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
-                message.error('Something wrong !'); 
+    const deleteIndustry = (value)=>{
+        if(!value.industry) return; 
+        let isIndustryExist =  Boolean(value.industry.id); 
+        let isSectorExist =  Boolean(value.sector?.id);
+        let isCategoryExist =  Boolean(value.category?.id);
+
+           
+        //get row del 
+        // let arr = dataJob.filter(e => { 
+        //     let isIndustryExistData =  Boolean(e.industry.id); 
+        //     let isSectorExistData  =  Boolean(e.sector?.id);
+        //     let isCategoryExistData  =  Boolean(e.category?.id); 
+        //     return (isIndustryExistData===isIndustryExist && isSectorExistData===isSectorExist && isCategoryExistData===isCategoryExist) 
+        // }).filter(e => { 
+        //     let result = false;
+        //     if(isIndustryExist){
+        //         result = value.industry.id === e.industry.id;
+        //     }
+        //     if(isSectorExist){
+        //         result = value.sector.id === e.sector.id; 
+        //     }
+        //     if(isCategoryExist){
+        //         result = value.sector.id === e.sector.id; 
+        //     }
+        //     return result
+        // })
+ 
+        let arr = dataJob.filter(e => {
+            let result = false;
+            let isIndustryExistData =  Boolean(e.industry.id); 
+            let isSectorExistData  =  Boolean(e.sector?.id);
+            let isCategoryExistData  =  Boolean(e.category?.id); 
+            result = (isIndustryExistData===isIndustryExist && isSectorExistData===isSectorExist && isCategoryExistData===isCategoryExist);
+            
+            if(result && isIndustryExist){
+                result = value.industry.id === e.industry.id;
             }
-            else {
-                    message.loading({ content: 'Loading...', key });
-                setTimeout(() => {
-                    message.success({ content: 'Updated success !', key, duration: 2 });
-                }, 500); 
-            }  
-        })  
+            if(result &&isSectorExist){
+                result = value.sector.id === e.sector.id; 
+            }
+            if(result && isCategoryExist){
+                result = value.sector.id === e.sector.id; 
+            }
+            return !result 
+        })
+
+        let data = []
+        if(arr.length > 0){
+            data = arr.map(e => {
+                let sector=e?.sector?{sector_id:e?.sector?.id}:null 
+                let category=e?.category?{category_id:e?.category?.id}:null 
+                return {
+                    industry_id: e?.industry?.id,
+                    ...sector,
+                    ...category,
+                    primary: e.primary            
+                }
+            })
+        } 
+        updateData(data);
     }
 
-    const resetForm = ()=>{ 
-        const listData = form.getFieldValue(); 
-        delete listData['industry'];
-        delete listData['sector'];
-        delete listData['category']; 
+    const resetForm = ()=>{  
         form.setFieldsValue({
             industry: null,
             sector: null,
@@ -888,13 +971,54 @@ function IndustryComponent (props){
         })   
         setChecked(false);
     }
+    const handlePrimary = (value) =>{ 
+        // console.log(value); 
+
+        if(!value.industry) return; 
+
+        let arr = dataJob.map(e => { 
+            if(value.industry.id === e.industry.id){
+                let sector;
+                if(e?.sector){
+                    sector = {sector_id: e?.sector?.id};
+                }
+                let category;
+                if(e?.category){
+                    category = {category_id:e?.category?.id};
+                } 
+                return {
+                    industry_id: Number(e?.industry?.id),
+                    ...sector,
+                    ...category,
+                    primary: e.primary*-1}
+            }
+            else {
+                let sector;
+                if(e?.sector){
+                    sector = {sector_id: e?.sector?.id};
+                }
+                let category;
+                if(e?.category){
+                    category = {category_id:e?.category?.id};
+                } 
+                return {
+                    industry_id: e?.industry?.id,
+                    ...sector,
+                    ...category,
+                    primary: e.primary            
+                }
+            }
+           
+        })  
+        updateData(arr);
+    }
     const columns = [
         {
             title: 'Primary',
             dataIndex: 'primary',
             key: 'primary',
-            render: (text) => {   
-                return <Checkbox defaultChecked={text===1}></Checkbox> 
+            render: (text,record) => {   
+                return <Checkbox  defaultChecked={text===1} onClick={() => handlePrimary(record)}></Checkbox> 
             },
         },
         {
@@ -921,8 +1045,7 @@ function IndustryComponent (props){
           key: 'action',
           render: (text, record)=> <DeleteOutlined  style={{color: 'red',cursor: 'pointer'}} onClick={()=>deleteIndustry(record)}/>
         },
-      ]; 
-
+      ];  
     return (
     <div>
         <Form  
@@ -991,13 +1114,176 @@ function IndustryComponent (props){
             
         </Form> 
          
-      <Table 
-        // loading={isFetching}
-        rowKey={obj => obj.industry.id}
+      <Table  
+        rowKey={obj => [obj.industry.id, obj?.sector?.name, obj?.category?.id]}
         style={{ padding: '10px 24px'}}
         columns={columns}
-        dataSource={infoJob.business_line}
+        dataSource={dataJob}
       />
     </div>
+    )
+}
+ 
+function AttachmentComponent(props){
+    const infoJob = props.infoJob;
+    const listPicture = props.listPicture || [];
+    const dispatch = useDispatch();
+    const { user: auth } = useAuth();
+    const token = auth?.token;   
+    const DOMAIN = 'https://lubrytics.com:8443';
+ 
+    const formatImage = (arr)=>{
+        return arr.map(e=>{ 
+            return {
+                uid: e.id,
+                name: e.name, 
+                url: `${DOMAIN}/nadh-mediafile/file/${e.id}`,
+            }
+        })
+
+    }
+    // console.log(formatImage(listPicture));
+    const [fileList, setFileList] = useState(formatImage(listPicture));
+
+    const updateData = async (idImg) => {
+        let prevData = infoJob?.mediafiles?.files;
+
+        let newData = {mediafiles:{
+            files: [
+                ...prevData,
+                idImg
+            ]
+        }}
+
+        const key = 'updatable';
+        await dispatch(fetchUpdateJob({id:infoJob.id, data:newData, token}))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e === 403){
+                message.error('This consultant does not have permission to change client');
+            }else if(e === 400){
+                message.error('Something wrong !'); 
+            }
+            else {
+                    message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+    }
+   
+    const uploadImage = async options => {
+        const { onSuccess, onError, file, onProgress } = options;
+        // console.log(file);
+        const fmData = new FormData();
+        const config = {
+          headers: { "content-type": "multipart/form-data" }, 
+        };
+        fmData.append("file", file); 
+        fmData.append("obj_table", 'job'); 
+        fmData.append("obj_uid", infoJob?.id);  
+        try {
+          const res = await axios.post(
+            "https://lubrytics.com:8443/nadh-mediafile/file",
+            fmData,
+            config
+          ); 
+          onSuccess("Ok"); 
+          updateData(res?.data?.id);
+
+          console.log("server res: ", res);
+        } catch (err) {
+          console.log("Error: ", err);
+          const error = new Error("Some error");
+          onError({ err });
+        }
+    };
+
+    const beforeUpload = (file) => {
+        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      
+        if (!isJpgOrPng) {
+          message.error('You can only upload JPG/PNG file!');
+        }
+      
+        const isLt2M = file.size / 1024 / 1024 < 2;
+      
+        if (!isLt2M) {
+          message.error('Image must smaller than 2MB!');
+        }
+      
+        return isJpgOrPng && isLt2M;
+      };
+
+    const onChange = (file) => { 
+        setFileList(file.fileList); 
+    };
+
+    const onPreview = async (file) => {
+    let src = file.url;
+
+    if (!src) {
+        src = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj); 
+        reader.onload = () => resolve(reader.result);
+        });
+    }
+        // const image = new Image();
+
+        let modal = document.getElementById("myModal");  
+        let modalImg = document.getElementById("img");
+        let captionText = document.getElementById("caption");
+
+        modal.style.display = "block";
+        modalImg.src = src; 
+        captionText.innerHTML =` Name: ${file.name}`;
+
+        // image.src = src;
+        // const imgWindow = window.open(src);
+        // imgWindow?.document.write(image.outerHTML);
+ 
+        var span = document.getElementsByClassName("close")[0];
+ 
+        span.onclick = function() { 
+        modal.style.display = "none";
+        }
+    };
+    const onRemove = async(file) => {
+        const key = 'updatable';
+        let data = infoJob.mediafiles.files;
+        let result = data.filter(e => e === file.uid); 
+        await deteteImage(file.uid, token).then(res => 
+        {
+            if(res.status === 202){ 
+                message.success({ content: 'Updated success !', key, duration: 2 }); 
+            }
+        })
+        await updateJobs(infoJob.id,result,token)
+    }
+
+    const propsUpload = { 
+        listType:"picture-card",
+        customRequest:uploadImage,
+        onRemove: onRemove, 
+        onPreview:onPreview,
+        beforeUpload: beforeUpload, 
+        onChange:onChange,
+        fileList,
+      };
+     
+    return (
+        <div  style={{marginInline: '24px', paddingBottom: '20px'}}>
+         <Upload    
+            {...propsUpload}
+        >
+            {fileList.length < 5 && <div>
+                <p>{`+`}</p>
+                <p>{`Upload`}</p>
+                
+                </div>}
+        </Upload>   
+        </div>
     )
 }

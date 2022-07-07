@@ -70,3 +70,23 @@ export const getAllCategory = (header) => {return axios.get( DOMAIN+`/nadh-api-c
 {
     headers:  HeaderFetch(header), 
 }).then((res) => res.data)} 
+
+//get image 
+ 
+
+export const getImage = (obj_id,obj_table,header) => {return axios.get( DOMAIN+`/nadh-mediafile/files?obj_id=${obj_id}&obj_table=${obj_table}&page=1&perPage=10`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+
+//delete image
+// /https://lubrytics.com:8443/nadh-api-crm/api/jobs/a54910b4-b552-49c8-88ad-da4de84d4cb3
+//https://lubrytics.com:8443/nadh-mediafile/file/2f6411f0-eae8-42d4-9dc4-24094ac9211f 
+
+export const deteteImage = (id,header) => {return axios.delete( DOMAIN+`/nadh-mediafile/file/${id}`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+ 
+

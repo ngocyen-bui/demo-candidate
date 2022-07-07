@@ -14,6 +14,7 @@ import EditCandidate from "./containers/EditCandidate/EditCandidate";
 import { useAuth } from "./hooks/useAuth"; 
 import Jobs from "./containers/Jobs/Jobs"; 
 import EditJob from "./containers/EditJob/Job";
+import AddJob from "./containers/AddJob/AddJob";
 const { Header } = Layout;
 // Create a client
 
@@ -88,6 +89,12 @@ const App = () => {
   };
   return (
        <>
+
+        <div id="myModal" className="modal">
+            <span className="close">&times;</span>
+            <img className="modal-content" id="img" alt=""/>
+            <div id="caption"></div>
+        </div>
        <Layout>
           {!!auth ? (
             <>
@@ -151,6 +158,7 @@ const App = () => {
               element={<EditJob />}
             />
             <Route exact path="/add-candidate" element={<AddCandidate />} />
+            <Route exact path="/add-job" element={<AddJob />} />
             <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>
           </Routes>
         </Layout>

@@ -65,7 +65,7 @@ const candidatesSlice = createSlice({
 export const fetchUpdateJob = createAsyncThunk(
   `jobs/fetchUpdateJob`,
   async ({id,data,token}) => {  
-    let {status} = await updateJobs(id,data,token).then(x => x).catch(x => x.response);  
+    let  status = await updateJobs(id,data,token).then(x => x).catch(x => x.response);  
     return status
   }
     
