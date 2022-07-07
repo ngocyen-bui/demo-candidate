@@ -8,7 +8,7 @@ import DetailJob from "../../components/Job";
 export default function EditJob(props) {
   const params = useParams(); 
 
-  const { loading } = useSelector((state) => state.candidate);
+  const { loading } = useSelector((state) => state.job);
 
   if (loading === "PENDING") {
     return (

@@ -61,6 +61,7 @@ const candidatesSlice = createSlice({
   },
 }) 
 
+
 export const fetchUpdateJob = createAsyncThunk(
   `jobs/fetchUpdateJob`,
   async ({id,data,token}) => {  

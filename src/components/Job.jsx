@@ -1,17 +1,18 @@
-import { Button, Col, DatePicker, Form, InputNumber, message, Row, Select, Tag } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, InputNumber, message, Row, Select, Table, Tag } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect } from "react";
 import { useState } from "react";import moment from 'moment';
 import { useQuery } from "react-query";
 import { getDefaultProp, getLocationFromCountry, getPosition, getValueFlag } from "../features/candidate";
 import { getAllClients } from "../features/client";
-import { getDepartment, getJobById } from "../features/job";
+import { getAllCategory, getCategoryType, getContactPerson, getDepartment, getJobById } from "../features/job";
 import { getAllUsers } from "../features/user";
 import { useAuth } from "../hooks/useAuth";
 import { getLevelJob, getStatusJob, getTypeJob, listLevel, listStatus, listType } from "../utils/job";
 import { fetchUpdateJob } from "../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
+import { DeleteOutlined } from "@ant-design/icons";
 
 
 
@@ -66,6 +67,19 @@ export default function DetailJob (props){
         ["listAllUsersJobs", token],
         async () => await getAllUsers(token)
     );   
+    const { data: listContactPersion } = useQuery(
+        ["listAllContactPersion", token],
+        async () => await getContactPerson(listInfoJob?.client_id,token),
+        {enabled: Boolean(listInfoJob)}
+    );   
+    const { data: listCategoryByType } = useQuery(
+        ["listCategoryByType", token],
+        async () => await getCategoryType(token), 
+    ); 
+    const { data: listAllCategory} = useQuery(
+        ["lisAllCategory", token],
+        async () => await getAllCategory(token), 
+    );  
     const handlerClickRow = (e) => {
         if(editOnly === false) {
             setKey(e.target.getAttribute("value"));
@@ -267,7 +281,7 @@ export default function DetailJob (props){
                        <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="pic"))?
                                 <div onClick={handlerClickRow} value={'pic'} ><div value={'pic'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.pic?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent id={listInfoJob?.id}  stop={stopEdit} data={listAllClients?.data} type={'pic'} default={listInfoJob?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
+                            :<SelectMultipleComponent id={listInfoJob?.id}  stop={stopEdit} data={listContactPersion?.data} type={'pic'} default={listInfoJob?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Search Consultant} */}
@@ -297,6 +311,13 @@ export default function DetailJob (props){
         
         </div>
     </div>  
+
+    <div  className="job-industry ant-card ant-card-bordered" style={{ backgroundColor: "white", marginTop: "24px" }}>
+        <header className="header-detail-job">
+            <h3 className="header-detail-job__title">Industry</h3>
+        </header>
+        <IndustryComponent infoJob={listInfoJob} listByType={listCategoryByType} allData={listAllCategory}></IndustryComponent>
+    </div>
   </Content>
 }
 
@@ -647,6 +668,7 @@ function LocationSelectComponent(props){
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
     const token = auth?.token;  
+    const [form] = Form.useForm();
 
     const [result,setResult]= useState()
 
@@ -659,16 +681,23 @@ function LocationSelectComponent(props){
         { enabled: Boolean(keyCountry) }
       );
       const handleSelect = (e,o)=>{       
-        if(o?.name === 'country'){
+        if(o?.name === 'country'){ 
+            let objLocation = form.getFieldValue()?.location; 
+            delete objLocation['city']
+            form.setFieldsValue({
+                location: {
+                    ...objLocation
+                }
+              }); 
             setKeyCountry(e); 
         }
+
         setResult({
             ...result,
              [o?.name]:o?.data
         }) 
     }  
-    const onFinish = (e)=>{   
-        console.log(result);
+    const onFinish = (e)=>{    
         const key = 'updatable';
         let data = {
             id: id,
@@ -696,7 +725,8 @@ function LocationSelectComponent(props){
 
     return (
         <Form
-        name="basic" 
+        form={form}
+        name="location" 
         onFinish={onFinish}
         // onFinishFailed={onFinishFailed}  
         initialValues={ {[type] : defaultValue}}
@@ -741,5 +771,233 @@ function LocationSelectComponent(props){
                 
         </Form.Item>
     </Form>
+    )
+}
+  
+function IndustryComponent (props){
+    const listByType = props.listByType;
+    const allCategory = props.allData; 
+    const infoJob = props.infoJob;
+    const [form] = Form.useForm();
+    
+    const [sector, setSector]= useState();
+    const [category,setCategory]= useState();
+    const [selectionType, setSelectionType] = useState('checkbox');
+
+
+    const [checked, setChecked] = useState(false)
+    
+    
+    const dispatch = useDispatch();
+    const { user: auth } = useAuth();
+    const token = auth?.token;  
+ 
+    const onChangeIndustry = (e)=>{ 
+        const arr = listByType?.data?.filter(res => res.key === e)
+        setSector(arr[0]?.sub_categories)
+        setChecked(true)
+        //Clear value in sector and category
+        const listData = form.getFieldValue();
+        delete listData['sector'];
+        delete listData['category'];
+        form.setFieldsValue({...listData}) 
+    }
+    const onChangeSector = (e)=>{ 
+        const arr = allCategory?.data?.filter(res => res?.parent_categories?.key === e)
+        setCategory(arr)
+
+        //Clear value in category 
+        const listData = form.getFieldValue();
+        delete listData['category'];
+        form.setFieldsValue({...listData}) 
+    }
+    const onFinish =(e)=>{
+        console.log(infoJob.business_line);
+        let arr = infoJob.business_line.map(e => {
+            return {
+                industry_id: e?.industry?.id,
+                sector_id: e?.sector?.id,
+                category_id: e?.category?.id,
+                primary: e.primary            }
+        })
+        if(!e.industry) return;
+        const key = 'updatable';
+        let data = {
+            id: infoJob.id,
+            data:{business_line: [
+                ...arr,
+                {
+                industry_id:  e.industry,
+                sector_id: e.sector,
+                category_id: e.category,
+                primary: -1
+                }
+        ]},
+            token
+          };
+        dispatch(fetchUpdateJob(data))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e === 403){
+                message.error('This consultant does not have permission to change client');
+            }else if(e === 400){
+                message.error('Something wrong !'); 
+            }
+            else {
+                    message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+
+    } 
+    const deleteIndustry = (e)=>{
+        const key = 'updatable';
+        let data = {
+            id: infoJob.id,
+            data: {},
+            token
+          };
+        dispatch(fetchUpdateJob(data))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e === 403){
+                message.error('This consultant does not have permission to change client');
+            }else if(e === 400){
+                message.error('Something wrong !'); 
+            }
+            else {
+                    message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+    }
+
+    const resetForm = ()=>{ 
+        const listData = form.getFieldValue(); 
+        delete listData['industry'];
+        delete listData['sector'];
+        delete listData['category']; 
+        form.setFieldsValue({
+            industry: null,
+            sector: null,
+            category: null
+        })   
+        setChecked(false);
+    }
+    const columns = [
+        {
+            title: 'Primary',
+            dataIndex: 'primary',
+            key: 'primary',
+            render: (text) => {   
+                return <Checkbox defaultChecked={text===1}></Checkbox> 
+            },
+        },
+        {
+          title: 'Industry',
+          dataIndex: 'industry',
+          key: 'industry',
+          render: (text) =><div>{text?.label}</div>,
+        },
+        {
+          title: 'Sector',
+          dataIndex: 'sector',
+          key: 'sector',
+          render: (text) =><div>{text?.label}</div>,
+        },
+        {
+          title: 'Category',
+          dataIndex: 'category',
+          key: 'category',
+          render: (text) =><div>{text?.label}</div>,
+        },
+        {
+          title: 'Action',
+          dataIndex: 'action',
+          key: 'action',
+          render: (text, record)=> <DeleteOutlined  style={{color: 'red',cursor: 'pointer'}} onClick={()=>deleteIndustry(record)}/>
+        },
+      ]; 
+
+    return (
+    <div>
+        <Form  
+        form={form}
+        name="location" 
+        onFinish={onFinish}
+        initialValues={{}}
+        // onFinishFailed={onFinishFailed}  
+         > 
+         <div style={{display: 'flex', gap: '10px', padding: '10px 24px'}}> 
+            <Form.Item style={{width: '100%'}} name={'industry'}>
+                <Select
+                    showSearch 
+                    placeholder="Select your industry"
+                    optionFilterProp="children"
+                    onChange={onChangeIndustry}
+                    // onSearch={onSearch}
+                    filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                >
+                    {listByType?.data?.map(e=>{
+                        return (
+                            <Select.Option key={e.key} data={e} value={e.key}>{e.label}</Select.Option>
+                        )
+                    })} 
+                </Select>
+            </Form.Item>
+            <Form.Item style={{width: '100%'}} name={'sector'}>
+                <Select
+                    disabled={!Boolean(sector)}
+                    showSearch
+                    placeholder="Select your sector" 
+                    onChange={onChangeSector}
+                    // onSearch={onSearch}
+                    filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                >
+                    {sector?.map(e=>{
+                        return (
+                            <Select.Option key={e.key} data={e} value={e.key}>{e.label}</Select.Option>
+                        )
+                    })} 
+                </Select>
+            </Form.Item>
+            <Form.Item style={{width: '100%'}} name={'category'}>
+                <Select
+                  disabled={!Boolean(category)}
+                    showSearch
+                    placeholder="Select your category"  
+                    filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                >
+                    {category?.map(e=>{
+                        return (
+                            <Select.Option key={e.key} data={e} value={e.key}>{e.label}</Select.Option>
+                        )
+                    })} 
+                </Select>
+            </Form.Item> 
+         </div>
+         {checked?<Form.Item style={{float: 'right', marginRight: '24px'}}  > 
+                    <Button onClick={ ()=> resetForm()} style={{lineHeight: '24px', height: '24px', padding: '0 8px', marginRight: '10px', color: 'red', borderColor: 'red'}}  htmlType="button"  >
+                        Cancel
+                    </Button>  
+                    <Button style={{lineHeight: '24px', height: '24px', padding: '0 8px'}} type="primary" htmlType="submit">
+                        Save Industry
+                    </Button> 
+            </Form.Item>:<></>}
+            
+        </Form> 
+         
+      <Table 
+        // loading={isFetching}
+        rowKey={obj => obj.industry.id}
+        style={{ padding: '10px 24px'}}
+        columns={columns}
+        dataSource={infoJob.business_line}
+      />
+    </div>
     )
 }

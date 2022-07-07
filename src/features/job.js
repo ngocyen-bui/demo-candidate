@@ -57,3 +57,16 @@ export const getContactPerson = (id,header) => {return axios.get( DOMAIN+`/nadh-
 {
     headers:  HeaderFetch(header), 
 }).then((res) => res.data)} 
+ 
+
+//get category 
+
+export const getCategoryType = (header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/categories?type=1`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+export const getAllCategory = (header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/categories?getAll=true`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
