@@ -1250,7 +1250,7 @@ function AttachmentComponent(props){
     };
     const onRemove = async(file) => {
         const key = 'updatable';
-        let data = infoJob.mediafiles.files;
+        let data = infoJob.mediafiles.files || [];
         let result = data.filter(e => e === file.uid); 
         await deteteImage(file.uid, token).then(res => 
         {

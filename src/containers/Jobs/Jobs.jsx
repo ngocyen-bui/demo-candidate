@@ -39,7 +39,7 @@ export default function Jobs() {
     );
     const convertStringFilter = (filters)=>{
       const listFilter = filters;
-      let str = '?page='+(listFilter['page']|| 1)+'&perPage='+(listFilter['perPage']|| 10);
+      let str = '?page='+(page || 1)+'&perPage='+(listFilter['perPage']|| 10);
       for (const f in listFilter) {  
         if(f === 'location'){
           let city = ''; 
@@ -96,6 +96,7 @@ export default function Jobs() {
     );   
     useEffect(() => { 
         localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));   
+        setPage(page)
         setStringFilter(convertStringFilter(filters));
         navigate(convertStringFilter(filters));
     },[filters,page,navigate]);  
@@ -146,6 +147,7 @@ export default function Jobs() {
       })  
 
       setStringFilter(convertStringFilter(filters)); 
+      setPage(1)
       confirm();   
     };   
     const handleReset = (clearFilters,confirm,dataIndex) => {
@@ -163,6 +165,7 @@ export default function Jobs() {
     }; 
     const clearAllFilter = () => {
       setFilters({page: 1, perPage: 10});
+      setPage(1)
     }; 
     const getColumnSearchProps = (dataIndex,type) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {

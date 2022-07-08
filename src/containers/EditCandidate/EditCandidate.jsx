@@ -5,7 +5,7 @@ import {
   import { useEffect, useState } from "react"; 
   import { Link, useParams } from "react-router-dom"; 
   import {
-    getCandidate, 
+    getCandidate, updateCandidate, 
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
@@ -13,6 +13,10 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../hooks/useAuth";
 import axios from "axios";
+import { fetchUpdateCandidate } from "../../redux/reducer";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { useQuery } from "react-query";
+import { deteteImage, getImage } from "../../features/job";
   
   
   export default function AddCandidate(props) {  
@@ -49,7 +53,7 @@ if (loading === 'PENDING') {
                 <header className="header-detail-candidate">
                     <h3 className="header-detail-candidate__title">Attachment</h3>
                 </header>
-                <AttachmentComponent></AttachmentComponent>
+                <AttachmentComponent params={params}></AttachmentComponent>
             </div>
         </Layout>
       </Layout>
@@ -59,52 +63,62 @@ if (loading === 'PENDING') {
   
 
   function AttachmentComponent(props){
-    const infoJob = props.infoJob;
-    const listPicture = props.listPicture || [];
+    const params = props.params; 
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
     const token = auth?.token;   
     const DOMAIN = 'https://lubrytics.com:8443';
+    const [fileList, setFileList] = useState([]);
+
  
-    const formatImage = (arr)=>{
-        return arr.map(e=>{ 
+    const formatImage = (arr)=>{ 
+          return arr?.map(e=>{ 
             return {
                 uid: e.id,
                 name: e.name, 
                 url: `${DOMAIN}/nadh-mediafile/file/${e.id}`,
             }
-        })
+        })  
 
     }
-    // console.log(formatImage(listPicture));
-    const [fileList, setFileList] = useState(formatImage(listPicture));
+
+    const { data: infoCandidate, isFetching } = useQuery(
+      ["infoCandidate", params?.id,token],
+      async () => await getCandidate(params?.id,token)
+  );  
+    const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(infoCandidate.id,'candidates',token),
+    {enabled: !isFetching});  
+ 
+    useEffect(() => {
+      if(listPicture){
+        let arr = formatImage(listPicture?.data);
+        setFileList(arr)
+      }
+    },[listPicture])
+  
 
     const updateData = async (idImg) => {
-        let prevData = infoJob?.mediafiles?.files;
-
+        let prevData = infoCandidate?.mediafiles?.files|| []; 
         let newData = {mediafiles:{
-            files: [
-                ...prevData,
-                idImg
-            ]
+            files: [idImg,...prevData]
         }}
 
         const key = 'updatable';
-        // await dispatch(fetchUpdateJob({id:infoJob.id, data:newData, token}))
-        // .then(unwrapResult)
-        // .then((e) => {   
-        //     if(e === 403){
-        //         message.error('This consultant does not have permission to change client');
-        //     }else if(e === 400){
-        //         message.error('Something wrong !'); 
-        //     }
-        //     else {
-        //             message.loading({ content: 'Loading...', key });
-        //         setTimeout(() => {
-        //             message.success({ content: 'Updated success !', key, duration: 2 });
-        //         }, 500); 
-        //     }  
-        // })  
+        await dispatch(fetchUpdateCandidate({id:infoCandidate.id, data:newData, token}))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e === 403){
+                message.error('This consultant does not have permission to change client');
+            }else if(e === 400){
+                message.error('Something wrong !'); 
+            }
+            else {
+                    message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
     }
    
     const uploadImage = async options => {
@@ -115,8 +129,8 @@ if (loading === 'PENDING') {
           headers: { "content-type": "multipart/form-data" }, 
         };
         fmData.append("file", file); 
-        fmData.append("obj_table", 'job'); 
-        fmData.append("obj_uid", infoJob?.id);  
+        fmData.append("obj_table", 'candidates'); 
+        fmData.append("obj_uid", infoCandidate?.id);  
         try {
           const res = await axios.post(
             "https://lubrytics.com:8443/nadh-mediafile/file",
@@ -124,7 +138,7 @@ if (loading === 'PENDING') {
             config
           ); 
           onSuccess("Ok"); 
-          // updateData(res?.data?.id);
+          updateData(res?.data?.id);
 
           console.log("server res: ", res);
         } catch (err) {
@@ -186,15 +200,16 @@ if (loading === 'PENDING') {
     };
     const onRemove = async(file) => {
         const key = 'updatable';
-        let data = infoJob.mediafiles.files;
-        let result = data.filter(e => e === file.uid); 
-        // await deteteImage(file.uid, token).then(res => 
-        // {
-        //     if(res.status === 202){ 
-        //         message.success({ content: 'Updated success !', key, duration: 2 }); 
-        //     }
-        // })
-        // await updateJobs(infoJob.id,result,token)
+        // let data = infoCandidate.mediafiles?.files;
+        let result = fileList.filter(e => e === file.uid); 
+
+        await deteteImage(file.uid, token).then(res => 
+        {
+            if(res.status === 202){ 
+                message.success({ content: 'Updated success !', key, duration: 2 }); 
+            }
+        })
+        await updateCandidate(infoCandidate.id,result,token)
     }
 
     const propsUpload = { 
@@ -212,7 +227,7 @@ if (loading === 'PENDING') {
          <Upload    
             {...propsUpload}
         >
-            {fileList.length < 5 && <div>
+            {fileList?.length < 5 && <div>
                 <p>{`+`}</p>
                 <p>{`Upload`}</p>
                 
