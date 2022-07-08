@@ -34,7 +34,7 @@ if (loading === 'PENDING') {
     return (
       <Layout>
         <Layout
-          style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
+          style={{ padding: "12px 24px 100px 24px ", minHeight: "800px" }}
         >
           <Breadcrumb separator="/">
             <Breadcrumb.Item>
@@ -82,12 +82,12 @@ if (loading === 'PENDING') {
 
     }
 
-    const { data: infoCandidate, isFetching } = useQuery(
+    const { data: infoCandidate } = useQuery(
       ["infoCandidate", params?.id,token],
       async () => await getCandidate(params?.id,token)
   );  
     const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(infoCandidate.id,'candidates',token),
-    {enabled: !isFetching});  
+    {enabled: Boolean(infoCandidate)});  
  
     useEffect(() => {
       if(listPicture){
@@ -122,7 +122,7 @@ if (loading === 'PENDING') {
     }
    
     const uploadImage = async options => {
-        const { onSuccess, onError, file, onProgress } = options;
+        const { onSuccess, onError, file } = options;
         // console.log(file);
         const fmData = new FormData();
         const config = {
@@ -143,7 +143,7 @@ if (loading === 'PENDING') {
           console.log("server res: ", res);
         } catch (err) {
           console.log("Error: ", err);
-          const error = new Error("Some error");
+          // const error = new Error("Some error");
           onError({ err });
         }
     };
@@ -165,7 +165,7 @@ if (loading === 'PENDING') {
       };
 
     const onChange = (file) => { 
-        setFileList(file.fileList); 
+        setFileList(file.fileList);  
     };
 
     const onPreview = async (file) => {
@@ -211,14 +211,23 @@ if (loading === 'PENDING') {
         })
         await updateCandidate(infoCandidate.id,result,token)
     }
-
+    const onDownload = async(file) => {
+      console.log(file);
+      // let a = document.createElement('a');
+      // a.href = "img.png";
+      // a.download = "output.png";
+      // document.body.appendChild(a);
+      // a.click();
+      // document.body.removeChild(a);
+    }
     const propsUpload = { 
         listType:"picture-card",
-        customRequest:uploadImage,
+        customRequest:uploadImage, 
+        onDownload:onDownload,
         onRemove: onRemove, 
         onPreview:onPreview,
         beforeUpload: beforeUpload, 
-        onChange:onChange,
+        onChange:onChange,  
         fileList,
       };
      
@@ -226,12 +235,12 @@ if (loading === 'PENDING') {
         <div  style={{marginInline: '24px', paddingBottom: '20px'}}>
          <Upload    
             {...propsUpload}
-        >
-            {fileList?.length < 5 && <div>
+        > 
+             <div>
                 <p>{`+`}</p>
                 <p>{`Upload`}</p>
                 
-                </div>}
+                </div>
         </Upload>   
         </div>
     )

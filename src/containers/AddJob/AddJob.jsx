@@ -365,11 +365,9 @@ export default function AddJob(props) {
           <Form
             form={form}
             style={{ paddingBlock: "20px" }}
-            name="create-job"
-            //  initialValues={{ remember: true }}
+            name="create-job" 
             onFinish={onFinish}
-             onFinishFailed={onFinishFailed}
-            // autoComplete="off"
+             onFinishFailed={onFinishFailed} 
           >
             <Row gutter={16}>
               {/* {Title} */}
@@ -389,8 +387,7 @@ export default function AddJob(props) {
                       showSearch
                       onSearch={handleSearchTitle}
                       filterOption={false}
-                      placeholder="Add or select title"
-                      // onSelect={handleSelect}
+                      placeholder="Add or select title" 
                     >
                       {dataTitle?.map((e) => {
                         return (
@@ -428,8 +425,7 @@ export default function AddJob(props) {
                       showSearch
                         onSearch={handleSearchDepartment}
                       filterOption={false}
-                      placeholder="Add or select department"
-                      // onSelect={handleSelect}
+                      placeholder="Add or select department" 
                     >
                       {dataDepartment?.map((e) => {
                         return (
@@ -479,8 +475,7 @@ export default function AddJob(props) {
                       style={{ width: "100%", height: "35px" }}
                       showSearch
                       filterOption={(input, option) => option.children.includes(input)}
-                      placeholder="Please select type"
-                      // onSelect={handleSelect}
+                      placeholder="Please select type" 
                     >
                       {listType?.map((e) => {
                         return (
@@ -514,8 +509,7 @@ export default function AddJob(props) {
                       showSearch
                       onSearch={handleSearchTitle}
                       filterOption={(input, option) => option.children.includes(input)}
-                      placeholder="Please select experience level"
-                      // onSelect={handleSelect}
+                      placeholder="Please select experience level" 
                     >
                       {listLevel?.map((e) => {
                         return (
@@ -548,8 +542,7 @@ export default function AddJob(props) {
                       style={{ width: "100%", height: "35px" }}
                       showSearch 
                       filterOption={(input, option) => option.children.includes(input)}
-                      placeholder="Add or select department"
-                      // onSelect={handleSelect}
+                      placeholder="Add or select department" 
                     >
                       {listAllClients?.data?.map((e) => {
                         return (
@@ -608,8 +601,7 @@ export default function AddJob(props) {
                         >
                           <Select
                             showSearch
-                            placeholder="Month"
-                            // onSearch={onSearch}
+                            placeholder="Month" 
                             filterOption={(input, option) =>
                               option.children
                                 .toLowerCase()
@@ -702,8 +694,7 @@ export default function AddJob(props) {
                                 .includes(input.toLowerCase())
                             }
                             showSearch
-                            placeholder="City"
-                            // onSelect={handleSelect}
+                            placeholder="City" 
                           >
                             {dataFromCountry?.data?.map((e) => {
                               return (
@@ -735,8 +726,7 @@ export default function AddJob(props) {
                     style={{ width: "100%", height: "35px" }}
                     showSearch 
                     filterOption={(input, option) => option.children.includes(input)}
-                    placeholder="Add or select department"
-                    // onSelect={handleSelect}
+                    placeholder="Add or select department" 
                   >
                     {listALlUsers?.data?.map((e) => {
                       return (
@@ -764,8 +754,7 @@ export default function AddJob(props) {
                     style={{ width: "100%", height: "35px" }}
                     showSearch 
                     filterOption={(input, option) => option.children.includes(input)}
-                    placeholder="Add or select department"
-                    // onSelect={handleSelect}
+                    placeholder="Add or select department" 
                   >
                     {listALlUsers?.data?.map((e) => {
                       return (
@@ -789,8 +778,12 @@ export default function AddJob(props) {
                 </label>
                 <Row gutter={16}>
                     <Col span={8}>
-                      <Form.Item
+                      <Form.Item 
+                        rules={[
+                          { required: listIndustry, message: "Please select your title!" },
+                        ]}
                         style={{ width: "100%" }}
+                        dependencies={listIndustry}
                         name={["business_line", "industry"]}
                       >
                         <Select
@@ -818,9 +811,6 @@ export default function AddJob(props) {
                       <Form.Item
                         style={{ width: "100%" }}
                         name={["business_line", "sector"]}
-                        rules={[
-                          { required: true, message: "Please select your title!" },
-                        ]}
                       >
                         <Select
                           disabled={!Boolean(sector)}

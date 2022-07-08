@@ -85,7 +85,7 @@ export default function DetailJob (props){
     );  
 
     const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(listInfoJob.id,'job',token),
-            {enabled: Boolean(listInfoJob)}); 
+            {enabled: Boolean(listInfoJob?.id)}); 
     const handlerClickRow = (e) => {
         if(editOnly === false) {
             setKey(e.target.getAttribute("value"));
@@ -1141,7 +1141,7 @@ function AttachmentComponent(props){
 
     }
     // console.log(formatImage(listPicture));
-    const [fileList, setFileList] = useState(formatImage(listPicture));
+    const [fileList, setFileList] = useState(()=>formatImage(listPicture));
 
     const updateData = async (idImg) => {
         let prevData = infoJob?.mediafiles?.files;
