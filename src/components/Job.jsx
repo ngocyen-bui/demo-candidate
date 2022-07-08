@@ -5,14 +5,14 @@ import { useState } from "react";import moment from 'moment';
 import { useQuery } from "react-query";
 import { getDefaultProp, getLocationFromCountry, getPosition, getValueFlag } from "../features/candidate";
 import { getAllClients } from "../features/client";
-import { deteteImage, deteteImageToData, getAllCategory, getCategoryType, getContactPerson, getDepartment, getImage, getJobById, updateJobs } from "../features/job";
+import { deteteImage,  getAllCategory, getCategoryType, getContactPerson, getDepartment, getImage, getJobById, updateJobs } from "../features/job";
 import { getAllUsers } from "../features/user";
 import { useAuth } from "../hooks/useAuth";
 import { getLevelJob, getStatusJob, getTypeJob, listLevel, listStatus, listType } from "../utils/job";
 import { fetchUpdateJob } from "../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { useDispatch, useSelector } from "react-redux";
-import { DeleteOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 
@@ -58,7 +58,7 @@ export default function DetailJob (props){
     const [data,setData]= useState();
 
  
-    const { data: listInfoJob, isFetching } = useQuery(
+    const { data: listInfoJob } = useQuery(
         ["jobdetail", params?.id, token],
         () => getJobById(params?.id, token)
     );       
@@ -788,7 +788,6 @@ function LocationSelectComponent(props){
 function IndustryComponent (props){
     const listByType = props.listByType;
     const allCategory = props.allData; 
-    const id = props.id;
     const infoJob = props?.infoJob;
     const [form] = Form.useForm();
     
@@ -853,8 +852,7 @@ function IndustryComponent (props){
     }
     const onFinish =(e)=>{ 
         if(!e.industry) return;
-        let check = dataJob.find(res=>res.industry.id === e.industry.id && res?.category?.id === e?.category?.id && res?.sector?.id === e?.sector?.id)
-        console.log(check);
+        // let check = dataJob.find(res=>res.industry.id === e.industry.id && res?.category?.id === e?.category?.id && res?.sector?.id === e?.sector?.id) 
         let arr = dataJob.map(e => {
             return {
                 industry_id: e?.industry?.id,
@@ -1174,7 +1172,7 @@ function AttachmentComponent(props){
     }
    
     const uploadImage = async options => {
-        const { onSuccess, onError, file, onProgress } = options;
+        const { onSuccess, onError, file } = options;
         // console.log(file);
         const fmData = new FormData();
         const config = {
@@ -1192,10 +1190,10 @@ function AttachmentComponent(props){
           onSuccess("Ok"); 
           updateData(res?.data?.id);
 
-          console.log("server res: ", res);
+        //   console.log("server res: ", res);
         } catch (err) {
-          console.log("Error: ", err);
-          const error = new Error("Some error");
+        //   console.log("Error: ", err);
+        //   const error = new Error("Some error");
           onError({ err });
         }
     };

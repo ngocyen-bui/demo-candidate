@@ -1,7 +1,7 @@
  
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'  
 import { createCandidate, updateCandidate } from '../features/candidate'
-import { updateJobs } from '../features/job'
+import { createJob, updateJobs } from '../features/job'
 
 export const HTTP_STATUS = Object.freeze({
   PENDING: 'PENDING',
@@ -61,7 +61,14 @@ const candidatesSlice = createSlice({
   },
 }) 
 
-
+export const fetchCreateJob = createAsyncThunk(
+  `jobs/fetchCreateJob`,
+  async ({data,token}) => {  
+    let  status = await createJob(data,token).then(x => x).catch(x => x.response);  
+    return status
+  }
+    
+)
 export const fetchUpdateJob = createAsyncThunk(
   `jobs/fetchUpdateJob`,
   async ({id,data,token}) => {  
@@ -90,6 +97,17 @@ const jobsSlice = createSlice({
       state.loading = HTTP_STATUS.REJECTED;
       state.errorMessage = error.message;
     }, 
+    [fetchUpdateJob.pending](state) {
+      state.loading = HTTP_STATUS.PENDING;
+    },
+    [fetchUpdateJob.fulfilled](state, { payload }) {
+      state.loading = HTTP_STATUS.FULFILLED;
+      state.data = payload;
+    },
+    [fetchUpdateJob.rejected](state, { error }) {
+      state.loading = HTTP_STATUS.REJECTED;
+      state.errorMessage = error.message;
+    },
   },
 })
 export default (candidatesSlice.reducer, jobsSlice.reducer)

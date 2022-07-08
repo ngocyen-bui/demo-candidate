@@ -1,4 +1,5 @@
 import { DeleteOutlined } from "@ant-design/icons"; 
+import { unwrapResult } from "@reduxjs/toolkit";
 import {
   Breadcrumb,
   Button,
@@ -6,6 +7,7 @@ import {
   Col,
   Form, 
   InputNumber, 
+  message, 
   Row,
   Select,
   Table,
@@ -13,6 +15,7 @@ import {
 import Layout, { Content } from "antd/lib/layout/layout";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query"; 
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   getDefaultProp,
@@ -28,6 +31,7 @@ import {
 } from "../../features/job";
 import { getAllUsers } from "../../features/user";
 import { useAuth } from "../../hooks/useAuth"; 
+import { fetchCreateJob } from "../../redux/reducer";
 import { listLevel, listType } from "../../utils/job";
 
 function StarRequireComponent() {
@@ -66,6 +70,7 @@ export default function AddJob(props) {
   const { user: auth } = useAuth();
   const token = auth?.token;
   const [form] = Form.useForm();
+  const dispatch = useDispatch();
 
   const [keyPosition, setKeyPosition] = useState("");
   const [keyDepartment, setKeyDepartment] = useState("");
@@ -155,8 +160,7 @@ export default function AddJob(props) {
   const handleSearchDepartment = (e) => {
     setKeyDepartment(e);
   };
-  const onChangeIndustry = (e,record) => {
-    console.log(record);
+  const onChangeIndustry = (e,record) => { 
     const arr = listCategoryByType?.data?.filter((res) => res.key === e);
     setSector(arr[0]?.sub_categories);
 
@@ -169,12 +173,13 @@ export default function AddJob(props) {
             ...listData
         }
     })
-    setExtraListIndustry({
-        industry: record.data
+    setExtraListIndustry({ 
+        industry: record.data,
+        primary: -1,
     })
     setIsShowBtnIndustry(true);
   };
-  const onChangeSector = (e) => {
+  const onChangeSector = (e,record) => {
     const arr = listAllCategory?.data?.filter(
       (res) => res?.parent_categories?.key === e
     );
@@ -188,14 +193,58 @@ export default function AddJob(props) {
             ...listData
         }
     })
+    setExtraListIndustry({
+      ...extraListIndustry,
+      sector: record.data
+  })
+  }; 
+  const onChangeCategory = (e,record) => { 
+    setExtraListIndustry({
+      ...extraListIndustry,
+      category: record.data
+  })
   };
   const saveDataIndustry = ()=>{
-    const listData = form.getFieldValue()?.business_line;
+    // const listData = form.getFieldValue()?.business_line;
+    form.setFieldsValue({
+      business_line: {
+        industry: null,
+        sector: null,
+        category: null,
+      }
+    })
     setListIndustry([
         ...listIndustry,
-        listData])
-  }
-//   console.log(listIndustry);
+         extraListIndustry  ])
+    setIsShowBtnIndustry(false)
+  } 
+  const deleteIndustry = (value)=>{ 
+    if(!value.industry) return; 
+    let isIndustryExist =  Boolean(value.industry.key); 
+    let isSectorExist =  Boolean(value.sector?.key);
+    let isCategoryExist =  Boolean(value.category?.key);
+ 
+    let arr = listIndustry.filter(e => {
+        let result = false;
+        let isIndustryExistData =  Boolean(e.industry.key); 
+        let isSectorExistData  =  Boolean(e.sector?.key);
+        let isCategoryExistData  =  Boolean(e.category?.key); 
+        result = (isIndustryExistData===isIndustryExist && isSectorExistData===isSectorExist && isCategoryExistData===isCategoryExist);
+        
+        if(result && isIndustryExist){
+            result = value.industry.key === e.industry.key;
+        }
+        if(result &&isSectorExist){
+            result = value.sector.key === e.sector.key; 
+        }
+        if(result && isCategoryExist){
+            result = value.sector.key === e.sector.key; 
+        }
+        return !result 
+    })  
+    setListIndustry([...arr]);
+}
+
   const resetForm = ()=>{  
     form.setFieldsValue({
         business_line:{
@@ -207,8 +256,57 @@ export default function AddJob(props) {
     setIsShowBtnIndustry(false);
 }
   const onFinish = (e) => {
-    console.log(e);
+    const key = 'updatable';
+    let date = null;
+    if(e.target_date.year&&e.target_date.month&&e.target_date.date){
+      date =`${(e.target_date.year)}-${("0" + e.target_date.month).slice(-2)}-${("0" + e.target_date.date).slice(-2)}`
+    }
+    let city = e.location?.city?{key:e.location.city}:null;
+    let country = e.location?.country?{key:e.location.country}:null;
+    let industry = listIndustry.map(e => {
+      let sector=e?.sector?{sector_id:e?.sector?.key}:null 
+      let category=e?.category?{category_id:e?.category?.key}:null 
+      return {
+          industry_id: e?.industry?.key,
+          ...sector,
+          ...category,
+          primary: e.primary            
+      }
+  })
+
+
+
+    let data = {...e,
+      business_line :industry,
+      target_date: date,
+      title: {key: e.title},
+      recruiters: [e.recruiters],
+      location: {
+       country,city
+      },
+      department: {key: e.department}
+    }; 
+
+    dispatch(fetchCreateJob({data, token}))
+    .then(unwrapResult)
+    .then((e) => {   
+        if(e.status === 403){
+            message.error('You do not have permission to create');
+        }else if(e.status === 400){
+            message.error('Something wrong !'); 
+        }
+        else {
+                message.loading({ content: 'Loading...', key });
+            setTimeout(() => {
+                message.success({ content: 'Updated success !', key, duration: 2 });
+            }, 500); 
+        }  
+    })   
+    // setListIndustry([])
   };
+  const onFinishFailed = ()=>{
+    message.error('Something wrong !'); 
+  }
   const columns = [
     {
         title: 'Primary',
@@ -240,7 +338,7 @@ export default function AddJob(props) {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      render: (text, record)=> <DeleteOutlined  style={{color: 'red',cursor: 'pointer'}}/>
+      render: (text, record)=> <DeleteOutlined onClick={()=>deleteIndustry(record)} style={{color: 'red',cursor: 'pointer'}}/>
     },
   ]; 
   return (
@@ -270,7 +368,7 @@ export default function AddJob(props) {
             name="create-job"
             //  initialValues={{ remember: true }}
             onFinish={onFinish}
-            //  onFinishFailed={onFinishFailed}
+             onFinishFailed={onFinishFailed}
             // autoComplete="off"
           >
             <Row gutter={16}>
@@ -494,7 +592,7 @@ export default function AddJob(props) {
                           >
                             {day()?.map((e, i) => {
                               return (
-                                <Select.Option key={i} value={i}>
+                                <Select.Option key={i} value={i+1}>
                                   {e}
                                 </Select.Option>
                               );
@@ -520,7 +618,7 @@ export default function AddJob(props) {
                           >
                             {month?.map((e, i) => {
                               return (
-                                <Select.Option key={i} value={i}>
+                                <Select.Option key={i} value={i+1}>
                                   {e}
                                 </Select.Option>
                               );
@@ -547,7 +645,7 @@ export default function AddJob(props) {
                           >
                             {year().map((e, i) => {
                               return (
-                                <Select.Option key={i} value={i + 1}>
+                                <Select.Option key={i} value={e}>
                                   {e}
                                 </Select.Option>
                               );
@@ -720,12 +818,15 @@ export default function AddJob(props) {
                       <Form.Item
                         style={{ width: "100%" }}
                         name={["business_line", "sector"]}
+                        rules={[
+                          { required: true, message: "Please select your title!" },
+                        ]}
                       >
                         <Select
                           disabled={!Boolean(sector)}
                           showSearch
                           placeholder="Select your sector"
-                          onChange={onChangeSector} 
+                          onChange={(e,record)=>onChangeSector(e,record)} 
                           filterOption={(input, option) =>
                             option.children
                               .toLowerCase()
@@ -751,6 +852,7 @@ export default function AddJob(props) {
                           disabled={!Boolean(category)}
                           showSearch
                           placeholder="Select your category"
+                          onSelect={(e,record)=> onChangeCategory(e,record)}
                           filterOption={(input, option) =>
                             option.children
                               .toLowerCase()
@@ -772,13 +874,13 @@ export default function AddJob(props) {
                     <Button  style={{marginRight: '10px', color: 'red', borderColor: 'red'}} onClick={resetForm}>Cancel</Button>
                     <Button type="primary" onClick={saveDataIndustry}>Save Industry</Button>
                 </div> :<></>}
-                
-                <Table  
-                    // rowKey={obj => [obj.industry.id, obj?.sector?.name, obj?.category?.id]}
+                {listIndustry.length > 0? <Table  
+                    rowKey={obj => [obj.industry.key, obj?.sector?.key, obj?.category?.key]}
                     style={{ padding: '24px 0'}}
                     columns={columns}
-                    // dataSource={dataJob}
-                />
+                    dataSource={listIndustry}
+                />:<></>}
+               
               </Col>
             </Row> 
             <Form.Item style={{ float: "right" }}>

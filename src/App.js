@@ -61,7 +61,7 @@ const App = () => {
   const { user: auth,logout } = useAuth();  
   
   const [current, setCurrent] = useState(()=>{
-    if(window.location.pathname.includes('jobs')||window.location.pathname.includes('job-detail')){
+    if(window.location.pathname.includes('jobs')||window.location.pathname.includes('job-detail')||window.location.pathname.includes('add-job')){
       return '3'
     }
     return '2'

@@ -44,6 +44,13 @@ export const getDepartment = (key,header) => {return axios.get( DOMAIN+`/nadh-ap
 }).then((res) => res.data)} 
 
 
+//create job
+export const createJob = (obj,header) => {return axios.post( DOMAIN+`/nadh-api-crm/api/jobs`,obj,
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+
 //update job  
 
 export const updateJobs = (id,obj,header) => {return axios.put( DOMAIN+`/nadh-api-crm/api/jobs/${id}`,obj,
