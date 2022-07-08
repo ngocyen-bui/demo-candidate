@@ -49,8 +49,12 @@ export default function Login() {
     console.log("Failed:", errorInfo);
   };
   return (
-    <Layout style={{ padding: "100px", backgroundColor: 'white' }}>
-      <Layout style={{width: '600px',padding: '40px 40px 60px 40px', height: '320px', margin: '100px auto 0', backgroundColor: 'white',border: '1px solid #c8ced3'}}>
+  <>
+  <Layout style={{ padding: "100px", backgroundColor: 'white' }}>
+      <img src="https://nadh.lubrytics.com/icon_NADH.ico" style={{width: '100px', margin: '0 auto'}}></img>
+      <h1 style={{fontSize: '50px', textAlign: 'center', fontWeight: 'bold', opacity: '0.8'}}>NADH</h1>
+      <Layout style={{width: '600px',padding: '40px 40px 60px 40px', height: '320px', margin: '40px auto 0', backgroundColor: 'white',border: '1px solid #c8ced3'}}>
+        
         <h2 style={{fontSize: '32px',marginBottom: 0}}>Login </h2>
         <div style={{marginBottom: '20px', color: '#73818f',fontWeight: 'bold'}}>Sign in to your account</div>
         <Form
@@ -99,5 +103,6 @@ export default function Login() {
         </Form>
       </Layout>
     </Layout>
+  </>
   );
 }

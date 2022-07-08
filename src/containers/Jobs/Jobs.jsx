@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getLocationFromCountry, getValueFlag } from "../../features/candidate";
-import { getListClients } from "../../features/client";
+import { getAllClients, getListClients } from "../../features/client";
 import { getExchangeCurrencies, getKeyJobs, getListJob } from "../../features/job";
-import { getListUser } from "../../features/user";
+import { getAllUsers, getListUser } from "../../features/user";
 import { useAuth } from "../../hooks/useAuth";
 import { getMoneyStatus, getStatusJob, listStatus } from "../../utils/job";
   
@@ -26,6 +26,8 @@ export default function Jobs() {
       from: null,
       to: null
     })   
+    const [searchClients, setSearchClients] = useState([]);
+    const [keyClients, setKeyClients] = useState('');
     const [checkErr,setCheckErr] = useState()
     const [filters, setFilters] = useState(JSON.parse(localStorage.getItem("filtersJob")) || {}); 
 
@@ -52,8 +54,10 @@ export default function Jobs() {
           continue;
         } 
         else if (f === 'salary'){
-            console.log(listFilter[f]);
-            str+= `&currency=${listFilter[f]?.rule?.key}&salary_from=${listFilter[f]?.from}&salary_to=${listFilter[f]?.to}`
+          console.log(listFilter[f]);
+            let to = listFilter[f]?.to?`&salary_to=${listFilter[f]?.to}`: '';
+            let from = listFilter[f]?.from?`&salary_from=${listFilter[f]?.from}`: ''; 
+            str+= `&currency=${listFilter[f]?.rule?.key}${from}${to}`
         } 
         else if(Array.isArray(listFilter[f])){
             let arr = listFilter[f]?.map(e => e?.id);
@@ -80,15 +84,18 @@ export default function Jobs() {
     const { data: getValueDefault } = useQuery(
         ["listVlDefault", token],
         async () => await getValueFlag(token), 
-    );
+    ); 
     const { data: listUser } = useQuery(
-        ["listUser", token],
-        async () => await getListUser(token), 
-    );
+      ["listUser", token],
+      async () => await getAllUsers(token)
+  );   
     const { data: listClient } = useQuery(
-        ["listClients", token],
-        async () => await getListClients(token), 
-    );   
+      ["listClient", token],
+      async () => await getAllClients(token)
+  ); 
+    useEffect(() => 
+      setSearchClients(listClient)
+    ,[listClient])
     const { data: dataFromCountry } = useQuery(
       ["listFromCountry", country,token],
       () => getLocationFromCountry(country,token),
@@ -105,6 +112,9 @@ export default function Jobs() {
       setCountry(o.data.key)
     }
     const handleSearch = (selectedKeys, confirm, dataIndex) => {    
+      if(dataIndex === 'client'){
+        setKeyClients(selectedKeys)
+      }
       let temp = [];   
       if(dataIndex === 'location'){
         let city ={}
@@ -123,8 +133,10 @@ export default function Jobs() {
         }
       } 
       else if(dataIndex === 'salary' ){
-        temp = {  from: selectedKeys.from || filters[dataIndex]?.from, 
-                  to: selectedKeys.to || filters[dataIndex]?.to,
+        let to = (selectedKeys.to || filters[dataIndex]?.to)? {to: selectedKeys.to || filters[dataIndex]?.to}: null;
+        let from = (selectedKeys.from || filters[dataIndex]?.from)? {from: selectedKeys.from || filters[dataIndex]?.from}: null; 
+        temp = {  ...from, 
+                  ...to,
                   rule: (selectedKeys.rule || {key: 2, label: 'VND'})}
       }
       else if(!selectedKeys[0] || selectedKeys[0]?.length === 0) {
@@ -174,7 +186,7 @@ export default function Jobs() {
             dataMultiSelect = listStatus;
           }
           else if(dataIndex === 'client'){
-            dataMultiSelect = listClient?.data;
+            dataMultiSelect = searchClients?.data;
           } 
           else if(dataIndex === 'search_consultants'){
             dataMultiSelect = listUser?.data;
@@ -204,7 +216,7 @@ export default function Jobs() {
               defaultValue: filters[dataIndex]?.country?.label, 
               key: filters[dataIndex]?.country?.label
             };  
-            data.city = { value: 
+            data.city = { defaultValue: 
               filters[dataIndex]?.city?.label
             };  
           }
@@ -216,10 +228,10 @@ export default function Jobs() {
           }  
           else if(type === 'range'){  
            if(filters[dataIndex]){
-            data.from = { value: 
+            data.from = { defaultValue: 
               filters[dataIndex]?.from
             };  
-            data.to = { value: 
+            data.to = { defaultValue: 
               filters[dataIndex]?.to
             }; 
             data.rule = { defaultValue: 
@@ -227,6 +239,7 @@ export default function Jobs() {
             };   
            } 
           }  
+          console.log(rangeDefaults);
           return (
             <div
               style={{
@@ -352,7 +365,7 @@ export default function Jobs() {
                     textAlign: "center",
                     marginRight: "10px",
                   }}
-                  max={rangeDefaults.to}
+                  // max={rangeDefaults.to}
                   min={0} 
                   {...data.from}
                   onChange={(e) => {
@@ -363,7 +376,7 @@ export default function Jobs() {
                   placeholder="From"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {rangeDefaults.from > rangeDefaults.to && !checkErr
+                  { rangeDefaults.from > rangeDefaults.to && !checkErr && rangeDefaults.to 
                     ? "Must be lower than to's value"
                     : null}
                 </div>
@@ -376,7 +389,7 @@ export default function Jobs() {
                     width: 150,
                     textAlign: "center",
                   }}
-                  min={rangeDefaults.from}  
+                  // min={rangeDefaults.from}  
                   onChange={(e) => {
                     setSelectedKeys(e ? {...selectedKeys,to: e} : selectedKeys) 
                     setRangeDefaults({...rangeDefaults, to: e});
@@ -390,7 +403,7 @@ export default function Jobs() {
                   placeholder="To"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {rangeDefaults.from >= rangeDefaults.to && checkErr
+                  {rangeDefaults.from >= rangeDefaults.to && checkErr&& rangeDefaults.from
                     ? "Must be higher than from's value"
                     : null}
                 </div>
@@ -614,7 +627,9 @@ export default function Jobs() {
       }
       else if (tag[0]=== 'salary'){
         name = 'Salary:'
-        label = `from ${tag[1]?.from} to ${tag[1]?.to} ${tag[1]?.rule?.label}`
+        let to = tag[1]?.to?`to ${tag[1]?.to}`:''
+        let from = tag[1]?.from?`from ${tag[1]?.from}`:''
+        label = `${to} ${from} ${tag[1]?.rule?.label}`
       }
       else if(Array.isArray(tag[1])){  
         label =` ${(tag[1]?.map(e => e.name)).toString()}`;

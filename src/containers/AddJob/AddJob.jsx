@@ -67,7 +67,7 @@ const year = () => {
   return arr;
 };
 export default function AddJob(props) {
-  const { user: auth } = useAuth();
+  const { user: auth, logout } = useAuth();
   const token = auth?.token;
   const [form] = Form.useForm();
   const dispatch = useDispatch();
@@ -81,13 +81,17 @@ export default function AddJob(props) {
   const [category, setCategory] = useState();
   const [isShowBtnIndustry, setIsShowBtnIndustry] = useState(false);
   const [listIndustry, setListIndustry] = useState([])
-
+  
   const [extraListIndustry, setExtraListIndustry] = useState({})
 
   const { data: listDefaultProp } = useQuery(
     ["defaultPropsJobs", token],
     async () => await getDefaultProp(token)
   );
+  if (listDefaultProp?.status === 401) {
+    logout();
+    localStorage.removeItem("auth");
+  } 
   const { data: listPosition } = useQuery(
     ["positionJobs", keyPosition, token],
     () => getPosition(keyPosition, token),
@@ -780,7 +784,7 @@ export default function AddJob(props) {
                     <Col span={8}>
                       <Form.Item 
                         rules={[
-                          { required: listIndustry, message: "Please select your title!" },
+                          { required: !(listIndustry.length > 0), message: "Please select your title!" },
                         ]}
                         style={{ width: "100%" }}
                         dependencies={listIndustry}
@@ -873,11 +877,12 @@ export default function AddJob(props) {
                
               </Col>
             </Row> 
-            <Form.Item style={{ float: "right" }}>
-              <Button type="primary" htmlType="submit">
-                Submit
+            <Form.Item style={{ position: 'fixed', padding: '10px 24px', right: 0, bottom: 0, width: '100%', backgroundColor: 'rgb(51 51 51 / 16%)'}}>
+              <Button  style={{float: 'right', paddingInline: '20px'}} type="primary" htmlType="submit">
+                Create
               </Button>
             </Form.Item>
+            
           </Form>
         </Content>
       </Layout>

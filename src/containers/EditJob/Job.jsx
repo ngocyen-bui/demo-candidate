@@ -27,3 +27,6 @@ export default function EditJob(props) {
     </Layout>
   );
 } 
+
+// media, search api 
+// login err trong detail 

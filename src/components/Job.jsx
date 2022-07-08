@@ -51,17 +51,22 @@ const formatDate = (date,type = 'datetime')=>{
 
 export default function DetailJob (props){
     const params = props.params;
-    const { user: auth } = useAuth();
+    const { user: auth,logout } = useAuth();
     const token = auth?.token;
     const [editOnly, setEditOnly] = useState(false); 
     const [key,setKey]= useState('');
     const [data,setData]= useState();
+    const [picture,setPicture]= useState();
 
  
     const { data: listInfoJob } = useQuery(
         ["jobdetail", params?.id, token],
         () => getJobById(params?.id, token)
     );       
+    if (listInfoJob?.status === 401) {
+        logout();
+        localStorage.removeItem("auth");
+      }
     const { data: listAllClients } = useQuery(
         ["listAllClientsJobs", token],
         async () => await getAllClients(token)
@@ -84,8 +89,7 @@ export default function DetailJob (props){
         async () => await getAllCategory(token), 
     );  
 
-    const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(listInfoJob.id,'job',token),
-            {enabled: Boolean(listInfoJob?.id)}); 
+   
     const handlerClickRow = (e) => {
         if(editOnly === false) {
             setKey(e.target.getAttribute("value"));
@@ -96,11 +100,17 @@ export default function DetailJob (props){
         setKey('');
         setEditOnly(false);
     }
+    const resetData = (data) => { 
+        setData(data);
+    }
+    const resetPic = (data) => { 
+        setPicture(data);
+    }
     useEffect(()=>{
         setData(listInfoJob);
     },[listInfoJob])
-
-    if(listPicture && data) return <Content
+  
+    if(data) return <Content
     className="site-layout-background"
     style={{ 
       paddingTop: 12,
@@ -122,7 +132,7 @@ export default function DetailJob (props){
                            Job ID
                         </Col>
                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{listInfoJob?.job_id}</div> 
+                            <div style={{lineHeight: '35px'}}>{data?.job_id}</div> 
                         </Col>  
                     </Row> 
                     {/* {Job_title} */} 
@@ -132,8 +142,8 @@ export default function DetailJob (props){
                         </Col>
                         <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="title"))?
-                                <div onClick={handlerClickRow} value={'title'} ><div value={'title'} style={{lineHeight: '35px'}}>{listInfoJob?.title?.label}</div></div>
-                            :<SelectComponent id={listInfoJob?.id} stop={stopEdit} type={'title'} default={listInfoJob?.title?.label}></SelectComponent>} 
+                                <div onClick={handlerClickRow} value={'title'} ><div value={'title'} style={{lineHeight: '35px'}}>{data?.title?.label}</div></div>
+                            :<SelectComponent resetData={resetData} id={data?.id} stop={stopEdit} type={'title'} default={data?.title?.label}></SelectComponent>} 
                         </Col> 
                     </Row> 
                     {/* {Department} */}
@@ -143,8 +153,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="department"))?
-                                <div onClick={handlerClickRow} value={'department'} ><div value={'department'} style={{lineHeight: '35px'}}>{listInfoJob?.department?.label}</div></div>
-                            :<SelectComponent id={listInfoJob?.id}  stop={stopEdit} type={'department'} default={listInfoJob?.department?.label}></SelectComponent>} 
+                                <div onClick={handlerClickRow} value={'department'} ><div value={'department'} style={{lineHeight: '35px'}}>{data?.department?.label}</div></div>
+                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'department'} default={data?.department?.label}></SelectComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Quantity} */}
@@ -154,9 +164,9 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}>
                        {!(editOnly && (key ==='quantity'))?<div value={"quantity"} onClick={handlerClickRow} >
-                                    <div value={"quantity"}  style={{lineHeight: '35px'}}>{listInfoJob?.quantity}</div>
+                                    <div value={"quantity"}  style={{lineHeight: '35px'}}>{data?.quantity}</div>
                             </div>
-                            : <InputNumberComponent id={listInfoJob?.id}  stop={stopEdit} type={"quantity"} data={listInfoJob?.quantity}></InputNumberComponent> }
+                            : <InputNumberComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={"quantity"} data={data?.quantity}></InputNumberComponent> }
                            
                        
                         </Col>  
@@ -168,9 +178,9 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}>  
                             {!(editOnly && (key ==='type'))?<div value={"type"} onClick={handlerClickRow} >
-                                <div value={"type"} color={getTypeJob(listInfoJob?.type)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getTypeJob(listInfoJob?.type)[0]?.label}</div> 
+                                <div value={"type"} color={getTypeJob(data?.type)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getTypeJob(data?.type)[0]?.label}</div> 
                             </div>
-                            :<SelectComponent id={listInfoJob?.id}  stop={stopEdit} default={getTypeJob(listInfoJob?.type)[0]?.label} type={'type'}/> }
+                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getTypeJob(data?.type)[0]?.label} type={'type'}/> }
                         </Col>  
                     </Row> 
                     {/* {Level} */}
@@ -180,9 +190,9 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}>  
                             {!(editOnly && (key ==='experience_level'))?<div value={"experience_level"} onClick={handlerClickRow} >
-                                <div value={"experience_level"} color={getLevelJob(listInfoJob?.experience_level)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getLevelJob(listInfoJob?.experience_level)[0]?.label}</div> 
+                                <div value={"experience_level"} color={getLevelJob(data?.experience_level)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getLevelJob(data?.experience_level)[0]?.label}</div> 
                             </div>
-                            :<SelectComponent id={listInfoJob?.id}  stop={stopEdit} default={getLevelJob(listInfoJob?.experience_level)[0]?.label} type={'experience_level'}/> }
+                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getLevelJob(data?.experience_level)[0]?.label} type={'experience_level'}/> }
                         </Col>  
                     </Row> 
                     {/* {Created by} */}
@@ -191,7 +201,7 @@ export default function DetailJob (props){
                         Created By
                         </Col>
                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.creator?.full_name}</div> 
+                            <div style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.creator?.full_name}</div> 
                         </Col>  
                     </Row> 
                     {/* {Created on} */}
@@ -200,7 +210,7 @@ export default function DetailJob (props){
                         Created On
                         </Col>
                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(listInfoJob?.createdAt)}</div> 
+                            <div style={{lineHeight: '35px'}}>{formatDate(data?.createdAt)}</div> 
                             
                         </Col>  
                     </Row> 
@@ -210,7 +220,7 @@ export default function DetailJob (props){
                         Last Updated
                         </Col>
                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(listInfoJob?.updatedAt)}</div>
+                            <div style={{lineHeight: '35px'}}>{formatDate(data?.updatedAt)}</div>
  
                         </Col>  
                     </Row> 
@@ -222,8 +232,8 @@ export default function DetailJob (props){
                         Job Status
                         </Col>
                        <Col className="job-infomation__content-item"  style={{minHeight: '35px'}} span={16}>
-                            {!(editOnly && (key ==='status'))?<div value={"status"} onClick={handlerClickRow} ><Tag  value={"status"} color={getStatusJob(listInfoJob?.status)[0]?.color}style={{borderRadius: '5px'}}>{getStatusJob(listInfoJob?.status)[0]?.label}</Tag> </div>
-                            :<SelectComponent id={listInfoJob?.id}  stop={stopEdit} default={getStatusJob(listInfoJob?.status)[0]?.label} type={'status'}/> }
+                            {!(editOnly && (key ==='status'))?<div value={"status"} onClick={handlerClickRow} ><Tag  value={"status"} color={getStatusJob(data?.status)[0]?.color}style={{borderRadius: '5px'}}>{getStatusJob(data?.status)[0]?.label}</Tag> </div>
+                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getStatusJob(data?.status)[0]?.label} type={'status'}/> }
                         </Col>  
                     </Row> 
                     {/* {Open date} */}
@@ -232,7 +242,7 @@ export default function DetailJob (props){
                         Open Date
                         </Col>
                         <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(listInfoJob?.target_date,'date')}</div> 
+                            <div style={{lineHeight: '35px'}}>{formatDate(data?.target_date,'date')}</div> 
                         </Col> 
                     </Row> 
                     {/* {Expire date} */}
@@ -241,7 +251,7 @@ export default function DetailJob (props){
                         Expire Date
                         </Col>
                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(listInfoJob?.end_date,'date')}</div> 
+                            <div style={{lineHeight: '35px'}}>{formatDate(data?.end_date,'date')}</div> 
                         </Col>  
                     </Row> 
                     {/* {Extend Date} */}
@@ -251,8 +261,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}>  
                             {!(editOnly && (key==="extend_date"))?
-                                <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{listInfoJob?.extend_date|| '-' }</div></div>
-                            : <DataPickerComponent id={listInfoJob?.id}  type={"extend_date"} stop={stopEdit}  default={formatDate(listInfoJob?.extend_date,'date')}></DataPickerComponent>} 
+                                <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{formatDate(data?.extend_date,'date')|| '-' }</div></div>
+                            : <DataPickerComponent resetData={resetData} id={data?.id}  type={"extend_date"} stop={stopEdit}  default={formatDate(data?.extend_date,'date')}></DataPickerComponent>} 
                            
                         </Col>  
                     </Row> 
@@ -264,8 +274,8 @@ export default function DetailJob (props){
                        <Col className="job-infomation__content-item" span={16}>  
                             {!(editOnly && (key==="location"))?
                                 <div onClick={handlerClickRow} value={'location'} >
-                                    <div value={'location'} style={{lineHeight: '35px'}}>{(listInfoJob?.location?.city?listInfoJob?.location?.city?.label+", ":'')+ listInfoJob?.location?.country?.label}</div></div>
-                            :<LocationSelectComponent id={listInfoJob?.id}  stop={stopEdit} type={'location'} default={listInfoJob?.location}></LocationSelectComponent>} 
+                                    <div value={'location'} style={{lineHeight: '35px'}}>{(data?.location?.city?(data?.location?.city?.label)+" ":'')+( data?.location?.country?(data?.location?.country?.label):'-')}</div></div>
+                            :<LocationSelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'location'} default={data?.location}></LocationSelectComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Client's Name} */}
@@ -275,8 +285,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="client"))?
-                                <div onClick={handlerClickRow} value={'client'} ><div value={'client'} style={{lineHeight: '35px'}}>{listInfoJob?.client?.name}</div></div>
-                            :<SelectComponent id={listInfoJob?.id}  stop={stopEdit} data={listAllClients?.data} type={'client'} default={listInfoJob?.client?.name}></SelectComponent>} 
+                                <div onClick={handlerClickRow} value={'client'} ><div value={'client'} style={{lineHeight: '35px'}}>{data?.client?.name}</div></div>
+                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listAllClients?.data} type={'client'} default={data?.client?.name}></SelectComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Client's Contact Person} */}
@@ -286,8 +296,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="pic"))?
-                                <div onClick={handlerClickRow} value={'pic'} ><div value={'pic'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.pic?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent id={listInfoJob?.id}  stop={stopEdit} data={listContactPersion?.data} type={'pic'} default={listInfoJob?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
+                                <div onClick={handlerClickRow} value={'pic'} ><div value={'pic'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.pic?.map(e=> e.label).toString()|| '-'}</div></div>
+                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listContactPersion?.data} type={'pic'} default={data?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Search Consultant} */}
@@ -297,8 +307,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}> 
                             {!(editOnly && (key==="recruiters"))?
-                                <div onClick={handlerClickRow} value={'recruiters'} ><div value={'recruiters'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.recruiters?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent id={listInfoJob?.id}  stop={stopEdit} data={listALlUsers?.data} type={'recruiters'} default={listInfoJob?.recruiters?.map(e=> e.key)}></SelectMultipleComponent>} 
+                                <div onClick={handlerClickRow} value={'recruiters'} ><div value={'recruiters'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.recruiters?.map(e=> e.label).toString()|| '-'}</div></div>
+                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'recruiters'} default={data?.recruiters?.map(e=> e.key)}></SelectMultipleComponent>} 
                         </Col>  
                     </Row> 
                     {/* {Mapping by} */}
@@ -308,8 +318,8 @@ export default function DetailJob (props){
                         </Col>
                        <Col className="job-infomation__content-item" span={16}>  
                             {!(editOnly && (key==="related_users"))?
-                                <div onClick={handlerClickRow} value={'related_users'} ><div value={'related_users'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{listInfoJob?.related_users?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent id={listInfoJob?.id}  stop={stopEdit} data={listALlUsers?.data} type={'related_users'} default={listInfoJob?.related_users?.map(e=> e.key)}></SelectMultipleComponent>} 
+                                <div onClick={handlerClickRow} value={'related_users'} ><div value={'related_users'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.related_users?.map(e=> e.label).toString()|| '-'}</div></div>
+                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'related_users'} default={data?.related_users?.map(e=> e.key)}></SelectMultipleComponent>} 
                         </Col>  
                     </Row> 
                 </Col>
@@ -328,7 +338,7 @@ export default function DetailJob (props){
         <header className="header-detail-job">
             <h3 className="header-detail-job__title">Attachment</h3>
         </header>
-         <AttachmentComponent listPicture={listPicture?.data} infoJob={data}></AttachmentComponent>
+         <AttachmentComponent resetData={resetData}  infoJob={data}></AttachmentComponent>
     </div>
   </Content>
 }
@@ -339,6 +349,7 @@ function SelectComponent(props) {
     const defaultValue = props.default;  
     const stop = props.stop;   
     const type = props.type; 
+    const resetData= props.resetData;
     const id = props.id; 
     const [data, setData] = useState(props.data||[])   
     const [filter, setFilter] = useState({
@@ -429,12 +440,13 @@ function SelectComponent(props) {
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
+                resetData(e)
                     message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
@@ -484,6 +496,7 @@ function InputNumberComponent(props){
     const data = props.data || 0; 
     const stop = props.stop;   
     const type = props.type;
+    const resetData= props.resetData;
     const id = props.id; 
  
     const dispatch = useDispatch();
@@ -499,12 +512,13 @@ function InputNumberComponent(props){
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
+                resetData(e)
                     message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
@@ -542,6 +556,7 @@ function SelectMultipleComponent(props) {
     const stop = props.stop;   
     const type = props.type;
     const defaultValue = props.default; 
+    const resetData = props.resetData;
     const id = props.id; 
  
     const dispatch = useDispatch();
@@ -559,12 +574,13 @@ function SelectMultipleComponent(props) {
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
+                resetData(e)
                     message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
@@ -613,6 +629,7 @@ function DataPickerComponent (props) {
     const stop = props.stop;   
     const type = props.type;
     const dateFormat = 'DD/MM/YYYY';
+    const resetData = props.resetData;
     const id = props.id; 
  
     const dispatch = useDispatch();
@@ -623,7 +640,7 @@ function DataPickerComponent (props) {
         defaultValue = moment(props.default, dateFormat);
     } 
     const onFinish = (e)=>{   
-        let date = e[type].format('YYYY-MM-DD')
+        let date = e[type]?.format('YYYY-MM-DD')
         const key = 'updatable';
         let data = {
             id: id+'/extend',
@@ -633,12 +650,13 @@ function DataPickerComponent (props) {
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
+                resetData(e)
                     message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
@@ -676,6 +694,7 @@ function LocationSelectComponent(props){
     const type = props.type; 
     let defaultValue = props.default   
     const id = props.id;  
+    const resetData = props.resetData;
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
     const token = auth?.token;  
@@ -718,12 +737,13 @@ function LocationSelectComponent(props){
         dispatch(fetchUpdateJob(data))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
+                resetData(e)
                     message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
@@ -796,8 +816,7 @@ function IndustryComponent (props){
     const [category,setCategory]= useState();  
 
     const [checked, setChecked] = useState(false)
-    
-    
+     
     
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
@@ -818,7 +837,7 @@ function IndustryComponent (props){
         .then(unwrapResult)
         .then((e) => {    
             if(e.status === 403){
-                message.error('This consultant does not have permission to change client');
+                message.error('You don\'t have permission to update.');
             }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
@@ -852,7 +871,47 @@ function IndustryComponent (props){
     }
     const onFinish =(e)=>{ 
         if(!e.industry) return;
+        let value = e;
         // let check = dataJob.find(res=>res.industry.id === e.industry.id && res?.category?.id === e?.category?.id && res?.sector?.id === e?.sector?.id) 
+
+        let isIndustryExist =  Boolean(value.industry); 
+        let isSectorExist =  Boolean(value.sector);
+        let isCategoryExist =  Boolean(value.category);
+
+          let isExists = dataJob.filter(e => { 
+            let isIndustryExistData =  Boolean(e.industry.id); 
+            let isSectorExistData  =  Boolean(e.sector?.id);
+            let isCategoryExistData  =  Boolean(e.category?.id); 
+            return (isIndustryExistData===isIndustryExist && isSectorExistData===isSectorExist && isCategoryExistData===isCategoryExist) 
+            }).filter(e => { 
+                let result = false;
+                if(isIndustryExist){
+                    result = value.industry === e.industry.id;
+                }
+                if(isSectorExist){
+                    result = value.sector === e.sector.id; 
+                }
+                if(isCategoryExist){
+                    result = value.sector === e.sector.id; 
+                }
+                return result
+            }).length > 0;
+
+        if(isExists){
+            form.setFieldsValue({
+                industry: null,
+                sector: null,
+                category: null
+            })   
+            setChecked(false);
+            setSector(null)
+            setCategory(null)
+            message.error({content:'Duplicate value !',
+            style: { 
+              float: 'right'
+            }}); 
+            return;
+        }
         let arr = dataJob.map(e => {
             return {
                 industry_id: e?.industry?.id,
@@ -879,7 +938,7 @@ function IndustryComponent (props){
         .then(unwrapResult)
         .then((e) => {   
             if(e.status === 403){
-                message.error('This consultant does not have permission to change client');
+                message.error('You don\'t have permission to update.');
             }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
@@ -891,7 +950,9 @@ function IndustryComponent (props){
                     sector: null,
                     category: null
                 })   
-                setChecked(false);
+                setChecked(false); 
+                setSector(null)
+                setCategory(null)
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
                 }, 500); 
@@ -907,6 +968,7 @@ function IndustryComponent (props){
 
            
         //get row del 
+
         // let arr = dataJob.filter(e => { 
         //     let isIndustryExistData =  Boolean(e.industry.id); 
         //     let isSectorExistData  =  Boolean(e.sector?.id);
@@ -1088,7 +1150,7 @@ function IndustryComponent (props){
             </Form.Item>
             <Form.Item style={{width: '100%'}} name={'category'}>
                 <Select
-                  disabled={!Boolean(category)}
+                   disabled={!Boolean(category)}
                     showSearch
                     placeholder="Select your category"  
                     filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
@@ -1113,7 +1175,7 @@ function IndustryComponent (props){
         </Form> 
          
       <Table  
-        rowKey={obj => [obj.industry.id, obj?.sector?.name, obj?.category?.id]}
+        rowKey={obj => [obj.industry.id, obj?.sector?.id, obj?.category?.id]}
         style={{ padding: '10px 24px'}}
         columns={columns}
         dataSource={dataJob}
@@ -1123,13 +1185,13 @@ function IndustryComponent (props){
 }
  
 function AttachmentComponent(props){
-    const infoJob = props.infoJob;
-    const listPicture = props.listPicture || [];
+    const infoJob = props.infoJob; 
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
-    const token = auth?.token;   
-    const DOMAIN = 'https://lubrytics.com:8443';
- 
+    const resetData = props.resetData; 
+    const token = auth?.token;    
+    const DOMAIN = 'https://lubrytics.com:8443'; 
+    const [fileList, setFileList] = useState(); 
     const formatImage = (arr)=>{
         return arr.map(e=>{ 
             return {
@@ -1139,36 +1201,42 @@ function AttachmentComponent(props){
             }
         })
 
-    }
-    // console.log(formatImage(listPicture));
-    const [fileList, setFileList] = useState(()=>formatImage(listPicture));
+    } 
+    const { data: listPicture, refetch } = useQuery(["listImagea",token], async() => await getImage(infoJob.id,'job',token));      
 
-    const updateData = async (idImg) => {
-        let prevData = infoJob?.mediafiles?.files;
+    useEffect(() => {
+        let list = formatImage(listPicture?.data || [])
+        setFileList(list);
+    },[listPicture])
+    // console.log(listPicture);
 
+    const updateData = async (idImg) => { 
+        let prevData = infoJob?.mediafiles?.files||[]; 
         let newData = {mediafiles:{
             files: [
                 ...prevData,
                 idImg
             ]
-        }}
-
+        }} 
+        console.log(newData);
         const key = 'updatable';
         await dispatch(fetchUpdateJob({id:infoJob.id, data:newData, token}))
         .then(unwrapResult)
         .then((e) => {   
-            if(e === 403){
-                message.error('This consultant does not have permission to change client');
-            }else if(e === 400){
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
                 message.error('Something wrong !'); 
             }
             else {
-                    message.loading({ content: 'Loading...', key });
+                resetData(e)  
+                refetch()
+                message.loading({ content: 'Loading...', key });
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
-                }, 500); 
+                }, 500);  
             }  
-        })  
+        })   
     }
    
     const uploadImage = async options => {
@@ -1190,7 +1258,7 @@ function AttachmentComponent(props){
           onSuccess("Ok"); 
           updateData(res?.data?.id);
 
-        //   console.log("server res: ", res);
+          console.log("server res: ", res);
         } catch (err) {
         //   console.log("Error: ", err);
         //   const error = new Error("Some error");
@@ -1212,10 +1280,9 @@ function AttachmentComponent(props){
         }
       
         return isJpgOrPng && isLt2M;
-      };
+    };
 
-    const onChange = (file) => { 
-        setFileList(file.fileList); 
+    const onChange = (file) => {   
     };
 
     const onPreview = async (file) => {
@@ -1227,8 +1294,7 @@ function AttachmentComponent(props){
         reader.readAsDataURL(file.originFileObj); 
         reader.onload = () => resolve(reader.result);
         });
-    }
-        // const image = new Image();
+    } 
 
         let modal = document.getElementById("myModal");  
         let modalImg = document.getElementById("img");
@@ -1236,11 +1302,7 @@ function AttachmentComponent(props){
 
         modal.style.display = "block";
         modalImg.src = src; 
-        captionText.innerHTML =` Name: ${file.name}`;
-
-        // image.src = src;
-        // const imgWindow = window.open(src);
-        // imgWindow?.document.write(image.outerHTML);
+        captionText.innerHTML =` Name: ${file.name}`; 
  
         var span = document.getElementsByClassName("close")[0];
  
@@ -1248,24 +1310,31 @@ function AttachmentComponent(props){
         modal.style.display = "none";
         }
     };
-    const onRemove = async(file) => {
+    const onRemove = async(file) => { 
         const key = 'updatable';
         let data = infoJob.mediafiles.files || [];
-        let result = data.filter(e => e === file.uid); 
+        let result = data.filter(e => e !== file.uid);    
+        console.log(data);
+        console.log(result); 
         await deteteImage(file.uid, token).then(res => 
         {
             if(res.status === 202){ 
-                message.success({ content: 'Updated success !', key, duration: 2 }); 
+                updateJobs(infoJob.id,{mediafiles:{files: result} },token);
+                refetch()
+                message.success({ content: 'Updated success !', key, duration: 2 });  
             }
-        })
-        await updateJobs(infoJob.id,result,token)
+        }) 
+        return;
     }
-
+    const onDownload = async(file)=>{
+        console.log(file);
+    }
     const propsUpload = { 
         listType:"picture-card",
         customRequest:uploadImage,
         onRemove: onRemove, 
         onPreview:onPreview,
+        onDownload: onDownload,
         beforeUpload: beforeUpload, 
         onChange:onChange,
         fileList,
@@ -1276,7 +1345,7 @@ function AttachmentComponent(props){
          <Upload    
             {...propsUpload}
         >
-            {fileList.length < 5 && <div>
+            {fileList?.length < 10 && <div>
                 <p>{`+`}</p>
                 <p>{`Upload`}</p>
                 

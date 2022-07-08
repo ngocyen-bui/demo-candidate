@@ -83,12 +83,10 @@ if (loading === 'PENDING') {
     }
 
     const { data: infoCandidate } = useQuery(
-      ["infoCandidate", params?.id,token],
+      ["infoCandidateAt", params?.id,token],
       async () => await getCandidate(params?.id,token)
   );  
-    const { data: listPicture } = useQuery(["listImage",token], async() => await getImage(infoCandidate.id,'candidates',token),
-    {enabled: Boolean(infoCandidate)});  
- 
+    const { data: listPicture,refetch } = useQuery(["listImage",token], async() => await getImage(infoCandidate.id,'candidates',token),{enabled: Boolean(infoCandidate)});    
     useEffect(() => {
       if(listPicture){
         let arr = formatImage(listPicture?.data);
@@ -100,7 +98,9 @@ if (loading === 'PENDING') {
     const updateData = async (idImg) => {
         let prevData = infoCandidate?.mediafiles?.files|| []; 
         let newData = {mediafiles:{
-            files: [idImg,...prevData]
+            files: [
+              idImg,...prevData
+            ]
         }}
 
         const key = 'updatable';
@@ -113,7 +113,8 @@ if (loading === 'PENDING') {
                 message.error('Something wrong !'); 
             }
             else {
-                    message.loading({ content: 'Loading...', key });
+                message.loading({ content: 'Loading...', key });
+                refetch()
                 setTimeout(() => {
                     message.success({ content: 'Updated success !', key, duration: 2 });
                 }, 500); 
@@ -140,7 +141,7 @@ if (loading === 'PENDING') {
           onSuccess("Ok"); 
           updateData(res?.data?.id);
 
-          console.log("server res: ", res);
+          // console.log("server res: ", res);
         } catch (err) {
           console.log("Error: ", err);
           // const error = new Error("Some error");
@@ -200,16 +201,16 @@ if (loading === 'PENDING') {
     };
     const onRemove = async(file) => {
         const key = 'updatable';
-        // let data = infoCandidate.mediafiles?.files;
-        let result = fileList.filter(e => e === file.uid); 
-
+        // let data = infoCandidate?.mediafiles?.files || [];
+        let result = fileList.filter(e => e === file.uid);  
         await deteteImage(file.uid, token).then(res => 
         {
-            if(res.status === 202){ 
+            if(res.status === 202){  
+                // updateCandidate(infoCandidate.id,{mediafiles:{files: result}},token)
+                refetch()
                 message.success({ content: 'Updated success !', key, duration: 2 }); 
             }
-        })
-        await updateCandidate(infoCandidate.id,result,token)
+        }) 
     }
     const onDownload = async(file) => {
       console.log(file);
@@ -231,6 +232,7 @@ if (loading === 'PENDING') {
         fileList,
       };
      
+      if(listPicture)
     return (
         <div  style={{marginInline: '24px', paddingBottom: '20px'}}>
          <Upload    

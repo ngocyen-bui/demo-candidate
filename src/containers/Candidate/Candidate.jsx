@@ -248,8 +248,12 @@ export default function Candidate() {
     let str = '?page='+(listFilter['page']|| 1)+'&perPage='+(listFilter['perPage']|| 10);
     for (const f in listFilter) {    
       if(f === 'yob' || f === 'industry_years' || f === 'management_years'){ 
-        let arr = Object.entries(listFilter[f]);  
-        str+='&'+arr[0][0]+'='+arr[0][1]+'&'+arr[1][0]+'='+arr[1][1]
+        let arr = Object.entries(listFilter[f]);   
+        if(arr.length === 1){
+          str+='&'+arr[0][0]+'='+arr[0][1];
+        }else{
+          str+='&'+arr[0][0]+'='+arr[0][1]+'&'+arr[1][0]+'='+arr[1][1]
+        }  
       }  
       else if(f === 'addresses'){
         let city = ''; 
@@ -315,25 +319,62 @@ export default function Candidate() {
       }; 
       return setFilters(temp);
     } 
-    if (selectedKeys?.from && selectedKeys?.to) { 
-      if(selectedKeys?.from >= selectedKeys?.to) return;
+    if (selectedKeys?.from || selectedKeys?.to) { 
+      if(selectedKeys?.from >= selectedKeys?.to) return; 
       if (dataIndex === "yob") {
         temp = {
           ...temp,
           yob: { yob_from: selectedKeys?.from, yob_to: selectedKeys?.to },
         };
+        if(!selectedKeys?.to){
+          temp = {
+            ...temp,
+            yob: { yob_from: selectedKeys?.from},
+          };
+        }
+        if(!selectedKeys?.from){
+          temp = {
+            ...temp,
+            yob: {  yob_to: selectedKeys?.to},
+          };
+        }
       }
       if (dataIndex === "industry_years") {
         temp = {
           ...temp,
           industry_years: { industry_years_from: selectedKeys?.from, industry_years_to: selectedKeys?.to },
         };
+        if(!selectedKeys?.to){
+          temp = {
+            ...temp,
+            industry_years: { industry_years_from: selectedKeys?.from},
+          };
+        }
+
+        if(!selectedKeys?.from){
+          temp = {
+            ...temp,
+            industry_years: {  industry_years_to: selectedKeys?.to},
+          };
+        }
       }
       if (dataIndex === "management_years") {
         temp = {
           ...temp,
           management_years: { management_years_from: selectedKeys?.from, management_years_to: selectedKeys?.to },
         };
+        if(!selectedKeys?.to){
+          temp = {
+            ...temp,
+            management_years: { management_years_from: selectedKeys?.from},
+          };
+        }
+        if(!selectedKeys?.from){
+          temp = {
+            ...temp,
+            management_years: {  management_years_to: selectedKeys?.to},
+          };
+        }
       } 
       return setFilters(temp);
     } 
@@ -444,8 +485,7 @@ export default function Candidate() {
             >
               Reset
             </Button>
-            <Button
-              disabled={type === 'range' && dob?.[dataIndex] >= dobto?.[dataIndex]}
+            <Button 
               type="primary"
               onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
               icon={<SearchOutlined />}
@@ -554,7 +594,7 @@ export default function Candidate() {
                   placeholder="From"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {dob?.[dataIndex] >= dobto?.[dataIndex] && !checkChangeDob
+                  {dob?.[dataIndex] >= dobto?.[dataIndex] && !checkChangeDob && dobto?.[dataIndex]
                     ? "Must be lower than to's value"
                     : null}
                 </div>
@@ -584,7 +624,7 @@ export default function Candidate() {
                   placeholder="To"
                 />
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
-                  {dob?.[dataIndex] >= dobto?.[dataIndex] && checkChangeDob
+                  {dob?.[dataIndex] >= dobto?.[dataIndex] && checkChangeDob && dob?.[dataIndex]
                     ? "Must be higher than from's value"
                     : null}
                 </div>
@@ -688,8 +728,10 @@ export default function Candidate() {
       name='Highest degree:';
       label = tag[1]?.data?.label
     }else if( tag[0] === 'industry_years'){ 
+      let to = tag[1].industry_years_to?`to ${tag[1].industry_years_to}`: ''; 
+      let from = tag[1].industry_years_from?`from ${tag[1].industry_years_from}`: ''; 
       name='Industry:';
-      label = `from ${tag[1].industry_years_from} to ${tag[1].industry_years_to}`
+      label = `${from} ${to}`
     }else if( tag[0] === 'full_name'){
       name = 'Name:';
       label = tag[1]
@@ -713,11 +755,15 @@ export default function Candidate() {
       }
       label = `${tag[1]?.country?.label} ${city}`;
     }else if( tag[0] === 'yob'){
+      let to = tag[1].yob_to?`to ${tag[1].yob_to}`: ''; 
+      let from = tag[1].yob_from?`from ${tag[1].yob_from}`: ''; 
       name = 'YOB:';
-      label = `from ${tag[1].yob_from} to ${tag[1].yob_to}`
+      label = `${from} ${to}`
     }else if( tag[0] === 'management_years'){
+      let to = tag[1].management_years_to?`to ${tag[1].management_years_to}`: ''; 
+      let from = tag[1].industry_years_from?`from ${tag[1].industry_years_from}`: ''; 
       name = 'Management:';
-      label = `from ${tag[1].management_years_from} to ${tag[1].management_years_to}`
+      label = `${from} ${to}`
     }
 
     const tagElem = (
