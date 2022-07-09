@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
           } else {
             localStorage.removeItem("a");
           }
-          navigate("/candidates", { replace: true });
+          navigate("/candidates");
         }
         result = res;
       })
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.clear();
-    navigate("/login", { replace: true });
+    navigate("/login");
   };
 
   const value = useMemo(

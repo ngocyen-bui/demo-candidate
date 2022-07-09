@@ -1,7 +1,7 @@
 import { EyeOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Input, InputNumber, Layout, Select, Space, Table, Tag } from "antd";
+import { Button, Form, Input, InputNumber, Layout, Select, Space, Table, Tag } from "antd";
 import { Content } from "antd/lib/layout/layout";
-import { useEffect, useRef, useState } from "react"; 
+import React,{ useEffect, useRef, useState } from "react"; 
 import { useQuery } from "react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getLocationFromCountry, getValueFlag } from "../../features/candidate";
@@ -17,8 +17,9 @@ export default function Jobs() {
     const navigate = useNavigate();
     const search = useLocation().search;
     const pageUrl = new URLSearchParams(search).get("page");
+    const endax = new URLSearchParams(search).entries()
     const [page, setPage] = useState(
-      JSON.parse(pageUrl || JSON.parse(localStorage.getItem("filtersJob"))?.page || 1)
+      JSON.parse(pageUrl || 1)
     );
     const [stringFilter, setStringFilter] = useState('')
     const [country, setCountry] = useState(); 
@@ -29,12 +30,31 @@ export default function Jobs() {
     const [searchClients, setSearchClients] = useState([]);
     const [keyClients, setKeyClients] = useState('');
     const [checkErr,setCheckErr] = useState()
-    const [filters, setFilters] = useState(JSON.parse(localStorage.getItem("filtersJob")) || {}); 
-
+    const [filters, setFilters] = useState(()=>{
+        let obj ={};
+        for(let pair of endax) {
+          if(pair[0] === 'status' || pair[0] === 'client' || pair[0] === 'search_consultants'  ){  
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1].split(","),
+            }
+             
+          }else{
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1],
+            }
+          }
+        
+        }
+        return obj;
+    }); 
+    console.log(filters);
     const { user: auth } = useAuth();
     const { logout } = useAuth();
     const token = auth?.token; 
-
+    const [form] = Form.useForm();
+    
     const { data: totalDataJobs, isFetching } = useQuery(
         ["listJobs", stringFilter, token],
         async () => await getListJob(stringFilter, token), 
@@ -53,8 +73,7 @@ export default function Jobs() {
         else if(f === 'page'|| f=== 'perPage'){
           continue;
         } 
-        else if (f === 'salary'){
-          console.log(listFilter[f]);
+        else if (f === 'salary'){ 
             let to = listFilter[f]?.to?`&salary_to=${listFilter[f]?.to}`: '';
             let from = listFilter[f]?.from?`&salary_from=${listFilter[f]?.from}`: ''; 
             str+= `&currency=${listFilter[f]?.rule?.key}${from}${to}`
@@ -102,7 +121,7 @@ export default function Jobs() {
       { enabled: Boolean(country) }
     );   
     useEffect(() => { 
-        localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));   
+        // localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));   
         setPage(page)
         setStringFilter(convertStringFilter(filters));
         navigate(convertStringFilter(filters));
@@ -133,6 +152,7 @@ export default function Jobs() {
         }
       } 
       else if(dataIndex === 'salary' ){
+        if( (selectedKeys.from || Number.MIN_VALUE) >= (selectedKeys.to||Number.MAX_VALUE)) return;
         let to = (selectedKeys.to || filters[dataIndex]?.to)? {to: selectedKeys.to || filters[dataIndex]?.to}: null;
         let from = (selectedKeys.from || filters[dataIndex]?.from)? {from: selectedKeys.from || filters[dataIndex]?.from}: null; 
         temp = {  ...from, 
@@ -153,11 +173,11 @@ export default function Jobs() {
       else{
         temp = selectedKeys[0]
       }
+      
       setFilters({
         ...filters,
         [dataIndex]: temp
-      })  
-
+      })   
       setStringFilter(convertStringFilter(filters)); 
       setPage(1)
       confirm();   
@@ -165,6 +185,12 @@ export default function Jobs() {
     const handleReset = (clearFilters,confirm,dataIndex) => {
       let temp = { ...filters }; 
       delete temp[dataIndex]; 
+      if(dataIndex === 'salary'){
+        form.setFieldsValue({
+          rangeTo: null,
+          rangeFrom: null
+        })
+      }
       setFilters(temp);
       clearFilters(); 
       confirm()
@@ -175,13 +201,18 @@ export default function Jobs() {
       navigate("?page=" + e);
       setPage(e);
     }; 
-    const clearAllFilter = () => {
+    const clearAllFilter = () => { 
+        form.setFieldsValue({
+          rangeTo: null,
+          rangeFrom: null
+        }) 
       setFilters({page: 1, perPage: 10});
       setPage(1)
     }; 
     const getColumnSearchProps = (dataIndex,type) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
           let dataMultiSelect = [];
+          let data = {};
           if(dataIndex === 'status'){
             dataMultiSelect = listStatus;
           }
@@ -202,9 +233,7 @@ export default function Jobs() {
                 return filters[e]?.map(e =>
                   e?.id)  
               }
-          }
-          
-          let data = {}
+          } 
           if(type === 'input'){ 
             data = { defaultValue: 
               filters?.[dataIndex],
@@ -226,20 +255,21 @@ export default function Jobs() {
               key: getLisValue(dataIndex)
             };  
           }  
-          else if(type === 'range'){  
+          else if(type === 'range'){
            if(filters[dataIndex]){
             data.from = { defaultValue: 
-              filters[dataIndex]?.from
+              filters[dataIndex]?.from,
+              key: filters[dataIndex]?.from?.toString()
             };  
             data.to = { defaultValue: 
-              filters[dataIndex]?.to
+              filters[dataIndex]?.to,
+              key: filters[dataIndex]?.to?.toString()
             }; 
             data.rule = { defaultValue: 
               filters[dataIndex]?.rule?.key
             };   
            } 
-          }  
-          console.log(rangeDefaults);
+          }     
           return (
             <div
               style={{
@@ -267,7 +297,7 @@ export default function Jobs() {
                 >
                   Search
                 </Button>
-               
+                
               </Space>
               {type === 'multiselect'?
               <>
@@ -357,17 +387,20 @@ export default function Jobs() {
                </>
               :<></>}
               {type==='range'?<>
+              <Form form={form} initialValues={{rangeTo: (filters[dataIndex]?.to || null), rangeFrom: (filters[dataIndex]?.from || null)}} >
               <Input.Group compact style={{ marginTop: 10 }}>
               <div>
+                
+                <Form.Item name="rangeFrom">
                 <InputNumber
                   style={{
                     width: "150px",
                     textAlign: "center",
                     marginRight: "10px",
-                  }}
-                  // max={rangeDefaults.to}
-                  min={0} 
-                  {...data.from}
+                  }} 
+                  min={1} max={10} 
+                  // max={Number.MAX_VALUE}
+                  // {...data?.from}  
                   onChange={(e) => {
                      setRangeDefaults({...rangeDefaults, from: e});
                      setCheckErr(false);
@@ -375,6 +408,7 @@ export default function Jobs() {
                   }}
                   placeholder="From"
                 />
+                </Form.Item>
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
                   { rangeDefaults.from > rangeDefaults.to && !checkErr && rangeDefaults.to 
                     ? "Must be lower than to's value"
@@ -382,26 +416,28 @@ export default function Jobs() {
                 </div>
               </div>
               <div>
-                <InputNumber
-                  className="site-input-right"
-                  style={{
-                    display: "block",
-                    width: 150,
-                    textAlign: "center",
-                  }}
-                  // min={rangeDefaults.from}  
-                  onChange={(e) => {
-                    setSelectedKeys(e ? {...selectedKeys,to: e} : selectedKeys) 
-                    setRangeDefaults({...rangeDefaults, to: e});
-                    setCheckErr(true);
-                  }} 
-                  {...data.to} 
-                  onPressEnter={(e) =>
-                  {  
-                    handleSearch(selectedKeys, confirm, dataIndex)}
-                  }
-                  placeholder="To"
-                />
+                <Form.Item name="rangeTo"> 
+                  <InputNumber
+                    className="site-input-right"
+                    style={{
+                      display: "block",
+                      width: 150,
+                      textAlign: "center",
+                    }}
+                    // min={rangeDefaults.from}  
+                    onChange={(e) => {
+                      setSelectedKeys(e ? {...selectedKeys,to: e} : selectedKeys) 
+                      setRangeDefaults({...rangeDefaults, to: e});
+                      setCheckErr(true);
+                    }} 
+                    {...data.to} 
+                    onPressEnter={(e) =>
+                    {  
+                      handleSearch(selectedKeys, confirm, dataIndex)}
+                    }
+                    placeholder="To"
+                  />
+                </Form.Item>
                 <div style={{ color: "red", fontWeight: "bold", width: "150px" }}>
                   {rangeDefaults.from >= rangeDefaults.to && checkErr&& rangeDefaults.from
                     ? "Must be higher than from's value"
@@ -419,8 +455,9 @@ export default function Jobs() {
                 );
               })}
               </Select>
-            </Input.Group>
-              </>:<></>}
+              </Input.Group>
+              </Form>
+                          </>:<></>}
             </div>
           )
         },
@@ -598,7 +635,13 @@ export default function Jobs() {
          
     }   
     const handleCloseTag = (e) => {   
-      let temp = { ...filters }; 
+      let temp = { ...filters };  
+      if(e === 'salary'){
+        form.setFieldsValue({
+          rangeTo: null,
+          rangeFrom: null
+        })
+      }
       delete temp[e]; 
       setFilters(temp);
     };  
@@ -629,7 +672,7 @@ export default function Jobs() {
         name = 'Salary:'
         let to = tag[1]?.to?`to ${tag[1]?.to}`:''
         let from = tag[1]?.from?`from ${tag[1]?.from}`:''
-        label = `${to} ${from} ${tag[1]?.rule?.label}`
+        label = `${from} ${to} ${tag[1]?.rule?.label}`
       }
       else if(Array.isArray(tag[1])){  
         label =` ${(tag[1]?.map(e => e.name)).toString()}`;
@@ -702,7 +745,7 @@ export default function Jobs() {
           style={{ width: "100%", overflowX: "scroll", display: "flex" , paddingTop: '10px'}}
         > 
           {tagChild}
-        </div>
+        </div> 
         <Table 
             rowKey={"id"}
             style={{ marginTop: 20 }}
