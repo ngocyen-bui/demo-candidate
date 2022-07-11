@@ -852,24 +852,22 @@ export default function Jobs() {
       else if (tag[0] === 'search_consultants'){ 
         let str = tag[1]?.map(t=> listUser?.data?.filter(e=> e?.id === t)[0]?.full_name); 
         if(str[0]){
-          label = ` ${str.toString()}`;
-        } 
-        label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
+          label = `${str.toString()}`;
+        } else label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
         
       }
       else if (tag[0] === 'client'){ 
         let str = tag[1]?.map(t=> listClient?.data?.filter(e=> e?.id === t)[0]?.name);  
         if(str[0]){
           label = `${str.toString()}`;
-        } 
-        label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
+        } else label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
       }
       else if(Array.isArray(tag[1])){  
         label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
       } 
       else if(tag[0]=== 'location'){
         name =  'City:' 
-        label = `${tag[1]?.country?.label} ${tag[1]?.city?.label|| ''}`;
+        label = `${tag[1]?.country?.label|| tag[1]?.country?.key} ${tag[1]?.city?.label|| ''}`;
       } 
       else { 
         label = tag[1]
