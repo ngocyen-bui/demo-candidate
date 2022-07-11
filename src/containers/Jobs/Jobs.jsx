@@ -30,26 +30,8 @@ export default function Jobs() {
     const [searchClients, setSearchClients] = useState([]);
     const [keyClients, setKeyClients] = useState('');
     const [checkErr,setCheckErr] = useState()
-    const [filters, setFilters] = useState(()=>{
-        let obj ={};
-        for(let pair of endax) {
-          if(pair[0] === 'status' || pair[0] === 'client' || pair[0] === 'search_consultants'  ){  
-            obj = {
-              ...obj,
-              [pair[0]]: pair[1].split(","),
-            }
-             
-          }else{
-            obj = {
-              ...obj,
-              [pair[0]]: pair[1],
-            }
-          }
-        
-        }
-        return obj;
-    }); 
-    console.log(filters);
+    const [filters, setFilters] = useState( {}); 
+    // console.log(filters);
     const { user: auth } = useAuth();
     const { logout } = useAuth();
     const token = auth?.token; 
@@ -91,7 +73,29 @@ export default function Jobs() {
     if (totalDataJobs?.status === 401) { 
       logout();
       localStorage.removeItem("auth");
-    }   
+    }     
+    useEffect(()=>{
+      let obj ={};
+        for(let pair of endax) {
+          // console.log(pair);
+          if(pair[0] === 'status' || pair[0] === 'client' || pair[0] === 'search_consultants'  ){  
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1].split(","),
+            }
+             
+          }else{
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1],
+            }
+          }
+        
+        } 
+        // setFilters(obj);
+        console.log(obj);
+        console.log(search);
+    },[search])
     const { data: listKeyJob } = useQuery(
     ["getListKeyJob", token],
     async () => await getKeyJobs(token)
@@ -202,12 +206,14 @@ export default function Jobs() {
       setPage(e);
     }; 
     const clearAllFilter = () => { 
+      navigate(-1)
+
         form.setFieldsValue({
           rangeTo: null,
           rangeFrom: null
         }) 
-      setFilters({page: 1, perPage: 10});
-      setPage(1)
+      // setFilters({page: 1, perPage: 10});
+      // setPage(1)
     }; 
     const getColumnSearchProps = (dataIndex,type) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
