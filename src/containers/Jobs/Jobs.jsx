@@ -3,54 +3,168 @@ import { Button, Form, Input, InputNumber, Layout, Select, Space, Table, Tag } f
 import { Content } from "antd/lib/layout/layout";
 import React,{ useEffect, useRef, useState } from "react"; 
 import { useQuery } from "react-query";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, } from "react-router-dom";
 import { getLocationFromCountry, getValueFlag } from "../../features/candidate";
-import { getAllClients, getListClients } from "../../features/client";
+import { getAllClients } from "../../features/client";
 import { getExchangeCurrencies, getKeyJobs, getListJob } from "../../features/job";
-import { getAllUsers, getListUser } from "../../features/user";
+import { getAllUsers } from "../../features/user";
 import { useAuth } from "../../hooks/useAuth";
 import { getMoneyStatus, getStatusJob, listStatus } from "../../utils/job";
   
 export default function Jobs() { 
     const searchInput = useRef(null);
     
+    const { user: auth } = useAuth();
+    const { logout } = useAuth();
+    const token = auth?.token; 
+    const [form] = Form.useForm(); 
     const navigate = useNavigate();
-    const search = useLocation().search;
+    const location = useLocation();
+    const search = location.search;
     const pageUrl = new URLSearchParams(search).get("page");
-    const endax = new URLSearchParams(search).entries()
     const [page, setPage] = useState(
-      JSON.parse(pageUrl || 1)
+      JSON.parse(Number(pageUrl) || 1)
     );
-    const [stringFilter, setStringFilter] = useState('')
+    // const [stringFilter, setStringFilter] = useState('')
     const [country, setCountry] = useState(); 
     const [rangeDefaults, setRangeDefaults] = useState({
       from: null,
       to: null
     })   
-    const [searchClients, setSearchClients] = useState([]);
-    const [keyClients, setKeyClients] = useState('');
+    const [searchClients, setSearchClients] = useState([]); 
     const [checkErr,setCheckErr] = useState()
-    const [filters, setFilters] = useState( {}); 
-    // console.log(filters);
-    const { user: auth } = useAuth();
-    const { logout } = useAuth();
-    const token = auth?.token; 
-    const [form] = Form.useForm();
-    
-    const { data: totalDataJobs, isFetching } = useQuery(
-        ["listJobs", stringFilter, token],
-        async () => await getListJob(stringFilter, token), 
+    const { data: listUser } = useQuery(
+      ["listUser", token],
+      async () => await getAllUsers(token)
+    );   
+    const { data: listKeyJob } = useQuery(
+      ["getListKeyJob", token],
+      async () => await getKeyJobs(token)
+    ); 
+    const { data: getExCurrencies } = useQuery(
+        ["listExCurrencies", token],
+        async () => await getExchangeCurrencies(token), 
     );
+    const { data: getValueDefault } = useQuery(
+        ["listVlDefault", token],
+        async () => await getValueFlag(token), 
+    ); 
+    
+    const { data: listClient } = useQuery(
+        ["listClient", token],
+        async () => await getAllClients(token)
+    );   
+
+    const [filters, setFilters] = useState(()=>{
+      let obj = {};
+      const endax = new URLSearchParams(search).entries()
+      for(let pair of endax) {  
+        if(pair[0] === 'status'){ 
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1].split(",")?.map(e =>{
+              return getStatusJob(Number(e))[0]
+            }), 
+          }   
+        }else if(pair[0] === 'salary_from' || pair[0] === 'salary_to' || pair[0] === 'currency'){
+          obj = {
+            ...obj,
+            salary: {
+              ...obj?.['salary'], 
+              rule:  getMoneyStatus(Number(2))[0]
+            }, 
+          }  
+          if(pair[0] === 'salary_from'){
+            obj = {
+              ...obj,
+              salary: {
+                ...obj?.['salary'],
+                from: pair[1]  
+              }, 
+            }  
+          }
+          if(pair[0] === 'currency'){
+            obj = {
+              ...obj,
+              salary: {
+                ...obj?.['salary'], 
+                rule:  getMoneyStatus(Number((pair[1])))[0]
+              }, 
+            }  
+          }
+          if(pair[0] === 'salary_to'){
+            obj = {
+              ...obj,
+              salary: {
+                ...obj?.['salary'],  
+                to: pair[1] 
+              }, 
+            }  
+          }
+        }else if(pair[0] === 'search_consultants'){ 
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1].split(","), 
+            }    
+        }else if(pair[0] === 'client'){ 
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1].split(","), 
+          }    
+        }else if(pair[0] === 'country'|| pair[0] === 'city'){   
+          if(Number(pair[1])){
+            obj = {
+              ...obj,
+               location:  {
+                ...obj?.['location'], 
+                [pair[0]]: {key: pair[1]}
+              }, 
+            }
+          } 
+        }else if(pair[0] === 'page'|| pair[0] === 'perPage'){   
+          if(Number(pair[1]) && pair[0] === 'page'){
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1]
+            }
+          }else{
+            obj = {
+              ...obj,
+              [pair[0]]: 1
+            }
+          }
+          if(Number(pair[1]) && pair[0] === 'perPage'){
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1]
+            }
+          } else{
+            obj = {
+              ...obj,
+              [pair[0]]: 10
+            }
+          }
+        }else{
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1],
+          }
+        }  
+      }      
+      return {...obj}
+    });  
+    const filterString = useRef()
+  
     const convertStringFilter = (filters)=>{
       const listFilter = filters;
       let str = '?page='+(page || 1)+'&perPage='+(listFilter['perPage']|| 10);
       for (const f in listFilter) {  
         if(f === 'location'){
           let city = ''; 
-          if(Boolean(listFilter[f].city.key)) {
+          if(Boolean(listFilter[f]?.city?.key)) {
             city = '&city='+listFilter[f]?.city?.key
-          }
-          str +=`&country=${listFilter[f].country.key}${city}`
+          } 
+          str +=`&country=${listFilter[f]?.country?.key}${city}`
         } 
         else if(f === 'page'|| f=== 'perPage'){
           continue;
@@ -61,7 +175,7 @@ export default function Jobs() {
             str+= `&currency=${listFilter[f]?.rule?.key}${from}${to}`
         } 
         else if(Array.isArray(listFilter[f])){
-            let arr = listFilter[f]?.map(e => e?.id);
+            let arr = listFilter[f]?.map(e => e?.id || e);
             str +='&'+f+'='+arr.toString();
         } else{
             str +='&'+f+'='+listFilter[f];
@@ -70,52 +184,115 @@ export default function Jobs() {
       }
       return str;
     }
+    const { data: totalDataJobs, isFetching } = useQuery(
+        ["listJobs" ,filterString.current, token],
+        async () => await getListJob( filterString.current, token), 
+    );
     if (totalDataJobs?.status === 401) { 
       logout();
       localStorage.removeItem("auth");
-    }     
-    useEffect(()=>{
-      let obj ={};
-        for(let pair of endax) {
-          // console.log(pair);
-          if(pair[0] === 'status' || pair[0] === 'client' || pair[0] === 'search_consultants'  ){  
+    }       
+    useEffect(() => {
+      let obj = {};
+      const endax = new URLSearchParams(search).entries()
+      for(let pair of endax) {  
+        if(pair[0] === 'status'){ 
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1].split(",")?.map(e =>{
+              return getStatusJob(Number(e))[0]
+            }), 
+          }   
+        }else if(pair[0] === 'salary_from' || pair[0] === 'salary_to' || pair[0] === 'currency'){
+          obj = {
+            ...obj,
+            salary: {
+              ...obj?.['salary'], 
+              rule:  getMoneyStatus(Number(2))[0]
+            }, 
+          }  
+          if(pair[0] === 'salary_from'){
             obj = {
               ...obj,
-              [pair[0]]: pair[1].split(","),
+              salary: {
+                ...obj?.['salary'],
+                from: pair[1]  
+              }, 
+            }  
+          }
+          if(pair[0] === 'currency'){
+            obj = {
+              ...obj,
+              salary: {
+                ...obj?.['salary'], 
+                rule:  getMoneyStatus(Number((pair[1])))[0]
+              }, 
+            }  
+          }
+          if(pair[0] === 'salary_to'){
+            obj = {
+              ...obj,
+              salary: {
+                ...obj?.['salary'],  
+                to: pair[1] 
+              }, 
+            }  
+          }
+        }else if(pair[0] === 'search_consultants'){ 
+            obj = {
+              ...obj,
+              [pair[0]]: pair[1].split(","), 
+            }    
+        }else if(pair[0] === 'client'){ 
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1].split(","), 
+          }    
+        }else if(pair[0] === 'country'|| pair[0] === 'city'){ 
+          if(Number(pair[1])){
+            obj = {
+              ...obj,
+               location:  {
+                ...obj?.['location'], 
+                [pair[0]]: {key: pair[1]}
+              }, 
             }
-             
+          } 
+        }else if(pair[0] === 'page'){    
+          console.log(Number(pair[1]) && pair[0] === 'page');
+          if(Number(pair[1]) && pair[0] === 'page'){
+            obj = {
+              ...obj,
+              page: pair[1]
+            }
           }else{
             obj = {
               ...obj,
-              [pair[0]]: pair[1],
+              page: 1
             }
+          } 
+        }else if(pair[0] === 'perPage'){    
+          if(Number(pair[1]) && pair[0] === 'perPage'){
+            obj = {
+              ...obj,
+              perPage: pair[1]
+            }
+          }else{
+            obj = {
+              ...obj,
+              perPage: 10
+            }
+          } 
+        }else{
+          obj = {
+            ...obj,
+            [pair[0]]: pair[1],
           }
-        
-        } 
-        // setFilters(obj);
-        console.log(obj);
-        console.log(search);
-    },[search])
-    const { data: listKeyJob } = useQuery(
-    ["getListKeyJob", token],
-    async () => await getKeyJobs(token)
-    ); 
-    const { data: getExCurrencies } = useQuery(
-        ["listExCurrencies", token],
-        async () => await getExchangeCurrencies(token), 
-    );
-    const { data: getValueDefault } = useQuery(
-        ["listVlDefault", token],
-        async () => await getValueFlag(token), 
-    ); 
-    const { data: listUser } = useQuery(
-      ["listUser", token],
-      async () => await getAllUsers(token)
-  );   
-    const { data: listClient } = useQuery(
-      ["listClient", token],
-      async () => await getAllClients(token)
-  ); 
+        }  
+      }     
+      setFilters(obj);
+    }, [search]);   
+   
     useEffect(() => 
       setSearchClients(listClient)
     ,[listClient])
@@ -123,22 +300,14 @@ export default function Jobs() {
       ["listFromCountry", country,token],
       () => getLocationFromCountry(country,token),
       { enabled: Boolean(country) }
-    );   
-    useEffect(() => { 
-        // localStorage.setItem("filtersJob",JSON.stringify({...filters,page: page, perPage: 10}));   
-        setPage(page)
-        setStringFilter(convertStringFilter(filters));
-        navigate(convertStringFilter(filters));
-    },[filters,page,navigate]);  
+    );     
 
     const handleSearchCountry = (e,o)=>{ 
       setCountry(o.data.key)
     }
-    const handleSearch = (selectedKeys, confirm, dataIndex) => {    
-      if(dataIndex === 'client'){
-        setKeyClients(selectedKeys)
-      }
+    const handleSearch = async (selectedKeys, confirm, dataIndex) => {     
       let temp = [];   
+      let dataFilters = {...filters}
       if(dataIndex === 'location'){
         let city ={}
         if(selectedKeys?.city?.data){
@@ -164,6 +333,7 @@ export default function Jobs() {
                   rule: (selectedKeys.rule || {key: 2, label: 'VND'})}
       }
       else if(!selectedKeys[0] || selectedKeys[0]?.length === 0) {
+        console.log('Please select')
         let fake = { ...filters};
         delete fake[dataIndex]; 
         confirm();
@@ -173,19 +343,21 @@ export default function Jobs() {
           temp = selectedKeys[0].map((e)=>{
             return {id:e?.data?.id, key: e?.data?.key||e?.data?.id, name: e?.data?.name || e?.data?.full_name || e?.data?.label , }
           }) 
-        }
+      }
       else{
         temp = selectedKeys[0]
-      }
-      
-      setFilters({
-        ...filters,
-        [dataIndex]: temp
-      })   
-      setStringFilter(convertStringFilter(filters)); 
-      setPage(1)
+      }   
+      setPage(1);
       confirm();   
-    };   
+      return setFilters({
+        ...dataFilters,
+        [dataIndex]: temp
+      }) ;
+    };     
+    useEffect(()=>{ 
+        filterString.current = convertStringFilter(filters);
+        navigate(convertStringFilter(filters)); 
+    },[filters]) 
     const handleReset = (clearFilters,confirm,dataIndex) => {
       let temp = { ...filters }; 
       delete temp[dataIndex]; 
@@ -200,20 +372,18 @@ export default function Jobs() {
       confirm()
     };
     const handlerClickPagination = (e) => { 
-      filters.page = e;
-      localStorage.setItem("filtersJob", JSON.stringify(filters));
-      navigate("?page=" + e);
+      let temp = { ...filters}
+      temp.page = e
+      setFilters(temp)
       setPage(e);
     }; 
-    const clearAllFilter = () => { 
-      navigate(-1)
-
+    const clearAllFilter = () => {  
         form.setFieldsValue({
           rangeTo: null,
           rangeFrom: null
         }) 
-      // setFilters({page: 1, perPage: 10});
-      // setPage(1)
+       setFilters({page: 1, perPage: 10});
+       setPage(1)
     }; 
     const getColumnSearchProps = (dataIndex,type) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
@@ -315,7 +485,7 @@ export default function Jobs() {
                   }} 
                   {...data}
                   mode="multiple" 
-                  onSearch={e => console.log(e)}
+                  // onSearch={e => console.log(e)}
                   onChange={(e, o) =>{ setSelectedKeys(o ? [o] : [])}}
                   allowClear  
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
@@ -501,7 +671,7 @@ export default function Jobs() {
                     title: 'ID',
                     fixed: "left",
                     key: listKeyJob.data[0],
-                    width: '150px',
+                    width: '110px',
                     render: (id, record) => (
                         <p
                           onClick={() => handlerClickRow(record.job_id)}
@@ -661,7 +831,7 @@ export default function Jobs() {
         name =  'Title:'
       }
       else if(tag[0] === 'status'){
-        name =  'Status:'
+        name =  'Status:'  
       }
       else if(tag[0] === 'client'){
         name =  'Client:'
@@ -669,8 +839,7 @@ export default function Jobs() {
       else if(tag[0] === 'search_consultants'){
         name =  'Search Consultants:'
       }   
-
-      
+ 
       if(tag[0] === 'page' || tag[0] === 'perPage'){
         return ;
       }
@@ -680,17 +849,31 @@ export default function Jobs() {
         let from = tag[1]?.from?`from ${tag[1]?.from}`:''
         label = `${from} ${to} ${tag[1]?.rule?.label}`
       }
+      else if (tag[0] === 'search_consultants'){ 
+        let str = tag[1]?.map(t=> listUser?.data?.filter(e=> e?.id === t)[0]?.full_name); 
+        if(str[0]){
+          label = ` ${str.toString()}`;
+        } 
+        label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
+        
+      }
+      else if (tag[0] === 'client'){ 
+        let str = tag[1]?.map(t=> listClient?.data?.filter(e=> e?.id === t)[0]?.name);  
+        if(str[0]){
+          label = `${str.toString()}`;
+        } 
+        label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
+      }
       else if(Array.isArray(tag[1])){  
-        label =` ${(tag[1]?.map(e => e.name)).toString()}`;
+        label =` ${(tag[1]?.map(e => (e?.name||e?.label))).toString()}`;
       } 
-      else if(tag[0]=== 'location'){ 
+      else if(tag[0]=== 'location'){
         name =  'City:' 
-        label = `${tag[1]?.country?.label}  ${tag[1]?.city?.label|| ''}`;
+        label = `${tag[1]?.country?.label} ${tag[1]?.city?.label|| ''}`;
       } 
       else { 
         label = tag[1]
       }
-
       const tagElem = (
         <Tag
           closable
@@ -713,9 +896,9 @@ export default function Jobs() {
         </span>
       );
     }; 
-
+    
     let temp = Object.entries(filters);    
-    const tagChild = temp?.map(forMap);
+    const tagChild = temp?.map(forMap); 
     return (
     <Layout>
     <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>

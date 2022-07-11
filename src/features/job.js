@@ -3,8 +3,8 @@ import { HeaderFetch } from "../utils/header";
 
 const DOMAIN = 'https://lubrytics.com:8443';
  
-export const getListJob = (stringFilter,header) => {   
-    return axios.get(DOMAIN+'/nadh-api-crm/api/jobs'+stringFilter, 
+export const getListJob = (stringFilter,header) => {    
+    return axios.get(DOMAIN+'/nadh-api-crm/api/jobs'+(stringFilter||''), 
  {
      headers: HeaderFetch(header), 
 }).then((res) => res.data).catch((err) => err.response)} 

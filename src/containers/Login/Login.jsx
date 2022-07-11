@@ -4,25 +4,11 @@ import Checkbox from "antd/lib/checkbox/Checkbox";
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
-const countDown = () => {
-  // let secondsToGo = 2;
-
-  const modal = Modal.error({
-    title: "Please check username or password again!",
-    // content: `This modal will be destroyed after ${secondsToGo} second.`,
+const countDown = () => { 
+  Modal.error({
+    title: "Please check username or password again!", 
   });
-
-  // const timer = setInterval(() => {
-  //   secondsToGo -= 1;
-  //   modal.update({
-  //     content: `This modal will be destroyed after ${secondsToGo} second.`,
-  //   });
-  // }, 1000);
-
-  // setTimeout(() => {
-    // clearInterval(timer);
-  //   modal.destroy();
-  // }, secondsToGo * 1000);
+ 
 };
 
 export default function Login() { 
@@ -51,7 +37,7 @@ export default function Login() {
   return (
   <>
   <Layout style={{ padding: "100px", backgroundColor: 'white' }}>
-      <img src="https://nadh.lubrytics.com/icon_NADH.ico" style={{width: '100px', margin: '0 auto'}}></img>
+      <img src="https://nadh.lubrytics.com/icon_NADH.ico" style={{width: '100px', margin: '0 auto'}} alt=""></img>
       <h1 style={{fontSize: '50px', textAlign: 'center', fontWeight: 'bold', opacity: '0.8'}}>NADH</h1>
       <Layout style={{width: '600px',padding: '40px 40px 60px 40px', height: '320px', margin: '40px auto 0', backgroundColor: 'white',border: '1px solid #c8ced3'}}>
         
