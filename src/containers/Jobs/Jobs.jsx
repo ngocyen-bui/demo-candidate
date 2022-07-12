@@ -301,7 +301,7 @@ export default function Jobs() {
       () => getLocationFromCountry(country,token),
       { enabled: Boolean(country) }
     );     
-
+      // console.log(getValueDefault);
     const handleSearchCountry = (e,o)=>{ 
       setCountry(o.data.key)
     }

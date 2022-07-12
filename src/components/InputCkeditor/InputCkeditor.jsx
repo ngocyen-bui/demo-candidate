@@ -1,44 +1,92 @@
 
- import React from 'react';
-import { CKEditor, CKEditorContext } from '@ckeditor/ckeditor5-react';
-
-import Context from '@ckeditor/ckeditor5-core/src/context';
-import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
-import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
-import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
-import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
-import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph'; 
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import DecoupledcEditor from "@ckeditor/ckeditor5-build-decoupled-document";
+import React, { useState } from 'react'; 
+import UploadAdapter from './UploadAdapter';      
+import { Button } from 'antd';
+  
 
 export function InputCkeditor (props){
+    const title = props.title;
+    const [data, setData] = useState("");
+    const [hideToolbar, setHideToolbar] = useState(false); 
     return (
-        <div className="App">
-        <CKEditorContext context={ Context }>
-            <h2>Using the CKeditor 5 context feature in React</h2>
-            <CKEditor
-                editor={ ClassicEditor }
-                config={ {
-                    plugins: [ Paragraph, Bold, Italic, Essentials ],
-                    toolbar: [ 'bold', 'italic' ]
-                } }
-                data="<p>Hello from the first editor working with the context!</p>"
-                onReady={ editor => {
-                    console.log( 'Editor1 is ready to use!', editor );
-                } }
-            />
-
-            <CKEditor
-                editor={ ClassicEditor }
-                config={ {
-                    plugins: [ Paragraph, Bold, Italic, Essentials ],
-                    toolbar: [ 'bold', 'italic' ]
-                } }
-                data="<p>Hello from the first editor working with the context!</p>"
-                onReady={ editor => {
-                    // You can store the "editor" and use when it is needed.
-                    console.log( 'Editor1 is ready to use!', editor );
-                } }
-            />
-        </CKEditorContext> 
-    </div>
-    )
+        <>
+        <h3>{title}</h3>
+        <div style={{width: '100%', display: 'flex', flexDirection: 'column-reverse'}}>
+            <CKEditor   
+                onReady={(editor) => { 
+                    editor.ui
+                    .getEditableElement()
+                    .parentElement.append(editor.ui.view.toolbar.element);   
+                    editor.plugins.get("FileRepository").createUploadAdapter = (loader) =>
+                    new UploadAdapter(loader);
+                }}
+                editor={DecoupledcEditor}
+                config={{  
+                    toolbar:{
+                        items:[
+                            "heading","|", 
+                            "fontsize","|",
+                            "bold","italic","underline","strikethrough","|",
+                            'alignment',"|",
+                            "bulletedList","numberedList","|", 
+                            'indent','outdent',"|",
+                            "link","blockQuote","imageUpload","insertTable","mediaEmbed","|",
+                            "undo","redo"
+                          ], 
+                    },
+                    image: { 
+                        styles: ["alignLeft", "alignCenter", "alignRight"],
+                        sizes: ["50%", "75%", "100%"], 
+                        resizeOptions: [
+                          {
+                            name: "imageResize:original",
+                            label: "Original",
+                            value: null
+                          },
+                          {
+                            name: "imageResize:50",
+                            label: "50%",
+                            value: "50"
+                          },
+                          {
+                            name: "imageResize:75",
+                            label: "75%",
+                            value: "75"
+                          }
+                        ], 
+                        toolbar: [
+                          "imageStyle:alignLeft",
+                          "imageStyle:alignCenter",
+                          "imageStyle:alignRight",
+                          "|",
+                          "imageResize",
+                          "|",
+                          "imageTextAlternative", 
+                        ]
+                      }, 
+                  }}
+                data={""} 
+                onChange={(event, editor) => {
+                    const data = editor.getData();
+                    setData(data);
+                    console.log({ event, editor, data });
+                  }}
+                onBlur={(event, editor) => {
+                // console.log("Blur.", editor);
+                // console.log(Array.from(editor.ui.componentFactory.names())); 
+                return editor.disableReadOnlyMode()
+                }}
+                onFocus={(event, editor) => {
+                    
+                }}
+            /> 
+        </div>
+            <div className="ckeditor-wrapper" style={{float: "right"}}>
+                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--cancel' onClick={()=>setHideToolbar(true)} >Cancel</Button>
+                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--save' type="primary">Save</Button>
+            </div>
+        </>
+    );
 }

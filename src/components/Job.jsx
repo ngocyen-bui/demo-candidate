@@ -1,4 +1,4 @@
-import { Button, Checkbox, Col, DatePicker, Form, InputNumber, message, Row, Select, Table, Tag, Upload } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, InputNumber, message, Row, Select, Table, Tag, Upload } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect } from "react";
 import { useState } from "react";import moment from 'moment';
@@ -329,7 +329,7 @@ export default function DetailJob (props){
         </div>
     </div>  
 
-    <div  className="job-industry ant-card ant-card-bordered" style={{ backgroundColor: "white", marginTop: "24px" }}>
+    {/* <div  className="job-industry ant-card ant-card-bordered" style={{ backgroundColor: "white", marginTop: "24px" }}>
         <header className="header-detail-job">
             <h3 className="header-detail-job__title">Industry</h3>
         </header>
@@ -340,8 +340,20 @@ export default function DetailJob (props){
             <h3 className="header-detail-job__title">Attachment</h3>
         </header>
          <AttachmentComponent resetData={resetData}  infoJob={data}></AttachmentComponent>
-    </div>
-    <InputCkeditor></InputCkeditor>
+    </div> */}
+    <div className="job-description ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px",paddingBottom: "20px" }}>
+        <header className="header-detail-job">
+            <h3 className="header-detail-job__title">Job Description</h3>
+        </header>
+        <div style={{paddingInline: "24px"}}>
+            <Row gutter={16}>
+                <Col span={12}><InputCkeditor title={'RESPONSIBILITIES / DAILY DUTIES'}/></Col>
+                <Col span={12}><InputCkeditor title={'ROLE EXPECTATIONS'}/></Col> 
+                <Col span={12}></Col> 
+            </Row>
+        </div>
+    </div> 
+    
   </Content>
 }
 

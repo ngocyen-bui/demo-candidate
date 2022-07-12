@@ -11,10 +11,8 @@ import { BrowserRouter } from "react-router-dom";
 
 const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-
+root.render( 
+    <Provider store={store}> 
     <BrowserRouter>
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
@@ -22,8 +20,7 @@ root.render(
         </QueryClientProvider>
       </AuthProvider>
       </BrowserRouter>
-    </Provider>
-  </React.StrictMode>
+    </Provider> 
 );
 
 // If you want to start measuring performance in your app, pass a function

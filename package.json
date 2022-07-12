@@ -5,6 +5,9 @@
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "@ckeditor/ckeditor5-build-classic": "^34.2.0",
+    "@ckeditor/ckeditor5-build-decoupled-document": "^34.2.0",
+    "@ckeditor/ckeditor5-easy-image": "^34.2.0",
+    "@ckeditor/ckeditor5-font": "^34.2.0",
     "@ckeditor/ckeditor5-react": "^5.0.2",
     "@reduxjs/toolkit": "^1.8.2",
     "@testing-library/jest-dom": "^5.16.4",
@@ -12,7 +15,6 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^4.21.1",
     "axios": "^0.27.2",
-    "ckeditor5": "^34.2.0",
     "query-string": "^7.1.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

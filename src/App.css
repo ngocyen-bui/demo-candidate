@@ -161,3 +161,28 @@
 .form-item-value-add-job{
   margin-top: 10px;
 }
+
+/* ckeditor */
+.ck.ck-content.ck-editor__editable_inline {
+  background-color: #fff;
+  border: 1px solid rgba(48, 48, 48, 0.4);
+}
+.ckeditor-wrapper__btn span,
+.ckeditor-wrapper__btn{
+  height: 28px;
+  line-height: 20px;
+  padding: 2px 4px;
+}
+.ckeditor-wrapper__btn{
+  margin-top: 10px; 
+}
+.ckeditor-wrapper__btn--cancel{
+  margin-right: 8px;
+  border: none;
+  font-weight: 500;
+  transition: none;
+}
+.ckeditor-wrapper__btn--cancel:hover{
+  border: 1px solid  rgba(48, 48, 48, 0.4);
+  color: red
+}
