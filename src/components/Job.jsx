@@ -14,6 +14,7 @@ import { unwrapResult } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { InputCkeditor } from "./InputCkeditor/InputCkeditor";
 
 
 
@@ -340,6 +341,7 @@ export default function DetailJob (props){
         </header>
          <AttachmentComponent resetData={resetData}  infoJob={data}></AttachmentComponent>
     </div>
+    <InputCkeditor></InputCkeditor>
   </Content>
 }
 
