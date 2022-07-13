@@ -97,7 +97,7 @@ const App = () => {
         </div>
        <Layout>
           {!!auth ? (
-            <>
+            <div  style={{position: 'fixed', right: 0, left:0, zIndex: 999}}>
               <Header className="header app-header">
                 <Link to="/">
                   <Image
@@ -127,40 +127,42 @@ const App = () => {
                 defaultSelectedKeys={current}
                 items={formatList}
               ></Menu>
-            </>
+            </div>
           ) : (
             <></>
           )}
 
-          <Routes>
-            <Route
-              exact
-              path="/"
-              element={
-                <Navigate to="/login" />
-              }
-            />
-            <Route
-              exact
-              path="/login"
-              element={
-                !!auth ? <Navigate to="/candidates" /> : <Login />
-              }
-            />
-            <Route exact path="/candidates" element={<Candidate />} />
-            <Route exact path="/jobs" element={<Jobs />} />
-            <Route 
-              path="/candidate-detail/:id"
-              element={<EditCandidate />}
-            />
-            <Route 
-              path="/job-detail/:id"
-              element={<EditJob />}
-            />
-            <Route exact path="/add-candidate" element={<AddCandidate />} />
-            <Route exact path="/add-job" element={<AddJob />} />
-            <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>
-          </Routes>
+          <div style={{marginTop: '100px'}}>
+            <Routes>
+              <Route
+                exact
+                path="/"
+                element={
+                  <Navigate to="/login" />
+                }
+              />
+              <Route
+                exact
+                path="/login"
+                element={
+                  !!auth ? <Navigate to="/candidates" /> : <Login />
+                }
+              />
+              <Route exact path="/candidates" element={<Candidate />} />
+              <Route exact path="/jobs" element={<Jobs />} />
+              <Route
+                path="/candidate-detail/:id"
+                element={<EditCandidate />}
+              />
+              <Route
+                path="/job-detail/:id"
+                element={<EditJob />}
+              />
+              <Route exact path="/add-candidate" element={<AddCandidate />} />
+              <Route exact path="/add-job" element={<AddJob />} />
+              <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>
+            </Routes>
+          </div>
         </Layout>
         <>
           <BackTop />

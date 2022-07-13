@@ -155,7 +155,7 @@ export default function Jobs() {
     });  
     const filterString = useRef()
   
-    const convertStringFilter = (filters)=>{
+    const convertStringFilter = (filters)=>{ 
       const listFilter = filters;
       let str = '?page='+(page || 1)+'&perPage='+(listFilter['perPage']|| 10);
       for (const f in listFilter) {  
@@ -174,7 +174,7 @@ export default function Jobs() {
             let from = listFilter[f]?.from?`&salary_from=${listFilter[f]?.from}`: ''; 
             str+= `&currency=${listFilter[f]?.rule?.key}${from}${to}`
         } 
-        else if(Array.isArray(listFilter[f])){
+        else if(Array.isArray(listFilter[f])){ 
             let arr = listFilter[f]?.map(e => e?.id || e);
             str +='&'+f+'='+arr.toString();
         } else{
@@ -258,8 +258,7 @@ export default function Jobs() {
               }, 
             }
           } 
-        }else if(pair[0] === 'page'){    
-          console.log(Number(pair[1]) && pair[0] === 'page');
+        }else if(pair[0] === 'page'){     
           if(Number(pair[1]) && pair[0] === 'page'){
             obj = {
               ...obj,
@@ -306,6 +305,8 @@ export default function Jobs() {
       setCountry(o.data.key)
     }
     const handleSearch = async (selectedKeys, confirm, dataIndex) => {     
+      console.log(filters);
+      console.log(selectedKeys);
       let temp = [];   
       let dataFilters = {...filters}
       if(dataIndex === 'location'){
@@ -400,14 +401,29 @@ export default function Jobs() {
           } 
           const getLisValue = (e)=>{  
               if(e === 'status'){
-                return filters[e]?.map(e =>
-                  e?.id)  
+               return filters[e]?.map(e =>{
+                  if(typeof e === 'string'){
+                    return e
+                  }else {
+                    return e?.id
+                  }
+                })  
               }else  if(e === 'client'){
-                return filters[e]?.map(e =>
-                  e?.id)  
+                return filters[e]?.map(e =>{
+                  if(typeof e === 'string'){
+                    return e
+                  }else {
+                    return e?.id
+                  }
+                })  
               }else  if(e === 'search_consultants'){
-                return filters[e]?.map(e =>
-                  e?.id)  
+               return filters[e]?.map(e =>{
+                  if(typeof e === 'string'){
+                    return e
+                  }else {
+                    return e?.id
+                  }
+                })  
               }
           } 
           if(type === 'input'){ 

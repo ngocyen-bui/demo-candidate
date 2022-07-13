@@ -1,15 +1,15 @@
 import {
-    Breadcrumb, message, Spin, Upload, 
+    Breadcrumb, Button, Col, Collapse, message, Row, Spin, Upload, Steps,Timeline
   } from "antd";
   import Layout from "antd/lib/layout/layout";
   import { useEffect, useState } from "react"; 
   import { Link, useParams } from "react-router-dom"; 
   import {
-    getCandidate, updateCandidate, 
+    getCandidate 
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
-import { LoadingOutlined } from "@ant-design/icons"; 
+import { LoadingOutlined, MoreOutlined, PlusOutlined } from "@ant-design/icons"; 
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../hooks/useAuth";
 import axios from "axios";
@@ -34,34 +34,92 @@ if (loading === 'PENDING') {
     return (
       <Layout>
         <Layout
-          style={{ padding: "12px 24px 100px 24px ", minHeight: "800px" }}
+          style={{ padding: "0 24px 100px 24px ", minHeight: "800px" }}
         >
-          <Breadcrumb separator="/">
+          <Breadcrumb separator="/" style={{ position: "fixed", paddingLeft: '24px', right: 0, left: 0, backgroundColor: "#F0F2F5" ,zIndex:2, lineHeight: '44px'}}>
             <Breadcrumb.Item>
               <Link to="/candidates">Candidates List</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item href="">Detail Candidate</Breadcrumb.Item>
           </Breadcrumb>
     
-          {params?.id?  <Layout style={{padding: '10px 20px', background: '#fff', marginTop: 20, }}>
-            <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Overview</h4>
-            <TextArea placeholder="Overview" rows={4} />
-          </Layout>:
-          <></>}
-          <DetailCandidate disabled={false} params={params} edit={true}/>
-          <div className="candidate-attachment ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px" }}>
-                <header className="header-detail-candidate">
-                    <h3 className="header-detail-candidate__title">Attachment</h3>
-                </header>
-                <AttachmentComponent params={params}></AttachmentComponent>
-            </div>
+        <Row gutter={16} style={{ marginTop: 44}}>
+          <Col span={16}>
+            <Layout style={{padding: '10px 20px', background: '#fff'}}>
+              <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Overview</h4>
+              <TextArea placeholder="Overview" rows={4} />
+            </Layout>
+            <DetailCandidate disabled={false} params={params} edit={true}/>
+            <div className="candidate-attachment ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px" }}>
+                  <header className="header-detail-candidate">
+                      <h3 className="header-detail-candidate__title">Attachment</h3>
+                  </header>
+                  <AttachmentComponent params={params}></AttachmentComponent>
+              </div>
+          </Col>
+          <Col span={8} style={{position: 'fixed', right: 0, width: '100%'}}>
+             <InterviewLoop id={params.id}/>
+          </Col>
+        </Row>
         </Layout>
       </Layout>
     ); 
   } 
   }
-  
 
+  //https://ant.design/components/steps/
+  function InterviewLoop(props){
+    const id = props.id;
+    const { Panel } = Collapse; 
+
+    const { user: auth } = useAuth(); 
+    const token = auth?.token; 
+
+    const { data: totalDataJobs } = useQuery(
+      ["infoInterviewsJobs" , id, token],
+      async () => await getCandidate(  id, token), 
+    ); 
+    const text = `
+      A dog is a type of domesticated animal.
+      Known for its loyalty and faithfulness,
+      it can be found as a welcome guest in many households across the world.
+    `;
+    const genExtra = () => (
+      <MoreOutlined 
+        onClick={event => {
+          // If you don't want click extra trigger collapse, you can prevent this:
+          console.log(event);
+          event.stopPropagation();
+        }}
+      />
+    );
+    const header = (data)=>{  
+      return <div>
+        <div style={{fontWeight: 600, fontSize: '16px'}}>{`${data?.job_id} - ${data?.title?.label}`}</div>
+        <div style={{fontWeight: 600, opacity: 0.6, fontSize: '14px'}}>{`${data?.client?.name} - ${data?.client?.client_id}`}</div>
+      </div>
+    } 
+    return (
+      <div style={{width: '100%', backgroundColor: "red" }}>
+         <div style={{display: 'flex', justifyContent: 'space-between', padding: '10px 20px', background: '#fff'}}>
+          <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Interview Loop</h4> 
+          <Button style={{ color: '#1890ff', borderColor: '#1890ff'}}><PlusOutlined/>Pick Job</Button>
+        </div>
+        <Collapse accordion>
+          {totalDataJobs?.flows?.map((e,i)=>{
+            let primaryTitle = e?.job;
+           return <Panel header={header(primaryTitle)} key={i+1} extra={genExtra()}>
+                  <Timeline>
+                      <Timeline.Item color="green">Create a services site 2015-09-01</Timeline.Item>
+                      <Timeline.Item color="green">Create a services site 2015-09-01</Timeline.Item>
+                  </Timeline> 
+            </Panel> 
+          })} 
+        </Collapse>
+      </div>
+    );
+  }
+  
   function AttachmentComponent(props){
     const params = props.params; 
     const dispatch = useDispatch();

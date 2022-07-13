@@ -1157,10 +1157,11 @@ export const DetailCandidate = memo((prop) => {
                 </Button> 
             </div>
           )}
-        </Form>
+        </Form> 
       </Content>
     );
   } else return; 
   
  
 })
+
