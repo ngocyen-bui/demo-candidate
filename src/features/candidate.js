@@ -105,3 +105,10 @@ export const updateCandidate =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-
   // export const logout = () => {return axios.get( DOMAIN+`/nadh-api-crm/logout`, 
   // {    headers: HeaderFetch, 
   // }).then((res) => res.data)} 
+
+
+  //compare 
+ 
+  export const compareCDDWithJob = (idCDD,idJob,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/assessments/compare?candidate_id=${idCDD}&job_id=${idJob}`, 
+{    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 

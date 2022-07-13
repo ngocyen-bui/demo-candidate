@@ -167,12 +167,15 @@
   background-color: #fff;
   border: 1px solid rgba(48, 48, 48, 0.4);
 }
+.interview-btn span,
+.interview-btn,
 .ckeditor-wrapper__btn span,
 .ckeditor-wrapper__btn{
   height: 28px;
   line-height: 20px;
   padding: 2px 4px;
 }
+.interview-btn,
 .ckeditor-wrapper__btn{
   margin-top: 10px; 
 }
@@ -185,4 +188,22 @@
 .ckeditor-wrapper__btn--cancel:hover{
   border: 1px solid  rgba(48, 48, 48, 0.4);
   color: red
+}
+.ant-timeline-item { 
+  margin-bottom: 20px;
+  padding-bottom: 0; 
+}
+.ant-modal-mask { 
+  background-color: rgba(0,0,0,0.4);
+  top: 54px;
+}
+.ant-modal-wrap { 
+  top: 54px; 
+} 
+.ant-picker-time-panel{
+  display: none;
+}
+
+.ant-comment-avatar img {
+  object-fit: cover;
 }

@@ -87,9 +87,7 @@ export const getImage = (obj_id,obj_table,header) => {return axios.get( DOMAIN+`
 }).then((res) => res.data)} 
 
 
-//delete image
-// /https://lubrytics.com:8443/nadh-api-crm/api/jobs/a54910b4-b552-49c8-88ad-da4de84d4cb3
-//https://lubrytics.com:8443/nadh-mediafile/file/2f6411f0-eae8-42d4-9dc4-24094ac9211f 
+//delete image 
 
 export const deteteImage = (id,header) => {return axios.delete( DOMAIN+`/nadh-mediafile/file/${id}`, 
 {
@@ -97,3 +95,16 @@ export const deteteImage = (id,header) => {return axios.delete( DOMAIN+`/nadh-me
 }).then((res) => res.data)} 
  
 
+//search job 
+//https://lubrytics.com:8443/nadh-api-crm/api/jobs?advance_search=2
+
+export const getJob = (creator_id,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/jobs?status=1&related_to=${creator_id}`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
+
+
+export const getJobAdvance = (value,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/jobs?advance_search=${value}`, 
+{
+    headers:  HeaderFetch(header), 
+}).then((res) => res.data)} 
