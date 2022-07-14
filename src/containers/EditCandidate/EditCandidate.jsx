@@ -281,6 +281,7 @@ function ModalFlow(props){
   const statusJob = dataFlow?.job?.status;
 
   const [isShowBtnConsultant, setIsShowBtnConsultant] = useState(false); 
+  const [isShowActionBtn, setIsShowActionBtn] = useState(false); 
   const [isEnable, setIsEnable] = useState(false);
 
   const { data: listALlUsers } = useQuery(
@@ -289,8 +290,11 @@ function ModalFlow(props){
   );   
     useEffect(() =>{
       setIsEnable(statusJob < 0)
-    }
+    },[statusJob]
     )
+  const onChangeAction = ()=>{
+    setIsShowActionBtn(true)
+  }
   const onChangeConsultant = () => {
     setIsShowBtnConsultant(true)
   }
@@ -364,7 +368,7 @@ function ModalFlow(props){
                   mode="multiple"
                   placeholder="Please select flow status"
                   optionFilterProp="children"
-                  onChange={onChangeConsultant}
+                  onChange={onChangeAction}
                   // onSearch={onSearch}
                   style={{width: '100%'}}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
@@ -373,6 +377,7 @@ function ModalFlow(props){
                     return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.label}</Select.Option>
                   })} 
                 </Select>
+            {isShowActionBtn?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=>setIsShowActionBtn(false)} >Save</Button>:<></>}
             </Col>
           </Row>:
           <></>}
@@ -523,7 +528,7 @@ function PickJob(props){
               placeholder="Please select job"
               // defaultValue={['china']} 
               // onChange={handleChange}
-              autoClearSearchValue={true}
+              autoClearSearchValue={false}
               onSelect={handleSelectJob}
               onSearch={(e)=> setValue(e)}
               filterOption={false}

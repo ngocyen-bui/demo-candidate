@@ -58,7 +58,7 @@ export default function DetailJob (props){
     const [key,setKey]= useState('');
     const [data,setData]= useState();
     const [picture,setPicture]= useState();
-
+    const [showToolbar,setShowToolbar]= useState(false);
  
     const { data: listInfoJob } = useQuery(
         ["jobdetail", params?.id, token],
@@ -106,6 +106,9 @@ export default function DetailJob (props){
     }
     const resetPic = (data) => { 
         setPicture(data);
+    }
+    const handleIsShowToolbar = (value)=>{
+        setShowToolbar(value);
     }
     useEffect(()=>{
         setData(listInfoJob);
@@ -347,8 +350,8 @@ export default function DetailJob (props){
         </header>
         <div style={{paddingInline: "24px"}}>
             <Row gutter={16}>
-                <Col span={12}><InputCkeditor title={'RESPONSIBILITIES / DAILY DUTIES'}/></Col>
-                <Col span={12}><InputCkeditor title={'ROLE EXPECTATIONS'}/></Col> 
+                <Col span={12}><InputCkeditor showToolbar={handleIsShowToolbar} isShow={showToolbar} title={'RESPONSIBILITIES / DAILY DUTIES'}/></Col>
+                <Col span={12}><InputCkeditor showToolbar={handleIsShowToolbar} isShow={showToolbar} title={'ROLE EXPECTATIONS'}/></Col> 
                 <Col span={12}></Col> 
             </Row>
         </div>

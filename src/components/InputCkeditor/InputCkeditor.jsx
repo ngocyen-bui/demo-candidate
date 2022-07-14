@@ -8,17 +8,23 @@ import { Button } from 'antd';
 
 export function InputCkeditor (props){
     const title = props.title;
+    const showToolbar = props.showToolbar;
+    const isShow = props.isShow;
     const [data, setData] = useState("");
     const [hideToolbar, setHideToolbar] = useState(false); 
     return (
         <>
         <h3>{title}</h3>
-        <div style={{width: '100%', display: 'flex', flexDirection: 'column-reverse'}}>
+        <div style={{width: '100%'}}>
+            <div className={isShow?"ckeditor-custom-toolbar":'ckeditor-custom-toolbar hide'}></div>
             <CKEditor   
                 onReady={(editor) => { 
-                    editor.ui
-                    .getEditableElement()
-                    .parentElement.append(editor.ui.view.toolbar.element);   
+                    // editor.ui
+                    // .getEditableElement()
+                    // .parentElement.append(editor.ui.view.toolbar.element);   
+                    editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar').append(editor.ui.view.toolbar.element)
+                    // console.log(editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar'));
+
                     editor.plugins.get("FileRepository").createUploadAdapter = (loader) =>
                     new UploadAdapter(loader);
                 }}
@@ -79,12 +85,12 @@ export function InputCkeditor (props){
                 return editor.disableReadOnlyMode()
                 }}
                 onFocus={(event, editor) => {
-                    
+                  showToolbar(true);
                 }}
             /> 
         </div>
             <div className="ckeditor-wrapper" style={{float: "right"}}>
-                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--cancel' onClick={()=>setHideToolbar(true)} >Cancel</Button>
+                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--cancel' onClick={()=>showToolbar(false)} >Cancel</Button>
                 <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--save' type="primary">Save</Button>
             </div>
         </>
