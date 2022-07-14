@@ -1,4 +1,4 @@
-import { Button, Checkbox, Col, DatePicker, Form, Input, InputNumber, message, Row, Select, Table, Tag, Upload } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, InputNumber, message, Row, Select, Spin, Table, Tag, Upload } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import { useEffect } from "react";
 import { useState } from "react";import moment from 'moment';
@@ -12,7 +12,7 @@ import { getLevelJob, getStatusJob, getTypeJob, listLevel, listStatus, listType 
 import { fetchUpdateJob } from "../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, LoadingOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { InputCkeditor } from "./InputCkeditor/InputCkeditor";
 
@@ -53,14 +53,16 @@ const formatDate = (date,type = 'datetime')=>{
 export default function DetailJob (props){
     const params = props.params;
     const { user: auth,logout } = useAuth();
+    const dispatch = useDispatch();
     const token = auth?.token;
+
     const [editOnly, setEditOnly] = useState(false); 
     const [key,setKey]= useState('');
     const [data,setData]= useState();
-    const [picture,setPicture]= useState();
-    const [showToolbar,setShowToolbar]= useState(false);
- 
-    const { data: listInfoJob } = useQuery(
+    const [picture,setPicture]= useState(); 
+    const [listDataJobDescriptions,setListDataJobDescriptions]= useState({});
+  
+    const { data: listInfoJob , refetch} = useQuery(
         ["jobdetail", params?.id, token],
         () => getJobById(params?.id, token)
     );       
@@ -107,257 +109,376 @@ export default function DetailJob (props){
     const resetPic = (data) => { 
         setPicture(data);
     }
-    const handleIsShowToolbar = (value)=>{
-        setShowToolbar(value);
+    const handleSaveJobDescription =async (data,type)=>{   
+        let result = {
+            [type]:data
+        }
+       await dispatch(fetchUpdateJob({id: params?.id,data:result,token}))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
+                message.error('Something wrong !'); 
+            }
+            else { 
+                refetch();
+                resetData(e);
+                message.loading({ content: 'Loading...', key,duration: 0.5 });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+    }
+
+    const handleIsShowToolbar = (value,type)=>{
+        let listStatus = {...listDataJobDescriptions} 
+        setListDataJobDescriptions({
+            ...listStatus,
+            [type]: {
+                ...listStatus[type],
+                status: value
+            },
+        });
     }
     useEffect(()=>{
-        setData(listInfoJob);
+        // console.log(listInfoJob);
+        if(listInfoJob){
+            setData(listInfoJob);
+            setListDataJobDescriptions({
+                responsibility: {
+                    key: 'responsibility',
+                    status: false,
+                    value: listInfoJob['responsibility']
+                },
+                expectation: {
+                    key: 'expectation',
+                    status: false,
+                    value: listInfoJob['expectation']
+                },
+                kpi: {
+                    key: 'kpi',
+                    status: false,
+                    value: listInfoJob['kpi']
+                },
+                selling_point: {
+                    key: 'selling_point',
+                    status: false,
+                    value: listInfoJob['selling_point']
+                },
+                department_structure: {
+                    key: 'department_structure',
+                    status: false,
+                    value: listInfoJob['department_structure']
+                }, 
+                competency: {
+                    key: 'competency',
+                    status: false,
+                    value: listInfoJob['competency']
+                }, 
+                development_opportunity: {
+                    key: 'development_opportunity',
+                    status: false,
+                    value: listInfoJob['development_opportunity']
+                },  
+                fill_rate: {
+                    key: 'fill_rate',
+                    status: false,
+                    value: listInfoJob['fill_rate']
+                },  
+                recruitment_process: {
+                    key: 'recruitment_process',
+                    status: false,
+                    value: listInfoJob['recruitment_process']
+                },   
+            })
+        } 
     },[listInfoJob])
-  
-    if(data) return <Content
-    className="site-layout-background"
-    style={{ 
-      paddingTop: 12,
-      margin: 0,
-      marginTop: 20,
-      minHeight: 280, 
-    }}
-  >
-    <div className="job-infomation ant-card ant-card-bordered" style={{ backgroundColor: "white"}}>
-        <header className="header-detail-job">
-            <h3 className="header-detail-job__title">Job Information</h3>
-        </header>
-        <div className="" style={{ padding: '10px 24px'}}> 
-            <Row>
-                <Col span={12}>
-                    {/* {Job_id: disabled} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                           Job ID
-                        </Col>
-                       <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{data?.job_id}</div> 
-                        </Col>  
-                    </Row> 
-                    {/* {Job_title} */} 
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                           Job Title
-                        </Col>
-                        <Col className="job-infomation__content-item" span={16}> 
-                            {!(editOnly && (key==="title"))?
-                                <div onClick={handlerClickRow} value={'title'} ><div value={'title'} style={{lineHeight: '35px'}}>{data?.title?.label}</div></div>
-                            :<SelectComponent resetData={resetData} id={data?.id} stop={stopEdit} type={'title'} default={data?.title?.label}></SelectComponent>} 
-                        </Col> 
-                    </Row> 
-                    {/* {Department} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Department
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}> 
-                            {!(editOnly && (key==="department"))?
-                                <div onClick={handlerClickRow} value={'department'} ><div value={'department'} style={{lineHeight: '35px'}}>{data?.department?.label}</div></div>
-                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'department'} default={data?.department?.label}></SelectComponent>} 
-                        </Col>  
-                    </Row> 
-                    {/* {Quantity} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Quantity
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>
-                       {!(editOnly && (key ==='quantity'))?<div value={"quantity"} onClick={handlerClickRow} >
-                                    <div value={"quantity"}  style={{lineHeight: '35px'}}>{data?.quantity}</div>
-                            </div>
-                            : <InputNumberComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={"quantity"} data={data?.quantity}></InputNumberComponent> }
-                           
-                       
-                        </Col>  
-                    </Row> 
-                    {/* {Type} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Job Type
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>  
-                            {!(editOnly && (key ==='type'))?<div value={"type"} onClick={handlerClickRow} >
-                                <div value={"type"} color={getTypeJob(data?.type)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getTypeJob(data?.type)[0]?.label}</div> 
-                            </div>
-                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getTypeJob(data?.type)[0]?.label} type={'type'}/> }
-                        </Col>  
-                    </Row> 
-                    {/* {Level} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Experience Level
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>  
-                            {!(editOnly && (key ==='experience_level'))?<div value={"experience_level"} onClick={handlerClickRow} >
-                                <div value={"experience_level"} color={getLevelJob(data?.experience_level)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getLevelJob(data?.experience_level)[0]?.label}</div> 
-                            </div>
-                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getLevelJob(data?.experience_level)[0]?.label} type={'experience_level'}/> }
-                        </Col>  
-                    </Row> 
-                    {/* {Created by} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Created By
-                        </Col>
-                       <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.creator?.full_name}</div> 
-                        </Col>  
-                    </Row> 
-                    {/* {Created on} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Created On
-                        </Col>
-                       <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(data?.createdAt)}</div> 
-                            
-                        </Col>  
-                    </Row> 
-                    {/* {Last Updated} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Last Updated
-                        </Col>
-                       <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(data?.updatedAt)}</div>
  
-                        </Col>  
-                    </Row> 
-                </Col>
-                <Col span={12} style={{paddingLeft: '24px'}}>
-                    {/* {Status} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Job Status
-                        </Col>
-                       <Col className="job-infomation__content-item"  style={{minHeight: '35px'}} span={16}>
-                            {!(editOnly && (key ==='status'))?<div value={"status"} onClick={handlerClickRow} ><Tag  value={"status"} color={getStatusJob(data?.status)[0]?.color}style={{borderRadius: '5px'}}>{getStatusJob(data?.status)[0]?.label}</Tag> </div>
-                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getStatusJob(data?.status)[0]?.label} type={'status'}/> }
-                        </Col>  
-                    </Row> 
-                    {/* {Open date} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Open Date
-                        </Col>
-                        <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(data?.target_date,'date')}</div> 
-                        </Col> 
-                    </Row> 
-                    {/* {Expire date} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Expire Date
-                        </Col>
-                       <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                            <div style={{lineHeight: '35px'}}>{formatDate(data?.end_date,'date')}</div> 
-                        </Col>  
-                    </Row> 
-                    {/* {Extend Date} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Extend Date
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>  
-                            {!(editOnly && (key==="extend_date"))?
-                                <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{formatDate(data?.extend_date,'date')|| '-' }</div></div>
-                            : <DataPickerComponent resetData={resetData} id={data?.id}  type={"extend_date"} stop={stopEdit}  default={formatDate(data?.extend_date,'date')}></DataPickerComponent>} 
-                           
-                        </Col>  
-                    </Row> 
-                    {/* {Location} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Location
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>  
-                            {!(editOnly && (key==="location"))?
-                                <div onClick={handlerClickRow} value={'location'} >
-                                    <div value={'location'} style={{lineHeight: '35px'}}>{(data?.location?.city?(data?.location?.city?.label)+" ":'')+( data?.location?.country?(data?.location?.country?.label):'-')}</div></div>
-                            :<LocationSelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'location'} default={data?.location}></LocationSelectComponent>} 
-                        </Col>  
-                    </Row> 
-                    {/* {Client's Name} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Client's Name
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}> 
-                            {!(editOnly && (key==="client"))?
-                                <div onClick={handlerClickRow} value={'client'} ><div value={'client'} style={{lineHeight: '35px'}}>{data?.client?.name}</div></div>
-                            :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listAllClients?.data} type={'client'} default={data?.client?.name}></SelectComponent>} 
-                        </Col>  
-                    </Row> 
-                    {/* {Client's Contact Person} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Client's Contact Person 
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}> 
-                            {!(editOnly && (key==="pic"))?
-                                <div onClick={handlerClickRow} value={'pic'} ><div value={'pic'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.pic?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listContactPersion?.data} type={'pic'} default={data?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
-                        </Col>  
-                    </Row> 
-                    {/* {Search Consultant} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                        Search Consultant
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}> 
-                            {!(editOnly && (key==="recruiters"))?
-                                <div onClick={handlerClickRow} value={'recruiters'} ><div value={'recruiters'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.recruiters?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'recruiters'} default={data?.recruiters?.map(e=> e.key)}></SelectMultipleComponent>} 
-                        </Col>  
-                    </Row> 
-                    {/* {Mapping by} */}
-                    <Row>
-                        <Col className="job-infomation__title-item" span={8}>
-                                Mapping by
-                        </Col>
-                       <Col className="job-infomation__content-item" span={16}>  
-                            {!(editOnly && (key==="related_users"))?
-                                <div onClick={handlerClickRow} value={'related_users'} ><div value={'related_users'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.related_users?.map(e=> e.label).toString()|| '-'}</div></div>
-                            :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'related_users'} default={data?.related_users?.map(e=> e.key)}></SelectMultipleComponent>} 
-                        </Col>  
-                    </Row> 
-                </Col>
-            </Row>
-        
-        </div>
-    </div>  
 
-    {/* <div  className="job-industry ant-card ant-card-bordered" style={{ backgroundColor: "white", marginTop: "24px" }}>
-        <header className="header-detail-job">
-            <h3 className="header-detail-job__title">Industry</h3>
-        </header>
-        <IndustryComponent id={params?.id} infoJob={data} listByType={listCategoryByType} allData={listAllCategory}></IndustryComponent>
-    </div>
-    <div className="job-attachment ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px" }}>
-        <header className="header-detail-job">
-            <h3 className="header-detail-job__title">Attachment</h3>
-        </header>
-         <AttachmentComponent resetData={resetData}  infoJob={data}></AttachmentComponent>
-    </div> */}
-    <div className="job-description ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px",paddingBottom: "20px" }}>
-        <header className="header-detail-job">
-            <h3 className="header-detail-job__title">Job Description</h3>
-        </header>
-        <div style={{paddingInline: "24px"}}>
-            <Row gutter={16}>
-                <Col span={12}><InputCkeditor showToolbar={handleIsShowToolbar} isShow={showToolbar} title={'RESPONSIBILITIES / DAILY DUTIES'}/></Col>
-                <Col span={12}><InputCkeditor showToolbar={handleIsShowToolbar} isShow={showToolbar} title={'ROLE EXPECTATIONS'}/></Col> 
-                <Col span={12}></Col> 
-            </Row>
-        </div>
-    </div> 
-    
-  </Content>
+    if(data) {
+        return <Content
+            className="site-layout-background"
+            style={{ 
+            paddingTop: 12,
+            margin: 0, 
+            minHeight: 280,   
+            }}
+        >
+            <div className="job-infomation ant-card ant-card-bordered" style={{ backgroundColor: "white"}}>
+                <header className="header-detail-job">
+                    <h3 className="header-detail-job__title">Job Information</h3>
+                </header>
+                <div className="" style={{ padding: '10px 24px'}}> 
+                    <Row>
+                        <Col span={12}>
+                            {/* {Job_id: disabled} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Job ID
+                                </Col>
+                            <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px'}}>{data?.job_id}</div> 
+                                </Col>  
+                            </Row> 
+                            {/* {Job_title} */} 
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Job Title
+                                </Col>
+                                <Col className="job-infomation__content-item" span={16}> 
+                                    {!(editOnly && (key==="title"))?
+                                        <div onClick={handlerClickRow} value={'title'} ><div value={'title'} style={{lineHeight: '35px'}}>{data?.title?.label}</div></div>
+                                    :<SelectComponent resetData={resetData} id={data?.id} stop={stopEdit} type={'title'} default={data?.title?.label}></SelectComponent>} 
+                                </Col> 
+                            </Row> 
+                            {/* {Department} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Department
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}> 
+                                    {!(editOnly && (key==="department"))?
+                                        <div onClick={handlerClickRow} value={'department'} ><div value={'department'} style={{lineHeight: '35px'}}>{data?.department?.label}</div></div>
+                                    :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'department'} default={data?.department?.label}></SelectComponent>} 
+                                </Col>  
+                            </Row> 
+                            {/* {Quantity} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Quantity
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>
+                            {!(editOnly && (key ==='quantity'))?<div value={"quantity"} onClick={handlerClickRow} >
+                                            <div value={"quantity"}  style={{lineHeight: '35px'}}>{data?.quantity}</div>
+                                    </div>
+                                    : <InputNumberComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={"quantity"} data={data?.quantity}></InputNumberComponent> }
+                                
+                            
+                                </Col>  
+                            </Row> 
+                            {/* {Type} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Job Type
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>  
+                                    {!(editOnly && (key ==='type'))?<div value={"type"} onClick={handlerClickRow} >
+                                        <div value={"type"} color={getTypeJob(data?.type)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getTypeJob(data?.type)[0]?.label}</div> 
+                                    </div>
+                                    :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getTypeJob(data?.type)[0]?.label} type={'type'}/> }
+                                </Col>  
+                            </Row> 
+                            {/* {Level} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Experience Level
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>  
+                                    {!(editOnly && (key ==='experience_level'))?<div value={"experience_level"} onClick={handlerClickRow} >
+                                        <div value={"experience_level"} color={getLevelJob(data?.experience_level)[0]?.color} style={{borderRadius: '5px',lineHeight: '35px'}}>{getLevelJob(data?.experience_level)[0]?.label}</div> 
+                                    </div>
+                                    :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getLevelJob(data?.experience_level)[0]?.label} type={'experience_level'}/> }
+                                </Col>  
+                            </Row> 
+                            {/* {Created by} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Created By
+                                </Col>
+                            <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.creator?.full_name}</div> 
+                                </Col>  
+                            </Row> 
+                            {/* {Created on} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Created On
+                                </Col>
+                            <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.createdAt)}</div> 
+                                    
+                                </Col>  
+                            </Row> 
+                            {/* {Last Updated} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Last Updated
+                                </Col>
+                            <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.updatedAt)}</div>
+        
+                                </Col>  
+                            </Row> 
+                        </Col>
+                        <Col span={12} style={{paddingLeft: '24px'}}>
+                            {/* {Status} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Job Status
+                                </Col>
+                            <Col className="job-infomation__content-item"  style={{minHeight: '35px'}} span={16}>
+                                    {!(editOnly && (key ==='status'))?<div value={"status"} onClick={handlerClickRow} ><Tag  value={"status"} color={getStatusJob(data?.status)[0]?.color}style={{borderRadius: '5px'}}>{getStatusJob(data?.status)[0]?.label}</Tag> </div>
+                                    :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} default={getStatusJob(data?.status)[0]?.label} type={'status'}/> }
+                                </Col>  
+                            </Row> 
+                            {/* {Open date} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Open Date
+                                </Col>
+                                <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.target_date,'date')}</div> 
+                                </Col> 
+                            </Row> 
+                            {/* {Expire date} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Expire Date
+                                </Col>
+                            <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
+                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.end_date,'date')}</div> 
+                                </Col>  
+                            </Row> 
+                            {/* {Extend Date} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Extend Date
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>  
+                                    {!(editOnly && (key==="extend_date"))?
+                                        <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{formatDate(data?.extend_date,'date')|| '-' }</div></div>
+                                    : <DataPickerComponent resetData={resetData} id={data?.id}  type={"extend_date"} stop={stopEdit}  default={formatDate(data?.extend_date,'date')}></DataPickerComponent>} 
+                                
+                                </Col>  
+                            </Row> 
+                            {/* {Location} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Location
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>  
+                                    {!(editOnly && (key==="location"))?
+                                        <div onClick={handlerClickRow} value={'location'} >
+                                            <div value={'location'} style={{lineHeight: '35px'}}>{(data?.location?.city?(data?.location?.city?.label)+" ":'')+( data?.location?.country?(data?.location?.country?.label):'-')}</div></div>
+                                    :<LocationSelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} type={'location'} default={data?.location}></LocationSelectComponent>} 
+                                </Col>  
+                            </Row> 
+                            {/* {Client's Name} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Client's Name
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}> 
+                                    {!(editOnly && (key==="client"))?
+                                        <div onClick={handlerClickRow} value={'client'} ><div value={'client'} style={{lineHeight: '35px'}}>{data?.client?.name}</div></div>
+                                    :<SelectComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listAllClients?.data} type={'client'} default={data?.client?.name}></SelectComponent>} 
+                                </Col>  
+                            </Row> 
+                            {/* {Client's Contact Person} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Client's Contact Person 
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}> 
+                                    {!(editOnly && (key==="pic"))?
+                                        <div onClick={handlerClickRow} value={'pic'} ><div value={'pic'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.pic?.map(e=> e.label).toString()|| '-'}</div></div>
+                                    :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listContactPersion?.data} type={'pic'} default={data?.pic?.map(e=> e.id)}></SelectMultipleComponent>} 
+                                </Col>  
+                            </Row> 
+                            {/* {Search Consultant} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                Search Consultant
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}> 
+                                    {!(editOnly && (key==="recruiters"))?
+                                        <div onClick={handlerClickRow} value={'recruiters'} ><div value={'recruiters'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.recruiters?.map(e=> e.label).toString()|| '-'}</div></div>
+                                    :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'recruiters'} default={data?.recruiters?.map(e=> e.key)}></SelectMultipleComponent>} 
+                                </Col>  
+                            </Row> 
+                            {/* {Mapping by} */}
+                            <Row>
+                                <Col className="job-infomation__title-item" span={8}>
+                                        Mapping by
+                                </Col>
+                            <Col className="job-infomation__content-item" span={16}>  
+                                    {!(editOnly && (key==="related_users"))?
+                                        <div onClick={handlerClickRow} value={'related_users'} ><div value={'related_users'} style={{lineHeight: '35px', textTransform: 'capitalize'}}>{data?.related_users?.map(e=> e.label).toString()|| '-'}</div></div>
+                                    :<SelectMultipleComponent resetData={resetData} id={data?.id}  stop={stopEdit} data={listALlUsers?.data} type={'related_users'} default={data?.related_users?.map(e=> e.key)}></SelectMultipleComponent>} 
+                                </Col>  
+                            </Row> 
+                        </Col>
+                    </Row>
+                
+                </div>
+            </div>   
+            <div  className="job-industry ant-card ant-card-bordered" style={{ backgroundColor: "white", marginTop: "24px" }}>
+                <header className="header-detail-job">
+                    <h3 className="header-detail-job__title">Industry</h3>
+                </header>
+                <IndustryComponent id={params?.id} infoJob={data} listByType={listCategoryByType} allData={listAllCategory}></IndustryComponent>
+            </div>
+            <div className="job-attachment ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px" }}>
+                <header className="header-detail-job">
+                    <h3 className="header-detail-job__title">Attachment</h3>
+                </header>
+                <AttachmentComponent resetData={resetData}  infoJob={data}></AttachmentComponent>
+            </div>
+            <div className="job-description ant-card ant-card-bordered" style={{backgroundColor: "white", marginTop: "24px",paddingBottom: "20px" }}>
+                <header className="header-detail-job">
+                    <h3 className="header-detail-job__title"><p>Job Description</p></h3>
+                </header>
+                <div style={{paddingInline: "24px"}}>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'RESPONSIBILITIES / DAILY DUTIES'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.responsibility}/>
+                        </Col>
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'ROLE EXPECTATIONS'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.expectation}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'MEASURES of SUCCESS? KPIs'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.kpi}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'SELLING POINT of THE ROLE'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.selling_point}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'DEPARTMENT STRUCTURE'}</h3>
+                            <p>(Manager - Subordinates - Team - Organisation chart? - Where do they fit in the entire company)</p>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.department_structure}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'COMPETENCIES / BEHAVIOURS'}</h3>
+                            <div><p>(The client is looking for vs candidate's competencies)</p></div>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.competency}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'DEVELOPMENT OPPORTUNITIES'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.development_opportunity}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'SUCCESSFUL FILL RATE'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.fill_rate}/>
+                        </Col> 
+                        <Col span={12}>
+                            <h3 className="title-job-description" >{'RECRUITMENT PROCESS'}</h3>
+                            <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.recruitment_process}/>
+                        </Col> 
+                    </Row>
+                </div>
+            </div>  
+        </Content>
+    }else{
+        return (
+            <Spin style={{marginTop: '200px', minHeight: "1000px"}} indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} />
+          );
+    }
 }
 
 

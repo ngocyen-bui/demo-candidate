@@ -3,19 +3,17 @@ class UploadAdapter {
       // The file loader instance to use during the upload.
       this.loader = loader;
     }
-  
     // Starts the upload process.
-    upload() {
+    upload() { 
       return this.loader.file.then(
         (file) =>
-          new Promise((resolve, reject) => {
+          new Promise((resolve, reject) => { 
             this._initRequest();
             this._initListeners(resolve, reject, file);
             this._sendRequest(file);
-          })
+          }) 
       );
     }
-  
     // Aborts the upload process.
     abort() {
       if (this.xhr) {
@@ -24,32 +22,31 @@ class UploadAdapter {
     }
   
     // Initializes the XMLHttpRequest object using the URL passed to the constructor.
-    _initRequest() {
+    async _initRequest() {
       const xhr = (this.xhr = new XMLHttpRequest());
   
       // Note that your request may look different. It is up to you and your editor
       // integration to choose the right communication channel. This example uses
       // a POST request with JSON as a data structure but your configuration
       // could be different.
-      xhr.open(
+      await xhr.open(
         "POST",
         `https://lubrytics.com:8443/nadh-mediafile/file`,
         true
       );
-      xhr.responseType = "json";
+      xhr.responseType = "json"; 
     }
   
     // Initializes XMLHttpRequest listeners.
-    _initListeners(resolve, reject, file) {
+     async _initListeners(resolve, reject, file) {
       const { xhr } = this;
       const { loader } = this;
       const genericErrorText = `Couldn't upload file: ${file.name}.`;
   
-      xhr.addEventListener("error", () => reject(genericErrorText));
-      xhr.addEventListener("abort", () => reject());
-      xhr.addEventListener("load", () => {
-        const { response } = xhr;
-  
+     await xhr.addEventListener("error", () => reject(genericErrorText));
+     await xhr.addEventListener("abort", () => reject());
+     await xhr.addEventListener("load", () => {
+        const { response } = xhr; 
         // This example assumes the XHR server's "response" object will come with
         // an "error" which has its own "message" that can be passed to reject()
         // in the upload promise.
@@ -67,8 +64,8 @@ class UploadAdapter {
         // This URL will be used to display the image in the content. Learn more in the
         // UploadAdapter#upload documentation.
         resolve({
-          default: response.url
-        });
+          default: `https://lubrytics.com:8443/nadh-mediafile/file/${response.id}`
+        }); 
       });
   
       // Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
@@ -87,9 +84,8 @@ class UploadAdapter {
     // Prepares the data and sends the request.
     _sendRequest(file) {
       // Prepare the form data.
-      const data = new FormData();
-  
-      data.append("post", file);
+      const data = new FormData(); 
+      data.append("post", file); 
   
       // Important note: This is the right place to implement security mechanisms
       // like authentication and CSRF protection. For instance, you can use
@@ -97,7 +93,7 @@ class UploadAdapter {
       // the CSRF token generated earlier by your application.
   
       // Send the request.
-      this.xhr.send(data);
+      this.xhr.send(data);  
     }
   }
   

@@ -793,7 +793,7 @@ export default function Candidate() {
   const tagChild = temp?.map(forMap);
   return (
     <Layout>
-      <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
+      <Layout style={{ marginTop: '100px', padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
         <Content
           className="site-layout-background"
           style={{

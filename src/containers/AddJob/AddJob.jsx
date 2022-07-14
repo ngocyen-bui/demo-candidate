@@ -347,7 +347,7 @@ export default function AddJob(props) {
   ]; 
   return (
     <Layout>
-      <Layout style={{ padding: "12px 24px 100px 24px " }}>
+      <Layout style={{ padding: "12px 24px 100px 24px "  , marginTop: '100px',}}>
         <Breadcrumb separator="/">
           <Breadcrumb.Item>
             <Link to="/candidates">Jobs List</Link>

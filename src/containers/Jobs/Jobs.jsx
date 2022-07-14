@@ -304,9 +304,7 @@ export default function Jobs() {
     const handleSearchCountry = (e,o)=>{ 
       setCountry(o.data.key)
     }
-    const handleSearch = async (selectedKeys, confirm, dataIndex) => {     
-      console.log(filters);
-      console.log(selectedKeys);
+    const handleSearch = async (selectedKeys, confirm, dataIndex) => {      
       let temp = [];   
       let dataFilters = {...filters}
       if(dataIndex === 'location'){
@@ -466,6 +464,7 @@ export default function Jobs() {
             <div
               style={{
                 padding: 8,
+                
               }}
             > 
               <Space>
@@ -915,7 +914,7 @@ export default function Jobs() {
     const tagChild = temp?.map(forMap); 
     return (
     <Layout>
-    <Layout style={{ padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
+    <Layout style={{marginTop: '100px', padding: "24px 24px 0 24px ", minHeight: "1000px" }}>
       <Content
         className="site-layout-background"
         style={{

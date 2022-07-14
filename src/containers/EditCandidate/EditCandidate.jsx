@@ -41,7 +41,7 @@ if (loading === 'PENDING') {
     return (
       <Layout>
         <Layout
-          style={{ padding: "0 24px 100px 24px ", minHeight: "800px" }}
+          style={{ marginTop: '100px',padding: "0 24px 100px 24px ", minHeight: "800px" }}
         >
           <Breadcrumb separator="/" style={{ position: "fixed", paddingLeft: '24px', right: 0, left: 0, backgroundColor: "#F0F2F5" ,zIndex:2, lineHeight: '44px'}}>
             <Breadcrumb.Item>
@@ -268,7 +268,7 @@ function ModalFlow(props){
   const { user: auth } = useAuth();
   const token = auth?.token;  
 
-  const { Panel } = Collapse; 
+  // const { Panel } = Collapse; 
   const visible = props.visible;
   const handleCancelModal = props.handleCancelModal;
   const status = props.status; 
@@ -276,22 +276,27 @@ function ModalFlow(props){
   const data = props.data;
   const date = props.date;   ;
   const location = props.location; 
-
-
+ 
   const statusJob = dataFlow?.job?.status;
 
   const [isShowBtnConsultant, setIsShowBtnConsultant] = useState(false); 
   const [isShowActionBtn, setIsShowActionBtn] = useState(false); 
   const [isEnable, setIsEnable] = useState(false);
 
+  const [comment,setComment] = useState({
+    key: 'comment_interview',
+    status: false,
+    value: "",
+  })
+
   const { data: listALlUsers } = useQuery(
     ["listAllUsersInterviews", token],
     async () => await getAllUsers(token)
   );   
-    useEffect(() =>{
-      setIsEnable(statusJob < 0)
+  useEffect(() =>{
+    setIsEnable(statusJob < 0)
     },[statusJob]
-    )
+  )
   const onChangeAction = ()=>{
     setIsShowActionBtn(true)
   }
@@ -307,6 +312,30 @@ function ModalFlow(props){
       }}
     />
   ); 
+  const handleIsShowToolbar = (data,type)=>{
+    let result = {...comment}
+    result.status = data;
+
+    setComment(result)
+  }
+  const handleSaveData = (value,type)=>{ 
+    let result = {...comment}
+    result.value = ""; 
+    setComment(result);
+
+    let dataSave = {
+      content: value,
+      source_uuid: dataFlow?.id,
+      source:  {
+        module: "candidate_flow", 
+        section: "flow_status", 
+        id: data?.id
+      }
+    }
+    console.log(dataSave);
+
+
+  }
   return (
     <> 
     <Modal
@@ -318,7 +347,7 @@ function ModalFlow(props){
       footer={false}
     >
       <Row gutter={8}>
-        <Col span={12}>
+          <Col span={12}>
           {/* {Creator} */}
           <Row>
             <Col span={8}>
@@ -420,9 +449,10 @@ function ModalFlow(props){
            <Col span={12}> 
               {/* {Comments} */}
               <div style={{borderLeft: '1px solid rgb(221, 221, 221)', paddingLeft: '10px'}}> 
-                  <p><strong>Comments</strong></p>
-                  {/* <InputCkeditor/> */}
-                  <Input placeholder="Add content..." disabled={isEnable}/>
+                  <p><strong>Comments</strong></p> 
+                  {isEnable?<Input placeholder="Add content..." disabled={isEnable}/>:
+                  <InputCkeditor function={{handleIsShowToolbar,handleSaveData}} data={comment} isClear={true}/>}
+                  
                   <p style={{paddingTop: "6px"}}>{data?.comments?.length} comments</p>
               </div> 
               
@@ -456,6 +486,7 @@ function PickJob(props){
 
   const [oldData,setOldData] = useState([])
   const [value,setValue] = useState("");
+  const [resetData, setResetData] = useState([])
   const [data,setData] = useState();
 
   const { data: dataJobPick } = useQuery(
@@ -471,7 +502,8 @@ function PickJob(props){
   const handleSelectJob = (e)=>{
     let result = [...oldData];
     result.push(e);
-    setOldData(result)
+    setOldData(result);
+    setResetData([])
   } 
   useEffect(() => {
     const jobExists = dataCDD?.flows?.map(e=>e.job_id); 
@@ -487,8 +519,7 @@ function PickJob(props){
   },[dataJobPick,dataJobPickAdvance,value]) 
  
   if(dataCDD)return (
-    <Modal
-    
+    <Modal 
     visible={visible}
     title={<strong>Pick Job</strong>}
     // onOk={handleOk}
@@ -526,7 +557,7 @@ function PickJob(props){
               mode="multiple"
               style={{ width: '70%' }}
               placeholder="Please select job"
-              // defaultValue={['china']} 
+              value={resetData}
               // onChange={handleChange}
               autoClearSearchValue={false}
               onSelect={handleSelectJob}

@@ -35,7 +35,7 @@ useEffect(()=>{
 return (
   <Layout>
     <Layout
-      style={{ padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
+      style={{marginTop: '100px', padding: "12px 24px 100px 24px ", minHeight: "1000px" }}
     > 
       <Breadcrumb separator="/">
           <Breadcrumb.Item>

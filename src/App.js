@@ -131,8 +131,7 @@ const App = () => {
           ) : (
             <></>
           )}
-
-          <div style={{marginTop: '100px'}}>
+ 
             <Routes>
               <Route
                 exact
@@ -161,8 +160,7 @@ const App = () => {
               <Route exact path="/add-candidate" element={<AddCandidate />} />
               <Route exact path="/add-job" element={<AddJob />} />
               <Route path="*" element={auth ? <div> Not found: 404</div> :  <Navigate to="/login" /> }/>
-            </Routes>
-          </div>
+            </Routes> 
         </Layout>
         <>
           <BackTop />

@@ -1,35 +1,72 @@
 
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import DecoupledcEditor from "@ckeditor/ckeditor5-build-decoupled-document";
-import React, { useState } from 'react'; 
+import React, { useEffect, useState } from 'react'; 
 import UploadAdapter from './UploadAdapter';      
-import { Button } from 'antd';
+import { Button, Input } from 'antd';
   
 
-export function InputCkeditor (props){
-    const title = props.title;
-    const showToolbar = props.showToolbar;
-    const isShow = props.isShow;
-    const [data, setData] = useState("");
-    const [hideToolbar, setHideToolbar] = useState(false); 
+export function InputCkeditor (props){  
+    const showToolbar = props.function.handleIsShowToolbar;
+    const updateData = props.function.handleSaveData;
+    const type = props.data.key;
+    const isShow = props.data.status;
+    const defaultValue = props.data.value;
+    const isClearWhenSave = props.isClear;
+
+    const [data, setData] = useState(defaultValue); 
+    const [hasInput,setHasInput] = useState(!defaultValue);
+    // const [value,setValue] = useState("");
+    const [loading,setLoading] = useState(false);   
+     
+
+    const handleCancel = ()=>{
+      setData(defaultValue);
+      setHasInput(true);
+      showToolbar(false, type)
+    }
+    const handleSave = ()=>{  
+      updateData(data,type);
+      setHasInput(!data);
+      setLoading(true);
+
+      if(isClearWhenSave){
+        setData("");
+        setHasInput(true);
+      }
+      setTimeout(() => {
+        showToolbar(false, type);
+        setLoading(false);  
+      },1000)
+    }
+    const handleChange = (e)=>{ 
+      setData(e);
+    }  
+
+    if(!data && hasInput){
+      return <Input onFocus={()=>{
+        showToolbar(true,type)
+        setHasInput(false);
+      }} 
+        placeholder = {`Add content ${type}...`} 
+      />
+    } 
     return (
         <>
-        <h3>{title}</h3>
-        <div style={{width: '100%'}}>
+        <div style={{width: '100%', marginBottom: "20px"}}>
             <div className={isShow?"ckeditor-custom-toolbar":'ckeditor-custom-toolbar hide'}></div>
             <CKEditor   
                 onReady={(editor) => { 
                     // editor.ui
                     // .getEditableElement()
                     // .parentElement.append(editor.ui.view.toolbar.element);   
-                    editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar').append(editor.ui.view.toolbar.element)
-                    // console.log(editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar'));
+                    const imageUploadEditing = editor.plugins.get( 'ImageUploadEditing' );
 
-                    editor.plugins.get("FileRepository").createUploadAdapter = (loader) =>
-                    new UploadAdapter(loader);
+                    editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar').append(editor.ui.view.toolbar.element)  
+                    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => new UploadAdapter(loader);  
                 }}
-                editor={DecoupledcEditor}
-                config={{  
+                editor={DecoupledcEditor} 
+                config={{    
                     toolbar:{
                         items:[
                             "heading","|", 
@@ -60,39 +97,43 @@ export function InputCkeditor (props){
                             name: "imageResize:75",
                             label: "75%",
                             value: "75"
+                          },
+                          {
+                            name: "imageResize:100",
+                            label: "100%",
+                            value: "100"
                           }
                         ], 
                         toolbar: [
                           "imageStyle:alignLeft",
                           "imageStyle:alignCenter",
-                          "imageStyle:alignRight",
+                          "imageStyle:alignRight", 
                           "|",
-                          "imageResize",
-                          "|",
+                          "toggleImageCaption",
                           "imageTextAlternative", 
-                        ]
+                        ],  
                       }, 
                   }}
-                data={""} 
+                data={data} 
                 onChange={(event, editor) => {
-                    const data = editor.getData();
-                    setData(data);
-                    console.log({ event, editor, data });
+                    const result = editor.getData();  
+                    handleChange(result)
                   }}
                 onBlur={(event, editor) => {
                 // console.log("Blur.", editor);
-                // console.log(Array.from(editor.ui.componentFactory.names())); 
-                return editor.disableReadOnlyMode()
+                // console.log(Array.from(editor.ui.componentFactory.names()));  
                 }}
                 onFocus={(event, editor) => {
-                  showToolbar(true);
+                  showToolbar(true,type);
                 }}
             /> 
         </div>
-            <div className="ckeditor-wrapper" style={{float: "right"}}>
-                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--cancel' onClick={()=>showToolbar(false)} >Cancel</Button>
-                <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--save' type="primary">Save</Button>
-            </div>
+        {isShow?
+        <div className="ckeditor-wrapper" style={{float: "right"}}>
+            <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--cancel' onClick={handleCancel} >Cancel</Button>
+            <Button className='ckeditor-wrapper__btn ckeditor-wrapper__btn--save' loading={loading} type="primary" onClick={handleSave}>Save</Button>
+        </div>:<></>}
+            
         </>
     );
 }
