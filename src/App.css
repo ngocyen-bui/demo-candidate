@@ -12,6 +12,9 @@
   background: #6c7b95;
   border-radius: 8px;
 }
+::-webkit-scrollbar-thumb:hover {
+  background: #4f658d;
+}
 body{
   font-family: 'IBM Plex Sans', sans-serif !important;
 }
@@ -232,4 +235,15 @@ body{
   font-weight: 500;
   color: #000;
   font-size: 14px; 
+}
+.wrapper-comment-interview .ck.ck-content.ck-editor__editable_inline {
+  background-color: #fff;
+  border: 1px solid  transparent;
+}
+.wrapper-comment-interview .ck.ck-content.ck-editor__editable_inline  p{
+   margin: 0
+}
+
+.wrapper-comment-interview .ck.ck-editor__editable.ck-blurred .ck-widget.ck-widget_selected, .ck.ck-editor__editable.ck-blurred .ck-widget.ck-widget_selected:hover {
+  outline-color: transparent !important;
 }

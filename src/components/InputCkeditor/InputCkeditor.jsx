@@ -11,6 +11,7 @@ export function InputCkeditor (props){
     const updateData = props.function.handleSaveData;
     const type = props.data.key;
     const isShow = props.data.status;
+    const enabled = props.data.enabled || false;
     const defaultValue = props.data.value;
     const isClearWhenSave = props.isClear;
 
@@ -64,6 +65,9 @@ export function InputCkeditor (props){
 
                     editor.ui.getEditableElement().parentElement.querySelector('.ckeditor-custom-toolbar').append(editor.ui.view.toolbar.element)  
                     editor.plugins.get("FileRepository").createUploadAdapter = (loader) => new UploadAdapter(loader);  
+                    if(enabled){
+                      editor.enableReadOnlyMode(type);  
+                    } 
                 }}
                 editor={DecoupledcEditor} 
                 config={{    

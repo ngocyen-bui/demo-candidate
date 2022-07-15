@@ -112,3 +112,27 @@ export const updateCandidate =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-
   export const compareCDDWithJob = (idCDD,idJob,header) => {return axios.get( DOMAIN+`/nadh-api-crm/api/assessments/compare?candidate_id=${idCDD}&job_id=${idJob}`, 
 {    headers:  HeaderFetch(header), 
 }).then((res) => res.data)} 
+
+
+//comment 
+//https://lubrytics.com:8443/nadh-api-crm/api/comments
+
+export const createComment =(obj,header) =>  axios.post( DOMAIN +'/nadh-api-crm/api/comments', obj,{
+  headers:  HeaderFetch(header), 
+})
+.then((res) => res.data)
+
+//change status flow  
+//https://lubrytics.com:8443/nadh-api-crm/api/candidate_flows/75967442-a8d1-470e-bac6-786ae15e75d2/status 
+
+export const updateInterviewStatus =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidate_flows/'+ id +'/status', obj,{
+  headers:  HeaderFetch(header), 
+})
+.then((res) => res).catch((err) => err.response)
+
+
+
+export const updateInterview =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-crm/api/candidate_flows/'+ id, obj,{
+  headers:  HeaderFetch(header), 
+})
+.then((res) => res).catch((err) => err.response)
