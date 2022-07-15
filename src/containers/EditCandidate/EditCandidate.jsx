@@ -457,21 +457,17 @@ function ModalFlow(props){
                   <p style={{paddingTop: "6px"}}>{data?.comments?.length} comments</p>
               </div>  
               <div style={{overflowY: 'auto', maxHeight: '420px'}}>
-              {data?.comments?.length > 0? data?.comments?.map(e=>{  
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(e?.content, 'text/html');
-                  console.log(doc.body.innerHTML);
-                  var dom = document.createElement('div');
-                  return dom.innerHTML = doc.body.innerHTML;
-                // return <Comment 
-                //   style={{marginLeft: '16px', borderBottom: "1px solid rgb(0 0 0 / 20%)" }}
-                //   key={e?.id}
-                //   actions={genExtra()}
-                //   author={<strong style={{textTransform: 'capitalize'}}>{e?.user?.full_name}</strong>}
-                //   avatar={`https://lubrytics.com:8443/nadh-mediafile/file/${e?.user?.mediafiles?.avatar}`}
-                //   content={(doc.body.innerHTML)}
-                //   datetime={formatDate(e?.createdAt)}
-                // /> 
+              {data?.comments?.length > 0? data?.comments?.map(e=>{   
+                <InputCkeditor disable={true}/>
+                return <Comment 
+                  style={{marginLeft: '16px', borderBottom: "1px solid rgb(0 0 0 / 20%)" }}
+                  key={e?.id}
+                  actions={genExtra()}
+                  author={<strong style={{textTransform: 'capitalize'}}>{e?.user?.full_name}</strong>}
+                  avatar={`https://lubrytics.com:8443/nadh-mediafile/file/${e?.user?.mediafiles?.avatar}`}
+                  content={(doc.body.innerHTML)}
+                  datetime={formatDate(e?.createdAt)}
+                /> 
               }): null}
               </div>
              
