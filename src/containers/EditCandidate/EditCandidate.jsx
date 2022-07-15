@@ -23,12 +23,10 @@ import { fetchUpdateCandidate } from "../../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { useQuery } from "react-query";
 import { deteteImage, getImage, getJob, getJobAdvance } from "../../features/job";
-import { candidate_flow_status, candidate_reject_reason, findFlowStatus } from "../../utils/interface";
-import { formatDate } from "../../utils/formatDate";
+import { candidate_flow_status, candidate_reject_reason, findFlowStatus } from "../../utils/interface"; 
 import { getStatusJob } from "../../utils/job";
 import { getAllUsers } from "../../features/user"; 
-import { InputCkeditor } from "../../components/InputCkeditor/InputCkeditor";
-import { logDOM } from "@testing-library/react";
+import { InputCkeditor } from "../../components/InputCkeditor/InputCkeditor"; 
 import moment from "moment";
   
   
@@ -173,7 +171,7 @@ if (loading === 'PENDING') {
                       {
                         flow?.map((e,i)=>{
                           let status = findFlowStatus(e?.current_status); 
-                          let date = e?.info?.time || formatDate(e?.createdAt);
+                          let date = e?.info?.time || moment(e?.createdAt).format('YYYY-MM-DD hh:mm:ss');
                           let countComment = e?.comments?.length; 
                           return (
                             <div key={i} >
@@ -430,7 +428,7 @@ function ModalFlow(props){
   }
   if(!visible){
     return <></>
-  }
+  } 
   return (
     <> 
     <Modal
@@ -622,10 +620,10 @@ function ModalFlow(props){
                     </Col>
                     <Col span={22}> 
                           <strong style={{textTransform: 'capitalize', paddingInline: '4px'}}>{`${e?.user?.full_name}`}</strong>
-                          <span style={{fontSize: '12px'}}>{` - ${formatDate(e?.createdAt)}`}</span>
-                          <Dropdown overlay={<Menu items={[{label: "Pick To Note",key: '0',},]}/>} trigger={['click']}>  
+                          <span style={{fontSize: '12px'}}>{` - ${moment(e?.createdAt).format('YYYY-MM-DD hh:mm:ss')}`}</span>
+                          {/* <Dropdown overlay={<Menu items={[{label: "Pick To Note",key: '0',},]}/>} trigger={['click']}>  
                               <MoreOutlined style={{float: 'right', marginRight:'8px', marginTop: '6px'}} />
-                          </Dropdown> 
+                          </Dropdown>  */}
                       <InputCkeditor function data={data}/>
                     </Col>
                   </Row>
@@ -648,7 +646,6 @@ function PickJob(props){
   const dataCDD = props.dataCDD;
   const handleCancelModal = props.handleCancelModal;
   const creator_id = dataCDD?.creator?.id;
- 
 
   const [oldData,setOldData] = useState([])
   const [newData,setNewData] = useState([])
@@ -683,6 +680,7 @@ function PickJob(props){
       job_array: newData
     }; 
     await createPickJob(result,token);
+    handleCancelModal()
     setNewData([]);
   }
   const removeItemJob = (e) =>{
@@ -807,7 +805,6 @@ function PickJob(props){
   </Modal>
   )
 }
-
 function AttachmentComponent(props){
     const params = props.params; 
     const dispatch = useDispatch();
@@ -932,6 +929,7 @@ function AttachmentComponent(props){
         let captionText = document.getElementById("caption");
 
         modal.style.display = "block";
+        modal.style.marginTop = "100px";
         modalImg.src = src; 
         captionText.innerHTML =` Name: ${file.name}`;
 

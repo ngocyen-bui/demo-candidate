@@ -19,37 +19,7 @@ import { InputCkeditor } from "./InputCkeditor/InputCkeditor";
 
 
 
-const formatDate = (date,type = 'datetime')=>{
-    if(!date) return; 
-    let m = new Date(date);
-    let options = { 
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',     }
-
-    if(type === 'date'){
-        options = { 
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',  
-        }
-    }
-
-    let time = m.toLocaleString('it-IT',options);
-    return `${time }` 
-
-    // return  m.getUTCFullYear() + "/" +
-    // ("0" + (m.getUTCMonth()+1)).slice(-2) + "/" +
-    // ("0" + m.getUTCDate()).slice(-2) + " " +
-    // ("0" + m.getUTCHours()).slice(-2) + ":" +
-    // ("0" + m.getUTCMinutes()).slice(-2) + ":" +
-    // ("0" + m.getUTCSeconds()).slice(-2);
-     
-}
-
+ 
 export default function DetailJob (props){
     const params = props.params;
     const { user: auth,logout } = useAuth();
@@ -321,7 +291,7 @@ export default function DetailJob (props){
                                 Created On
                                 </Col>
                             <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.createdAt)}</div> 
+                                    <div style={{lineHeight: '35px'}}>{moment(data?.createdAt).format('DD-MM-YYYY HH:mm:ss')}</div> 
                                     
                                 </Col>  
                             </Row> 
@@ -331,7 +301,7 @@ export default function DetailJob (props){
                                 Last Updated
                                 </Col>
                             <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.updatedAt)}</div>
+                                    <div style={{lineHeight: '35px'}}>{moment(data?.updatedAt).format('DD-MM-YYYY HH:mm:ss')}</div>
         
                                 </Col>  
                             </Row> 
@@ -353,7 +323,7 @@ export default function DetailJob (props){
                                 Open Date
                                 </Col>
                                 <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.target_date,'date')}</div> 
+                                    <div style={{lineHeight: '35px'}}>{moment(data?.target_date).format('DD-MM-YYYY')}</div> 
                                 </Col> 
                             </Row> 
                             {/* {Expire date} */}
@@ -362,7 +332,7 @@ export default function DetailJob (props){
                                 Expire Date
                                 </Col>
                             <Col className="job-infomation__content-item job-infomation__content-item--disabled" span={16}>
-                                    <div style={{lineHeight: '35px'}}>{formatDate(data?.end_date,'date')}</div> 
+                                    <div style={{lineHeight: '35px'}}>{moment(data?.end_date).format('DD-MM-YYYY')}</div> 
                                 </Col>  
                             </Row> 
                             {/* {Extend Date} */}
@@ -372,8 +342,8 @@ export default function DetailJob (props){
                                 </Col>
                             <Col className="job-infomation__content-item" span={16}>  
                                     {!(editOnly && (key==="extend_date"))?
-                                        <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{formatDate(data?.extend_date,'date')|| '-' }</div></div>
-                                    : <DataPickerComponent resetData={resetData} id={data?.id}  type={"extend_date"} stop={stopEdit}  default={formatDate(data?.extend_date,'date')}></DataPickerComponent>} 
+                                        <div onClick={handlerClickRow} value={'extend_date'} ><div value={'extend_date'} style={{lineHeight: '35px'}}>{moment(data?.extend_date).format('DD-MM-YYYY')|| '-' }</div></div>
+                                    : <DataPickerComponent resetData={resetData} id={data?.id}  type={"extend_date"} stop={stopEdit}  default={moment(data?.extend_date).format('DD-MM-YYYY')}></DataPickerComponent>} 
                                 
                                 </Col>  
                             </Row> 
@@ -498,10 +468,10 @@ export default function DetailJob (props){
                 </div>
                 <div style={{paddingInline: "24px"}}>
                     <strong><p>DISPLAY ON</p></strong>
-                    <div><p>Website: <TagLink data={linkWebsite}/></p></div>
-                    <div><p>Linked in: <TagLink data={linkLinked} /></p></div>
-                    <div><p>Facebook: <TagLink data={linkFacebook}/></p></div>
-                    <div><p>Others: <TagLink data={linkOther}/></p></div> 
+                    <div><p>Website: <TagLink function={{handleSaveData: handleSaveJobDescription}} type={"website"} totalData={data?.social_media} data={linkWebsite}/></p></div>
+                    <div><p>Linked in: <TagLink function={{handleSaveData: handleSaveJobDescription}} type={"linked"} totalData={data?.social_media} data={linkLinked} /></p></div>
+                    <div><p>Facebook: <TagLink function={{handleSaveData: handleSaveJobDescription}} type={"facebook"} totalData={data?.social_media} data={linkFacebook}/></p></div>
+                    <div><p>Others: <TagLink function={{handleSaveData: handleSaveJobDescription}} type={"other"} totalData={data?.social_media} data={linkOther}/></p></div> 
                 </div>
             </div>  
         </Content>
@@ -1452,6 +1422,7 @@ function AttachmentComponent(props){
     };
 
     const onChange = (file) => {   
+        setFileList(file.fileList);  
     };
 
     const onPreview = async (file) => {
@@ -1470,6 +1441,7 @@ function AttachmentComponent(props){
         let captionText = document.getElementById("caption");
 
         modal.style.display = "block";
+        modal.style.marginTop = "100px";
         modalImg.src = src; 
         captionText.innerHTML =` Name: ${file.name}`; 
  
@@ -1526,6 +1498,10 @@ function AttachmentComponent(props){
 
 function TagLink(props){ 
     const data = props.data;
+    const totalData = props.totalData;
+    const saveData = props.function.handleSaveData;
+    const type = props.type;
+    const dataArr = totalData.map(e => e?.url); 
     const [tags, setTags] = useState(data?.map(e=> e?.url));
     const [inputVisible, setInputVisible] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -1544,6 +1520,8 @@ function TagLink(props){
   
     const handleClose = (removedTag) => {
       const newTags = tags.filter((tag) => tag !== removedTag); 
+      let result = totalData.filter((data) => data.url !== removedTag)
+      saveData(result,'social_media');
       setTags(newTags);
     };
   
@@ -1554,11 +1532,23 @@ function TagLink(props){
     const handleInputChange = (e) => {
       setInputValue(e.target.value);
     };
-  
+    function validateUrl(value) {
+        return /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
+      }
     const handleInputConfirm = () => {
-      if (inputValue && tags.indexOf(inputValue) === -1) {
-        setTags([...tags, inputValue]);
-      }  
+      if (inputValue && dataArr.indexOf(inputValue.trim()) === -1 && validateUrl(inputValue)) {
+          let result = [...tags, inputValue];
+          let arr = [...totalData,{
+            url: inputValue.trim(),
+            platform: type
+          }]; 
+          saveData(arr,'social_media')
+          setTags(result);
+      }else if(!validateUrl(inputValue)){
+        message.error({content: "Test must be a URL", duration: 1});
+      }else if(dataArr.indexOf(inputValue.trim()) !== -1){
+        message.error({content: "This link was exist", duration: 1});
+      }
       setInputVisible(false);
       setInputValue('');
     };

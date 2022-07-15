@@ -184,7 +184,7 @@ export function DetailCandidate (prop) {
   // const dataStatus = useSelector((state) => state.candidate.data) 
   let styleButton = {};
   if(edit){
-    styleButton = {float: "right", position: 'fixed', bottom: 0, right: 0, backgroundColor: '#f0f2f5', width: '100%', textAlign: 'end',paddingBlock: '20px'};
+    styleButton = { zIndex: 999, float: "right", position: 'fixed', bottom: 0, right: '33%', backgroundColor: '#f0f2f5', width: '100%', textAlign: 'end',paddingBlock: '20px'};
   }else{
     styleButton = {float: "right", marginRight: 10} ;
   }

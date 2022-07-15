@@ -209,8 +209,7 @@ body{
   border: 1px solid  rgba(48, 48, 48, 0.4);
   color: red
 }
-.ant-timeline-item { 
-  margin-bottom: 20px;
+.ant-timeline-item {  
   padding-bottom: 0; 
 }
 .ant-modal-mask { 
