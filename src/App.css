@@ -235,6 +235,7 @@ body{
   font-weight: 500;
   color: #000;
   font-size: 14px; 
+  padding-top: 20px;
 }
 .wrapper-comment-interview .ck.ck-content.ck-editor__editable_inline {
   background-color: #fff;
