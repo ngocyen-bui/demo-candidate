@@ -162,7 +162,7 @@ const result = (obj) => {
 
 
 
-export const DetailCandidate = memo((prop) => { 
+export function DetailCandidate (prop) { 
   const params = prop.params;
   const onChange = prop.onChange;
   const edit = prop.edit || false; 
@@ -1163,5 +1163,5 @@ export const DetailCandidate = memo((prop) => {
   } else return; 
   
  
-})
+}
 

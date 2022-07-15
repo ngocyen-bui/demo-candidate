@@ -24,6 +24,7 @@ import { formatDate } from "../../utils/formatDate";
 import { getStatusJob } from "../../utils/job";
 import { getAllUsers } from "../../features/user"; 
 import { InputCkeditor } from "../../components/InputCkeditor/InputCkeditor";
+import { logDOM } from "@testing-library/react";
   
   
   export default function AddCandidate(props) {  
@@ -406,7 +407,7 @@ function ModalFlow(props){
                     return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.label}</Select.Option>
                   })} 
                 </Select>
-            {isShowActionBtn?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=>setIsShowActionBtn(false)} >Save</Button>:<></>}
+                {isShowActionBtn?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=>setIsShowActionBtn(false)} >Save</Button>:<></>}
             </Col>
           </Row>:
           <></>}
@@ -454,19 +455,26 @@ function ModalFlow(props){
                   <InputCkeditor function={{handleIsShowToolbar,handleSaveData}} data={comment} isClear={true}/>}
                   
                   <p style={{paddingTop: "6px"}}>{data?.comments?.length} comments</p>
-              </div> 
-              
-              {data?.comments?.length > 0? dataFlow?.flow_comments?.map(e=>{
-                return <Comment 
-                  style={{marginLeft: '16px', borderBottom: "1px solid rgb(0 0 0 / 20%)" }}
-                  key={e?.id}
-                  actions={genExtra()}
-                  author={<strong style={{textTransform: 'capitalize'}}>{e?.user?.full_name}</strong>}
-                  avatar={`https://lubrytics.com:8443/nadh-mediafile/file/${e?.user?.mediafiles?.avatar}`}
-                  content={StringToReact(e?.content)}
-                  datetime={formatDate(e?.createdAt)}
-                /> 
+              </div>  
+              <div style={{overflowY: 'auto', maxHeight: '420px'}}>
+              {data?.comments?.length > 0? data?.comments?.map(e=>{  
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(e?.content, 'text/html');
+                  console.log(doc.body.innerHTML);
+                  var dom = document.createElement('div');
+                  return dom.innerHTML = doc.body.innerHTML;
+                // return <Comment 
+                //   style={{marginLeft: '16px', borderBottom: "1px solid rgb(0 0 0 / 20%)" }}
+                //   key={e?.id}
+                //   actions={genExtra()}
+                //   author={<strong style={{textTransform: 'capitalize'}}>{e?.user?.full_name}</strong>}
+                //   avatar={`https://lubrytics.com:8443/nadh-mediafile/file/${e?.user?.mediafiles?.avatar}`}
+                //   content={(doc.body.innerHTML)}
+                //   datetime={formatDate(e?.createdAt)}
+                // /> 
               }): null}
+              </div>
+             
               
              
         </Col> 
@@ -594,7 +602,7 @@ function PickJob(props){
   )
 }
 
-  function AttachmentComponent(props){
+function AttachmentComponent(props){
     const params = props.params; 
     const dispatch = useDispatch();
     const { user: auth } = useAuth();
