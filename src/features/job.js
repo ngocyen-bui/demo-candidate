@@ -108,3 +108,5 @@ export const getJobAdvance = (value,header) => {return axios.get( DOMAIN+`/nadh-
 {
     headers:  HeaderFetch(header), 
 }).then((res) => res.data)} 
+
+//https://lubrytics.com:8443/nadh-api-crm/api/jobs/J-000377

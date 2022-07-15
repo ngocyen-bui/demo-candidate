@@ -1,6 +1,6 @@
-import { Button, Checkbox, Col, DatePicker, Form, Input, InputNumber, message, Row, Select, Spin, Table, Tag, Upload } from "antd";
+import { Button, Checkbox, Col, DatePicker, Form, Input, InputNumber, message, Row, Select, Spin, Table, Tag, Tooltip, Upload } from "antd";
 import { Content } from "antd/lib/layout/layout";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useState } from "react";import moment from 'moment';
 import { useQuery } from "react-query";
 import { getDefaultProp, getLocationFromCountry, getPosition, getValueFlag } from "../features/candidate";
@@ -12,7 +12,7 @@ import { getLevelJob, getStatusJob, getTypeJob, listLevel, listStatus, listType 
 import { fetchUpdateJob } from "../redux/reducer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
-import { DeleteOutlined, LoadingOutlined } from "@ant-design/icons";
+import { DeleteOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { InputCkeditor } from "./InputCkeditor/InputCkeditor";
 
@@ -142,6 +142,27 @@ export default function DetailJob (props){
             },
         });
     }
+    const updateLink = ()=>{
+        const key = 'updatable';
+        const data = {}
+        dispatch(fetchUpdateJob(data))
+        .then(unwrapResult)
+        .then((e) => {   
+            if(e.status === 403){
+                message.error('You don\'t have permission to update.');
+            }else if(e.status === 400){
+                message.error('Something wrong !'); 
+            }
+            else {
+                resetData(e)
+                    message.loading({ content: 'Loading...', key });
+                setTimeout(() => {
+                    message.success({ content: 'Updated success !', key, duration: 2 });
+                }, 500); 
+            }  
+        })  
+    }
+
     useEffect(()=>{
         // console.log(listInfoJob);
         if(listInfoJob){
@@ -194,8 +215,11 @@ export default function DetailJob (props){
                 },   
             })
         } 
-    },[listInfoJob])
- 
+    },[listInfoJob]) 
+    const linkFacebook = data?.social_media?.filter(e=> e?.platform === "facebook");
+    const linkWebsite = data?.social_media?.filter(e=> e?.platform === "website");
+    const linkLinked = data?.social_media?.filter(e=> e?.platform === "linked");
+    const linkOther = data?.social_media?.filter(e=> e?.platform === "other");
 
     if(data) {
         return <Content
@@ -471,6 +495,13 @@ export default function DetailJob (props){
                             <InputCkeditor function={{handleIsShowToolbar, handleSaveData: handleSaveJobDescription}} data={listDataJobDescriptions.recruitment_process}/>
                         </Col> 
                     </Row>
+                </div>
+                <div style={{paddingInline: "24px"}}>
+                    <strong><p>DISPLAY ON</p></strong>
+                    <div><p>Website: <TagLink data={linkWebsite}/></p></div>
+                    <div><p>Linked in: <TagLink data={linkLinked} /></p></div>
+                    <div><p>Facebook: <TagLink data={linkFacebook}/></p></div>
+                    <div><p>Others: <TagLink data={linkOther}/></p></div> 
                 </div>
             </div>  
         </Content>
@@ -1491,4 +1522,119 @@ function AttachmentComponent(props){
         </Upload>   
         </div>
     )
+}
+
+function TagLink(props){ 
+    const data = props.data;
+    const [tags, setTags] = useState(data?.map(e=> e?.url));
+    const [inputVisible, setInputVisible] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [editInputIndex, setEditInputIndex] = useState(-1);
+    const [editInputValue, setEditInputValue] = useState('');
+    const inputRef = useRef(null);
+    const editInputRef = useRef(null);
+    useEffect(() => {
+      if (inputVisible) {
+        inputRef.current?.focus();
+      }
+    }, [inputVisible]);
+    useEffect(() => {
+      editInputRef.current?.focus();
+    }, [inputValue]);
+  
+    const handleClose = (removedTag) => {
+      const newTags = tags.filter((tag) => tag !== removedTag); 
+      setTags(newTags);
+    };
+  
+    const showInput = () => {
+      setInputVisible(true);
+    };
+  
+    const handleInputChange = (e) => {
+      setInputValue(e.target.value);
+    };
+  
+    const handleInputConfirm = () => {
+      if (inputValue && tags.indexOf(inputValue) === -1) {
+        setTags([...tags, inputValue]);
+      }  
+      setInputVisible(false);
+      setInputValue('');
+    };
+  
+    const handleEditInputChange = (e) => {
+      setEditInputValue(e.target.value);
+    };
+  
+    const handleEditInputConfirm = () => {
+      const newTags = [...tags];
+      newTags[editInputIndex] = editInputValue;
+      setTags(newTags);
+      setEditInputIndex(-1);
+      setInputValue('');
+    };
+    return (
+        <>
+          {tags.map((tag, index) => {
+            if (editInputIndex === index) {
+              return (
+                <Input
+                  ref={editInputRef}
+                  key={tag}
+                  size="small"
+                  className="tag-input"
+                  value={editInputValue}
+                  onChange={handleEditInputChange}
+                  onBlur={handleEditInputConfirm}
+                  onPressEnter={handleEditInputConfirm}
+                />
+              );
+            }
+    
+            const isLongTag = tag.length > 20;
+            const tagElem = (
+              <Tag
+                className="edit-tag"
+                key={tag}
+                closable={true}
+                onClose={() => handleClose(tag)}
+              >
+                <span
+                  onDoubleClick={(e) => {
+                      e.preventDefault(); 
+                  }}
+                >
+                  {isLongTag ? `${tag.slice(0, 20)}...` : tag}
+                </span>
+              </Tag>
+            );
+            return isLongTag ? (
+              <Tooltip title={tag} key={tag}>
+                {tagElem}
+              </Tooltip>
+            ) : (
+              tagElem
+            );
+          })}
+          {inputVisible && (
+            <Input
+              ref={inputRef}
+              style={{display: 'inline-block', width: 100}}
+              type="text"
+              size="small"
+              className="tag-input"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputConfirm}
+              onPressEnter={handleInputConfirm}
+            />
+          )}
+          {!inputVisible && (
+            <Tag className="site-tag-plus" onClick={showInput}>
+              <PlusOutlined /> New Tag
+            </Tag>
+          )}
+        </>
+      );
 }

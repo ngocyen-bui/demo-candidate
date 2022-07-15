@@ -136,3 +136,10 @@ export const updateInterview =(id,obj,header) =>  axios.put( DOMAIN +'/nadh-api-
   headers:  HeaderFetch(header), 
 })
 .then((res) => res).catch((err) => err.response)
+
+// pick job  
+
+export const createPickJob =(obj,header) =>  axios.post( DOMAIN +'/nadh-api-crm/api/candidate_flows ', obj,{
+  headers:  HeaderFetch(header), 
+})
+.then((res) => res.data)

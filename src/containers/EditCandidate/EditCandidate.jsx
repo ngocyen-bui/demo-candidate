@@ -8,13 +8,14 @@ import {
   import {
     compareCDDWithJob,
     createComment,
+    createPickJob,
     getCandidate, 
     updateInterview,
     updateInterviewStatus
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
-import { LoadingOutlined, MoreOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons"; 
+import { DeleteOutlined, LoadingOutlined, MoreOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons"; 
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../hooks/useAuth";
 import axios from "axios";
@@ -284,6 +285,7 @@ function ModalFlow(props){
   const statusJob = dataFlow?.job?.status;
 
   const [isShowBtnConsultant, setIsShowBtnConsultant] = useState(false); 
+  const [isShowReason, setIsShowReason] = useState(false); 
   const [isShowActionBtn, setIsShowActionBtn] = useState(false); 
   const [isEnable, setIsEnable] = useState(false);  
   const [listValue, setListValue] = useState({
@@ -324,8 +326,8 @@ function ModalFlow(props){
     })
     setIsShowActionBtn(true)
   } 
-  const onChangeConsultant = (e,o) => { 
-    setIsShowBtnConsultant(true);
+  const onChangeConsultant = (e,o) => {  
+    setIsShowBtnConsultant(true); 
     let result = o?.map((value) => value?.data?.user_id)
     setListValue((prevValue) => {
       return {...prevValue ,
@@ -337,6 +339,19 @@ function ModalFlow(props){
         }
         
       }})
+  } 
+  const  onChangeRejectReason = (e,o) => {
+    setIsShowReason(true)  
+    setListValue(prevData => {
+      return {...prevData, 
+        reject_reason:{
+          flow: {
+            id: data?.id,
+            reject_reason: o?.data?.id
+          }  
+        }
+      }
+    })
   }
   const genExtra = () => (
     <MoreOutlined 
@@ -387,14 +402,24 @@ function ModalFlow(props){
     let id = dataFlow?.id;
     if(type === "action"){ 
       updateInterviewStatus(id, {status: result},token).then((res)=> handleCancelModal())
-    }else{
+    }
+    else if (type === "reject_reason"){ 
+        await updateInterview(id,result,token).then(()=>{
+        message.success({ content: 'Updated success !', duration: 2 });})
+    }
+    
+    else{
       await updateInterview(id,result,token).then(()=>{
       message.success({ content: 'Updated success !', duration: 2 });})
    }
+   setIsShowActionBtn(false);
+   setIsShowBtnConsultant(false);
+   setIsShowReason(false);
   } 
   const closeModal = ()=>{
     setIsShowActionBtn(false)
     setIsShowBtnConsultant(false)
+    setIsShowReason(false)
     setListValue({
       action: null, 
       date: '',  
@@ -480,7 +505,7 @@ function ModalFlow(props){
           </Row>:
           <></>}  
            {/* {Date} */}
-           {status?.id ===3 || status?.id === 6? <Row style={{marginBottom: '8px'}}>
+           {status?.id ===3? <Row style={{marginBottom: '8px'}}>
             <Col span={8}>
                 <strong>Interview date</strong>
             </Col>
@@ -498,7 +523,7 @@ function ModalFlow(props){
           </Row>}
           
           {/* {Interviewer} */}
-          {status?.id ===3 || status?.id === 6? 
+          {status?.id ===3? 
           <Row  style={{marginBottom: '8px'}}>
             <Col span={8}>
                 <strong>Interviewer</strong>
@@ -511,12 +536,12 @@ function ModalFlow(props){
                   placeholder="Please select flow status"
                   optionFilterProp="children"
                   onChange={onChangeConsultant}
-                  defaultValue={data?.info?.interviewer?.map(e => e.id)}
+                  defaultValue={(data?.info?.interviewer?.map(e => e?.id)||[])}
                   style={{width: '100%'}}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
                 >
                   {listALlUsers?.data?.map(e=>{
-                    return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.full_name}</Select.Option>
+                    return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} data={e} value={e?.id}>{e?.full_name}</Select.Option>
                   })} 
                 </Select>
                 {isShowBtnConsultant?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "interviewer"})} } >Save</Button>:<></>}
@@ -524,7 +549,7 @@ function ModalFlow(props){
           </Row>:
           <></>}
           {/* {Consultant && Reject Reasons} */}
-          {status?.id ===3 || status?.id === 6? <Row style={{marginTop: '8px'}}>
+          {status?.id ===3 ? <Row style={{marginTop: '8px'}}>
             <Col span={8}>
                 <strong>Rejecting reason</strong>
             </Col>
@@ -534,16 +559,16 @@ function ModalFlow(props){
                   showSearch 
                   placeholder="Please select interviewer"
                   optionFilterProp="children"
-                  onChange={onChangeConsultant}
-                  defaultValue={listValue?.reject_reason}
+                  onChange={onChangeRejectReason}
+                  defaultValue={data?.info?.reject_reason}
                   style={{width: '100%'}}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
                 >
                   {candidate_reject_reason?.map(e=>{
-                    return <Select.Option data={e} key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.label}</Select.Option>
+                    return <Select.Option data={e} key={e?.id} style={{textTransform: 'capitalize'}}  value={e?.id}>{e?.label}</Select.Option>
                   })} 
                 </Select>
-                {isShowBtnConsultant?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "action"})} }>Save</Button>:<></>}
+                {isShowReason?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "reject_reason"})} }>Save</Button>:<></>}
                 
             </Col>
           </Row>
@@ -559,12 +584,12 @@ function ModalFlow(props){
                   placeholder="Please select interviewer"
                   optionFilterProp="children"
                   onChange={onChangeConsultant}
-                  defaultValue={data?.info?.interviewer?.map(e => e.id)}
+                  defaultValue={data?.info?.interviewer?.map(e => e?.id)}
                   style={{width: '100%'}}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
                 >
                   {listALlUsers?.data?.map(e=>{
-                     return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.full_name}</Select.Option>
+                     return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} data={e} value={e?.id}>{e?.full_name}</Select.Option>
                   })} 
                 </Select>
                 {isShowBtnConsultant?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "interviewer"})} }>Save</Button>:<></>}
@@ -626,6 +651,7 @@ function PickJob(props){
  
 
   const [oldData,setOldData] = useState([])
+  const [newData,setNewData] = useState([])
   const [value,setValue] = useState("");
   const [resetData, setResetData] = useState([])
   const [data,setData] = useState();
@@ -639,13 +665,34 @@ function PickJob(props){
     ["dataJobPickAdvance", value,token],
     async () => await getJobAdvance(value,token), 
     {enabled: Boolean(value)}
-  );    
+  );     
   const handleSelectJob = (e)=>{
-    let result = [...oldData];
+    let oldResult = [...oldData];
+    setOldData(oldResult);
+    oldResult.push(e);
+    
+    let result = [...newData];
     result.push(e);
-    setOldData(result);
+    setNewData(result);
+
     setResetData([])
-  } 
+  }   
+  const handleOk = async ()=>{ 
+    let result = {
+      candidate_id: dataCDD?.id,
+      job_array: newData
+    }; 
+    await createPickJob(result,token);
+    setNewData([]);
+  }
+  const removeItemJob = (e) =>{
+    setNewData(prevData =>{
+      return prevData.filter(value => value !== e)
+    });
+    setOldData(prevData =>{
+      return prevData.filter(value => value !== e)
+    });
+  }
   useEffect(() => {
     const jobExists = dataCDD?.flows?.map(e=>e.job_id); 
     setOldData(jobExists)
@@ -658,18 +705,20 @@ function PickJob(props){
       setData(dataJobPick)
     }
   },[dataJobPick,dataJobPickAdvance,value]) 
- 
+ if(!visible){
+  return <></>
+ } 
   if(dataCDD)return (
     <Modal 
     visible={visible}
     title={<strong>Pick Job</strong>}
-    // onOk={handleOk}
+    onOk={handleOk}
     onCancel={handleCancelModal}
     width={700}
     footer={
       <>
-        <Button onClick={()=>handleCancelModal()}>Cancel</Button>
-        <Button type="primary" disabled={true}>Pick</Button>
+        <Button onClick={()=>{ setNewData([]); handleCancelModal()}}>Cancel</Button>
+        <Button type="primary" disabled={!(newData.length > 0)} onClick={handleOk} >Pick</Button>
       </>
     }
   >
@@ -726,9 +775,33 @@ function PickJob(props){
             </Select>
         </div>
       </Col>
-      <Col span={24}>
-
-      </Col>
+      {newData.length > 0? <Col span={24} style={{marginTop: '16px'}}>
+              <p style={{marginBottom: '10px', borderBottom: '2px solid #cdcdcd', fontSize: '20px', fontWeight: '700'}}> {newData.length} Jobs Picked</p>
+              {newData.map(e =>{  
+                let result = dataJobPick?.data?.filter(data => data.id === e)[0]; 
+                return <Row key={e}>
+                  <Col span={20}>
+                  <p><strong style={{opacity: 0.85}}>{`${result?.job_id} - ${result?.title?.label} - ${result?.end_date}`}</strong></p>
+                  <p><strong>{`Client name:`}</strong> {result?.client?.name}</p>
+                  <strong>INDUSTRY:</strong>
+                  <p>
+                  {result?.business_line?.map(e => {
+                    let sector = e?.sector? " / "+ e?.sector?.label: "";
+                    let category = e?.category? " / "+ e?.category?.label: "";
+                    return e?.industry?.label + sector + category
+                  })}
+                  </p>
+                  </Col>
+                  <Col span={4}>
+                      <DeleteOutlined style={{fontSize: '20px', color: 'red',cursor: 'pointer'}} onClick={()=>removeItemJob(e)}/>
+                  </Col> 
+                  {newData.length > 1?<div style={{width: '100%', height: '1px',borderBottom: '2px solid #cdcdcd', marginBottom: '10px'}}></div>:<></>}
+              </Row>
+              })}
+              
+              
+      </Col>: <></>}
+     
     </Row>
 
   </Modal>
