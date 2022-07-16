@@ -79,121 +79,121 @@ if (loading === 'PENDING') {
   }
 
  
-  function InterviewLoop(props){
-    const id = props.id;
-    const { Panel } = Collapse; 
+function InterviewLoop(props){
+  const id = props.id;
+  const { Panel } = Collapse; 
 
-    const { user: auth } = useAuth(); 
-    const token = auth?.token; 
+  const { user: auth } = useAuth(); 
+  const token = auth?.token; 
 
-    const { data: totalDataCDD, refetch } = useQuery(
-      ["infoInterviewsJobs" , id, token],
-      async () => await getCandidate(  id, token), 
-    );   
-    const [showModal,setShowModal] = useState({});
-    const [showModalAssessment,setShowModalAssessment] = useState({});
-    const [showModalPickJob,setShowModalPickJob] = useState({});
-    const handleCancelModal = () => {
-      refetch()
-      setShowModal({ 
-        visible: false
-      })
-      setShowModalAssessment({visible: false})
-      setShowModalPickJob({visible: false})
-    };
-    const handleShowModal = ({handleCancelModal,dataFlow,data,date,status,visible,location}) => {
-      setShowModal({
-        handleCancelModal: handleCancelModal,
-        dataFlow: dataFlow,
-        data: data,
-        date: date,
-        status: status,
-        visible: visible,
-        location: location
-      })
-    } 
-    const handlePickJob = ({visible,dataCDD,handleCancelModal}) => {
-      setShowModalPickJob({ 
-        visible,dataCDD,handleCancelModal
-      })
-    } 
-    const handleShowModalAssessment = ({handleCancelModal,dataCDD,dataJob,visible,idCDD,idJob})=>{
-      setShowModalAssessment({
-        handleCancelModal,
-        visible,
-        idCDD,
-        idJob,
-        dataCDD: dataCDD,
-        dataJob
-      })
-    }
-    const menu = (e)=>{ 
-      return (
-        <Menu
-          onClick={()=>handleShowModalAssessment({handleCancelModal,dataCDD:totalDataCDD, dataJob: e ,visible: true, idCDD: totalDataCDD?.id, idJob: e?.job_id})}
-          items={[
-            {
-              label: 'Candidate Assessment',
-              key: '1', 
-            }, 
-          ]}
-        />
-      )
-    };
-    const genExtra = (e) => { 
-      return (
-        <Dropdown overlay={menu(e)} trigger={['click']}>
-          <MoreOutlined/>
-      </Dropdown>
-        
-      );
-    }
-    const header = (data)=>{  
-      return <div>
-        <div style={{fontWeight: 600, fontSize: '16px'}}>{`${data?.job_id} - ${data?.title?.label}`}</div>
-        <div style={{fontWeight: 600, opacity: 0.6, fontSize: '14px'}}>{`${data?.client?.name} - ${data?.client?.client_id}`}</div>
-      </div>
-    } 
+  const { data: totalDataCDD, refetch } = useQuery(
+    ["infoInterviewsJobs" , id, token],
+    async () => await getCandidate(  id, token), 
+  );   
+  const [showModal,setShowModal] = useState({});
+  const [showModalAssessment,setShowModalAssessment] = useState({});
+  const [showModalPickJob,setShowModalPickJob] = useState({});
+  const handleCancelModal = () => {
+    refetch()
+    setShowModal({ 
+      visible: false
+    })
+    setShowModalAssessment({visible: false})
+    setShowModalPickJob({visible: false})
+  };
+  const handleShowModal = ({handleCancelModal,dataFlow,data,date,status,visible,location}) => {
+    setShowModal({
+      handleCancelModal: handleCancelModal,
+      dataFlow: dataFlow,
+      data: data,
+      date: date,
+      status: status,
+      visible: visible,
+      location: location
+    })
+  } 
+  const handlePickJob = ({visible,dataCDD,handleCancelModal}) => {
+    setShowModalPickJob({ 
+      visible,dataCDD,handleCancelModal
+    })
+  } 
+  const handleShowModalAssessment = ({handleCancelModal,dataCDD,dataJob,visible,idCDD,idJob})=>{
+    setShowModalAssessment({
+      handleCancelModal,
+      visible,
+      idCDD,
+      idJob,
+      dataCDD: dataCDD,
+      dataJob
+    })
+  }
+  const menu = (e)=>{ 
     return (
-      <div style={{width: '100%'}}>
-         <div style={{display: 'flex', justifyContent: 'space-between', padding: '10px 20px', background: '#fff'}}>
-          <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Interview Loop</h4> 
-          <Button style={{ color: '#1890ff', borderColor: '#1890ff'}} onClick={()=>handlePickJob({handleCancelModal, dataCDD: totalDataCDD,visible: true})}><PlusOutlined/>Pick Job</Button>
-        </div>
-        <Collapse accordion >
-          {totalDataCDD?.flows?.map((e,i)=>{
-          let dataFlow = e;
-           let primaryTitle = e?.job; 
-           let flow = e?.flow;
-           let idFlow=e.id;
-           return <Panel header={header(primaryTitle)} key={idFlow} extra={genExtra(e)}>
-                  <Timeline  style={{ paddingTop: '10px', maxHeight: '600px', overflowY: 'auto'}}>
-                      {
-                        flow?.map((e,i)=>{
-                          let status = findFlowStatus(e?.current_status); 
-                          let date = e?.info?.time || moment(e?.createdAt).format('YYYY-MM-DD hh:mm:ss');
-                          let countComment = e?.comments?.length; 
-                          return (
-                            <div key={i} >
-                              <Timeline.Item style={{cursor: 'pointer'}} color="green" onClick={()=> handleShowModal({handleCancelModal, dataFlow:dataFlow, data:e,date,status, visible:true, location: i})}>
-                                <strong>{status?.label}</strong>
-                                <p style={{marginBottom: 0, fontWeight: 600, opacity: 0.7}} >{date}</p>
-                                <p style={{marginBottom: 0, fontWeight: 600, opacity: 0.7}} >{`${countComment} comments`}</p>
-                              </Timeline.Item>   
-                            </div>
-                          )
-                        })
-                      } 
-                  </Timeline> 
-            </Panel> 
-          })} 
-        </Collapse>
-        <ModalFlow {...showModal}/>
-        <CandidateAssessment {...showModalAssessment}/>
-        <PickJob {...showModalPickJob}/>
-      </div>
+      <Menu
+        onClick={()=>handleShowModalAssessment({handleCancelModal,dataCDD:totalDataCDD, dataJob: e ,visible: true, idCDD: totalDataCDD?.id, idJob: e?.job_id})}
+        items={[
+          {
+            label: 'Candidate Assessment',
+            key: '1', 
+          }, 
+        ]}
+      />
+    )
+  };
+  const genExtra = (e) => { 
+    return (
+      <Dropdown overlay={menu(e)} trigger={['click']}>
+        <MoreOutlined/>
+    </Dropdown>
+      
     );
   }
+  const header = (data)=>{  
+    return <div>
+      <div style={{fontWeight: 600, fontSize: '16px'}}>{`${data?.job_id} - ${data?.title?.label}`}</div>
+      <div style={{fontWeight: 600, opacity: 0.6, fontSize: '14px'}}>{`${data?.client?.name} - ${data?.client?.client_id}`}</div>
+    </div>
+  } 
+  return (
+    <div style={{width: '100%'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', padding: '10px 20px', background: '#fff'}}>
+        <h4 style={{ fontSize: 16, color: '#465f7b', fontWeight: 600}}> Interview Loop</h4> 
+        <Button style={{ color: '#1890ff', borderColor: '#1890ff'}} onClick={()=>handlePickJob({handleCancelModal, dataCDD: totalDataCDD,visible: true})}><PlusOutlined/>Pick Job</Button>
+      </div>
+      <Collapse accordion  style={{maxHeight: '70vh', overflowY: 'auto'}}>
+        {totalDataCDD?.flows?.map((e,i)=>{
+        let dataFlow = e;
+          let primaryTitle = e?.job; 
+          let flow = e?.flow;
+          let idFlow=e.id;
+          return <Panel header={header(primaryTitle)} key={idFlow} extra={genExtra(e)}>
+                <Timeline  style={{ paddingTop: '10px'}}>
+                    {
+                      flow?.map((e,i)=>{
+                        let status = findFlowStatus(e?.current_status); 
+                        let date = e?.info?.time || moment(e?.createdAt).format('YYYY-MM-DD hh:mm:ss');
+                        let countComment = e?.comments?.length; 
+                        return (
+                          <div key={i} >
+                            <Timeline.Item style={{cursor: 'pointer'}} color="green" onClick={()=> handleShowModal({handleCancelModal, dataFlow:dataFlow, data:e,date,status, visible:true, location: i})}>
+                              <strong>{status?.label}</strong>
+                              <p style={{marginBottom: 0, fontWeight: 600, opacity: 0.7}} >{date}</p>
+                              <p style={{marginBottom: 0, fontWeight: 600, opacity: 0.7}} >{`${countComment} comments`}</p>
+                            </Timeline.Item>   
+                          </div>
+                        )
+                      })
+                    } 
+                </Timeline> 
+          </Panel> 
+        })} 
+      </Collapse>
+      <ModalFlow {...showModal}/>
+      <CandidateAssessment {...showModalAssessment}/>
+      <PickJob {...showModalPickJob}/>
+    </div>
+  );
+}
   
 function ItemAssessment(props){
   const title = props.title || "-";
@@ -291,14 +291,26 @@ function ModalFlow(props){
     date: '',  
     interviewer: [],
     reject_reason: null
-  }); 
-
-  const [comment,setComment] = useState({
-    key: 'comment_interview',
-    status: false,
-    value: "",
-  })
-
+  });  
+    console.log(data);
+  const [stateInput,setStateInput] = useState(()=> ({
+    comment_interview: {
+      key: 'comment_interview',
+      status: false,
+      value: "",
+    },
+    briefing: {
+      key: 'briefing',
+      status: false,
+      value: data?.info?.briefing,
+    },
+    debriefing: {
+      key: 'debriefing',
+      status: false,
+      value: data?.info?.debriefing,
+    }
+  }))  
+  
   const { data: listALlUsers } = useQuery(
     ["listAllUsersInterviews", token],
     async () => await getAllUsers(token)
@@ -311,7 +323,28 @@ function ModalFlow(props){
       interviewer: {},
       reject_reason: null
     })
+    if(data?.info){
+      setStateInput({
+        comment_interview: {
+          key: 'comment_interview',
+          status: false,
+          value: "",
+        },
+        briefing: {
+          key: 'briefing',
+          status: false,
+          value: data.info['briefing'],
+        },
+        debriefing: {
+          key: 'debriefing',
+          status: false,
+          value: data.info['debriefing'],
+        }
+      })
+    }
+    
   },[data])
+  // console.log(stateInput);
   useEffect(() =>{
     setIsEnable(statusJob < 0)
     },
@@ -338,7 +371,7 @@ function ModalFlow(props){
         
       }})
   } 
-  const  onChangeRejectReason = (e,o) => {
+  const onChangeRejectReason = (e,o) => {
     setIsShowReason(true)  
     setListValue(prevData => {
       return {...prevData, 
@@ -350,26 +383,27 @@ function ModalFlow(props){
         }
       }
     })
+  } 
+  const handleIsShowToolbar = (data,type)=>{
+    
+    let result = {
+      ...stateInput, 
+       [type]:{
+         ...stateInput?.[type],
+         status: data
+       }
+    } 
+    setStateInput(result)
   }
-  const genExtra = () => (
-    <MoreOutlined 
-      onClick={event => {
-        // If you don't want click extra trigger collapse, you can prevent this:
-        console.log(event);
-        event.stopPropagation();
-      }}
-    />
-  ); 
-  const handleIsShowToolbar = (data)=>{
-    let result = {...comment}
-    result.status = data; 
-    setComment(result)
-  }
-  const handleSaveDataComment = async (value)=>{ 
-    let result = {...comment}
-    result.value = ""; 
-    setComment(result);
-
+  const handleSaveDataComment = async (value,type)=>{   
+    let result = {
+      ...stateInput, 
+       [type]:{
+         ...stateInput?.[type],
+         value: ''
+       }
+    } 
+    setStateInput(result); 
     let dataSave = {
       content: value,
       source_uuid: dataFlow?.id,
@@ -383,6 +417,27 @@ function ModalFlow(props){
     data?.comments?.push(res);
    })
   } 
+  const handleSaveDataInterview = async(value,type) =>{
+    let resultState = {
+      ...stateInput, 
+       [type]:{
+         ...stateInput?.[type],
+         value: value
+       }
+    } 
+    setStateInput(resultState); 
+
+    let id = dataFlow?.id;
+    let result = {
+      flow: {
+        id: data?.id,
+        [type]: value
+      }
+    } 
+    await updateInterview(id,result,token).then(()=>{
+      message.success({ content: 'Updated success !', duration: 2 }); 
+    })
+  }
   const handleChangeDate = async (value)=>{ 
     let id = dataFlow?.id;
     let result = {
@@ -426,9 +481,15 @@ function ModalFlow(props){
     })
     handleCancelModal()
   }
-  if(!visible){
+  if(!visible || !data){
     return <></>
-  } 
+  }  
+  let titleDate = "Date"; 
+  let titleConsultant = "Consultant"
+  if(status?.id === 6 || status?.id === 3){
+    titleDate=" Interview date";
+    titleConsultant = "Interviewer"
+  }
   return (
     <> 
     <Modal
@@ -494,8 +555,9 @@ function ModalFlow(props){
                   style={{width: '100%'}}
                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
                 >
-                  {candidate_flow_status?.map(e=>{
-                    return <Select.Option disabled={listStatus?.includes(e?.id)} key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.label}</Select.Option>
+                  {candidate_flow_status?.map((e,i)=>{ 
+                    let disabled =   candidate_flow_status?.map(e=>e.id)?.indexOf(listStatus[0]) ; 
+                    return <Select.Option disabled={i<=disabled}  key={e?.id} style={{textTransform: 'capitalize'}} value={e?.id}>{e?.label}</Select.Option>
                   })} 
                 </Select>
                 {isShowActionBtn?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "action"})} } >Save</Button>:<></>}
@@ -503,28 +565,18 @@ function ModalFlow(props){
           </Row>:
           <></>}  
            {/* {Date} */}
-           {status?.id ===3? <Row style={{marginBottom: '8px'}}>
+           <Row style={{marginBottom: '8px'}}>
             <Col span={8}>
-                <strong>Interview date</strong>
+                <strong>{titleDate}</strong>
             </Col>
             <Col span={16}>
               <DatePicker defaultValue={moment(date)}  disabled={isEnable} showTime style={{width: '100%'}} showToday={false} onOk={handleChangeDate}/>
             </Col>
             </Row>
-           :<Row style={{marginBottom: '8px'}}>
-            <Col span={8}>
-                <strong>Date</strong>
-            </Col>
-            <Col span={16}>
-              <DatePicker defaultValue={moment(date)}  disabled={isEnable} showTime style={{width: '100%'}} showToday={false}  onOk={handleChangeDate}/>
-            </Col>
-          </Row>}
-          
-          {/* {Interviewer} */}
-          {status?.id ===3? 
+          {/* {Interviewer && Consultant} */} 
           <Row  style={{marginBottom: '8px'}}>
             <Col span={8}>
-                <strong>Interviewer</strong>
+                <strong>{titleConsultant}</strong>
             </Col>
             <Col span={16}>
               <Select
@@ -544,9 +596,8 @@ function ModalFlow(props){
                 </Select>
                 {isShowBtnConsultant?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "interviewer"})} } >Save</Button>:<></>}
             </Col>
-          </Row>:
-          <></>}
-          {/* {Consultant && Reject Reasons} */}
+          </Row> 
+          {/* {Reject Reasons} */}
           {status?.id ===3 ? <Row style={{marginTop: '8px'}}>
             <Col span={8}>
                 <strong>Rejecting reason</strong>
@@ -570,38 +621,37 @@ function ModalFlow(props){
                 
             </Col>
           </Row>
-          :<Row style={{marginTop: '8px'}}>
-            <Col span={8}>
-                <strong>Consultant</strong>
-            </Col>
-            <Col span={16} >
-              <Select
-                  disabled={isEnable}
-                  showSearch
-                  mode="multiple"
-                  placeholder="Please select interviewer"
-                  optionFilterProp="children"
-                  onChange={onChangeConsultant}
-                  defaultValue={data?.info?.interviewer?.map(e => e?.id)}
-                  style={{width: '100%'}}
-                  filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                >
-                  {listALlUsers?.data?.map(e=>{
-                     return <Select.Option key={e?.id} style={{textTransform: 'capitalize'}} data={e} value={e?.id}>{e?.full_name}</Select.Option>
-                  })} 
-                </Select>
-                {isShowBtnConsultant?<Button type="primary" style={{float: 'right'}} className="interview-btn" onClick={()=> {handleSaveInterview({type: "interviewer"})} }>Save</Button>:<></>}
-                
-            </Col>
-          </Row>}
+          : <></>}
           
+          {status?.id === 6? 
+            <Row>
+               <Col span={8}>
+                <strong>Briefing candidate & client</strong>
+            </Col>
+            <Col span={16}>
+               <InputCkeditor function={{handleIsShowToolbar,handleSaveData: handleSaveDataInterview}} data={stateInput.briefing}/> 
+            </Col>
+             
+            </Row>
+          :<></>}
+          {status?.id === 6? 
+            <Row>
+               <Col span={8}>
+                <strong>Debriefing candidate & client</strong>
+            </Col>
+            <Col span={16}>
+               <InputCkeditor function={{handleIsShowToolbar,handleSaveData: handleSaveDataInterview}} data={stateInput.debriefing}/> 
+            </Col>
+             
+            </Row>
+          :<></>}
            </Col> 
            <Col span={12}> 
               {/* {Comments} */}
               <div style={{borderLeft: '1px solid rgb(221, 221, 221)', paddingLeft: '10px'}}> 
                   <p><strong>Comments</strong></p> 
                   {isEnable?<Input placeholder="Add content..." disabled={isEnable}/>:
-                  <InputCkeditor function={{handleIsShowToolbar,handleSaveData: handleSaveDataComment}} data={comment} isClear={true}/>}
+                  <InputCkeditor function={{handleIsShowToolbar,handleSaveData: handleSaveDataComment}} data={stateInput.comment_interview} isClear={true}/>}
                   
                   <p style={{paddingTop: "6px"}}>{data?.comments?.length} comments</p>
               </div>  

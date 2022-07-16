@@ -28,8 +28,7 @@ export default function DetailJob (props){
 
     const [editOnly, setEditOnly] = useState(false); 
     const [key,setKey]= useState('');
-    const [data,setData]= useState();
-    const [picture,setPicture]= useState(); 
+    const [data,setData]= useState(); 
     const [listDataJobDescriptions,setListDataJobDescriptions]= useState({});
   
     const { data: listInfoJob , refetch} = useQuery(
@@ -75,10 +74,7 @@ export default function DetailJob (props){
     }
     const resetData = (data) => { 
         setData(data);
-    }
-    const resetPic = (data) => { 
-        setPicture(data);
-    }
+    } 
     const handleSaveJobDescription =async (data,type)=>{   
         let result = {
             [type]:data

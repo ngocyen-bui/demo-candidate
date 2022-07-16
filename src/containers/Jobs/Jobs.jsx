@@ -30,13 +30,17 @@ export default function Jobs() {
     const [rangeDefaults, setRangeDefaults] = useState({
       from: null,
       to: null
-    })   
+    })    
     const [searchClients, setSearchClients] = useState([]); 
     const [checkErr,setCheckErr] = useState()
     const { data: listUser } = useQuery(
       ["listUser", token],
       async () => await getAllUsers(token)
     );   
+    if (listUser?.status === 401) {
+      logout();
+      localStorage.removeItem("auth");
+    }
     const { data: listKeyJob } = useQuery(
       ["getListKeyJob", token],
       async () => await getKeyJobs(token)
@@ -152,9 +156,7 @@ export default function Jobs() {
         }  
       }      
       return {...obj}
-    });  
-    const filterString = useRef()
-  
+    });   
     const convertStringFilter = (filters)=>{ 
       const listFilter = filters;
       let str = '?page='+(page || 1)+'&perPage='+(listFilter['perPage']|| 10);
@@ -185,13 +187,13 @@ export default function Jobs() {
       return str;
     }
     const { data: totalDataJobs, isFetching } = useQuery(
-        ["listJobs" ,filterString.current, token],
-        async () => await getListJob( filterString.current, token), 
+        ["listJobs" ,convertStringFilter(filters), token],
+        async () => await getListJob( convertStringFilter(filters), token), 
     );
     if (totalDataJobs?.status === 401) { 
       logout();
       localStorage.removeItem("auth");
-    }       
+    }        
     useEffect(() => {
       let obj = {};
       const endax = new URLSearchParams(search).entries()
@@ -289,7 +291,7 @@ export default function Jobs() {
           }
         }  
       }     
-      setFilters(obj);
+      setFilters(obj); 
     }, [search]);   
    
     useEffect(() => 
@@ -305,8 +307,7 @@ export default function Jobs() {
       setCountry(o.data.key)
     }
     const handleSearch = async (selectedKeys, confirm, dataIndex) => {      
-      let temp = [];   
-      let dataFilters = {...filters}
+      let temp = [];    
       if(dataIndex === 'location'){
         let city ={}
         if(selectedKeys?.city?.data){
@@ -347,16 +348,21 @@ export default function Jobs() {
         temp = selectedKeys[0]
       }   
       setPage(1);
+     
       confirm();   
-      return setFilters({
-        ...dataFilters,
-        [dataIndex]: temp
-      }) ;
+      navigate(convertStringFilter({...filters,[dataIndex]: temp})) 
+      return setFilters( (prevData=>{
+        return {
+          ...prevData,
+          [dataIndex]: temp
+        }
+      })) ; 
     };     
-    useEffect(()=>{ 
-        filterString.current = convertStringFilter(filters);
-        navigate(convertStringFilter(filters)); 
-    },[filters]) 
+     
+    // useEffect(()=>{  
+    //     navigate(convertStringFilter(filters))    
+    // },[filters,navigate])  
+
     const handleReset = (clearFilters,confirm,dataIndex) => {
       let temp = { ...filters }; 
       delete temp[dataIndex]; 
