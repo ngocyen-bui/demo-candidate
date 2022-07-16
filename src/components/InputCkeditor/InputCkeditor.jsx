@@ -8,7 +8,7 @@ import { Button, Input } from 'antd';
 
 export function InputCkeditor (props){  
     const showToolbar = props.function.handleIsShowToolbar || function(){};
-    const updateData = props.function.handleSaveData;
+    const updateData = props.function.handleSaveData; 
     const type = props.data.key;
     const isShow = props.data.status;
     const enabled = props.data.enabled || false;
@@ -18,19 +18,20 @@ export function InputCkeditor (props){
     const [data, setData] = useState(defaultValue); 
     const [hasInput,setHasInput] = useState(!defaultValue);
     // const [value,setValue] = useState("");
-    const [loading,setLoading] = useState(false);   
-     
+    const [loading,setLoading] = useState(false);    
 
     const handleCancel = ()=>{
       setData(defaultValue);
       setHasInput(true);
       showToolbar(false, type)
     }
+    // useEffect(()=>{
+    //   setData(defaultValue);
+    // },[defaultValue]) 
     const handleSave = ()=>{  
       updateData(data,type);
       setHasInput(!data);
-      setLoading(true);
-
+      setLoading(true);  
       if(isClearWhenSave){
         setData("");
         setHasInput(true);
@@ -43,7 +44,7 @@ export function InputCkeditor (props){
     const handleChange = (e)=>{ 
       setData(e);
     }  
-
+ 
     if(!data && hasInput){
       return <Input onFocus={()=>{
         showToolbar(true,type)
@@ -118,6 +119,8 @@ export function InputCkeditor (props){
                           "|",
                           "toggleImageCaption",
                           "imageTextAlternative", 
+                          "|",
+                          'resizeImage'
                         ],  
                       }, 
                   }}

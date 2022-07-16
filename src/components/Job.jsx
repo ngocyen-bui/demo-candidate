@@ -88,7 +88,7 @@ export default function DetailJob (props){
                 message.error('Something wrong !'); 
             }
             else { 
-                refetch();
+                
                 resetData(e);
                 message.loading({ content: 'Loading...', key,duration: 0.5 });
                 setTimeout(() => {
@@ -96,6 +96,7 @@ export default function DetailJob (props){
                 }, 500); 
             }  
         })  
+        refetch();
     }
 
     const handleIsShowToolbar = (value,type)=>{
@@ -129,8 +130,7 @@ export default function DetailJob (props){
         })  
     }
 
-    useEffect(()=>{
-        // console.log(listInfoJob);
+    useEffect(()=>{ 
         if(listInfoJob){
             setData(listInfoJob);
             setListDataJobDescriptions({

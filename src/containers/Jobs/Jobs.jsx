@@ -840,6 +840,7 @@ export default function Jobs() {
         })
       }
       delete temp[e]; 
+      navigate(convertStringFilter(temp)) 
       setFilters(temp);
     };  
     const forMap = (tag) => { 
