@@ -15,7 +15,7 @@ import {
   } from "../../features/candidate"; 
   import TextArea from "antd/lib/input/TextArea";
   import { DetailCandidate } from "../../components/Candidate";
-import { DeleteOutlined, LoadingOutlined, MoreOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons"; 
+import { DeleteOutlined, ExclamationCircleOutlined, LoadingOutlined, MoreOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons"; 
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../hooks/useAuth";
 import axios from "axios";
@@ -150,8 +150,8 @@ function InterviewLoop(props){
   }
   const header = (data)=>{  
     return <div>
-      <div style={{fontWeight: 600, fontSize: '16px'}}>{`${data?.job_id} - ${data?.title?.label}`}</div>
-      <div style={{fontWeight: 600, opacity: 0.6, fontSize: '14px'}}>{`${data?.client?.name} - ${data?.client?.client_id}`}</div>
+      <div style={{fontWeight: 600, fontSize: '14px'}}>{`${data?.job_id} - ${data?.title?.label}`}</div>
+      <div style={{fontWeight: 600, opacity: 0.6, fontSize: '12px'}}>{`${data?.client?.name} - ${data?.client?.client_id}`}</div>
     </div>
   } 
   return (
@@ -291,8 +291,7 @@ function ModalFlow(props){
     date: '',  
     interviewer: [],
     reject_reason: null
-  });  
-    console.log(data);
+  });   
   const [stateInput,setStateInput] = useState(()=> ({
     comment_interview: {
       key: 'comment_interview',
@@ -343,8 +342,7 @@ function ModalFlow(props){
       })
     }
     
-  },[data])
-  // console.log(stateInput);
+  },[data]) 
   useEffect(() =>{
     setIsEnable(statusJob < 0)
     },
@@ -393,7 +391,7 @@ function ModalFlow(props){
          status: data
        }
     } 
-    setStateInput(result)
+    return setStateInput(result)
   }
   const handleSaveDataComment = async (value,type)=>{   
     let result = {
@@ -863,6 +861,7 @@ function AttachmentComponent(props){
     const DOMAIN = 'https://lubrytics.com:8443';
     const [fileList, setFileList] = useState([]);
 
+    const { confirm } = Modal;
  
     const formatImage = (arr)=>{ 
           return arr?.map(e=>{ 
@@ -959,7 +958,7 @@ function AttachmentComponent(props){
       };
 
     const onChange = (file) => { 
-        setFileList(file.fileList);  
+        // setFileList(file.fileList);  
     };
 
     const onPreview = async (file) => {
@@ -993,18 +992,30 @@ function AttachmentComponent(props){
         modal.style.display = "none";
         }
     };
+    const showPromiseConfirm = (file) => { 
+      confirm({
+        title: 'Do you want to delete these items?',
+        icon: <ExclamationCircleOutlined />,
+        content: 'When clicked the OK button, this dialog will be closed after 1 second',
+        onOk() {  
+          return new Promise((resolve, reject) => {
+            const key = 'updatable'; 
+            deteteImage(file.uid, token).then(res => 
+            {
+                if(res.status === 202){   
+                    refetch()
+                    message.success({ content: 'Updated success !', key, duration: 2 }); 
+                }
+            })  
+            setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+
+          }).catch(() => console.log('Oops errors!'));
+        },
+        onCancel() {},
+      });
+    };
     const onRemove = async(file) => {
-        const key = 'updatable';
-        // let data = infoCandidate?.mediafiles?.files || [];
-        let result = fileList.filter(e => e === file.uid);  
-        await deteteImage(file.uid, token).then(res => 
-        {
-            if(res.status === 202){  
-                // updateCandidate(infoCandidate.id,{mediafiles:{files: result}},token)
-                refetch()
-                message.success({ content: 'Updated success !', key, duration: 2 }); 
-            }
-        }) 
+      showPromiseConfirm(file) 
     }
     const onDownload = async(file) => {
       console.log(file);

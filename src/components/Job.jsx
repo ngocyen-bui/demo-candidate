@@ -1540,7 +1540,7 @@ function TagLink(props){
           }]; 
           saveData(arr,'social_media')
           setTags(result);
-      }else if(!validateUrl(inputValue)){
+      }else if(!validateUrl(inputValue.trim())){
         message.error({content: "Test must be a URL", duration: 1});
       }else if(dataArr.indexOf(inputValue.trim()) !== -1){
         message.error({content: "This link was exist", duration: 1});

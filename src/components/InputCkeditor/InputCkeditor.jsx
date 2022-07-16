@@ -7,7 +7,7 @@ import { Button, Input } from 'antd';
   
 
 export function InputCkeditor (props){  
-    const showToolbar = props.function.handleIsShowToolbar;
+    const showToolbar = props.function.handleIsShowToolbar || function(){};
     const updateData = props.function.handleSaveData;
     const type = props.data.key;
     const isShow = props.data.status;
@@ -68,6 +68,9 @@ export function InputCkeditor (props){
                     if(enabled){
                       editor.enableReadOnlyMode(type);  
                     } 
+                    if(isClearWhenSave || !data){ 
+                      editor.editing.view.focus()
+                    }
                 }}
                 editor={DecoupledcEditor} 
                 config={{    
@@ -128,7 +131,7 @@ export function InputCkeditor (props){
                 // console.log(Array.from(editor.ui.componentFactory.names()));  
                 }}
                 onFocus={(event, editor) => {
-                  showToolbar(true,type);
+                   showToolbar(true,type);
                 }}
             /> 
         </div>
